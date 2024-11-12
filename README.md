@@ -7,3 +7,10 @@ denk het niet
 wat? readme?
 je hebt er sws onzin in staan
 onedrive of teams
+chaotisch kut project onoverzichtelijk
+hoe schrijf je dat
+ik ga hem expres verkeerd schrijven
+hoe schrijf je dit
+beethoven daarna the tenth symphony
+simponie
+en daarna i just wanna be part of your symphony

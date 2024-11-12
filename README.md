@@ -15,3 +15,8 @@ beethoven daarna the tenth symphony
 simponie
 en daarna i just wanna be part of your symphony
 hou je bek
+wat?
+je zei simp onie
+ik hoorde dat toen had ik hem opgeschreven
+quinten is zoooooo freaky, hij gaat elke dag tenen likken enzo
+lebronnn james

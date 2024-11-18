@@ -3,7 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.11.35222.181
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BeetHovenWPF", "BeetHovenWPF\BeetHovenWPF.csproj", "{EBC4CC07-5A76-4B4E-954C-FC5E732C393D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BeetHovenWPF", "BeetHovenWPF\BeetHovenWPF.csproj", "{EBC4CC07-5A76-4B4E-954C-FC5E732C393D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BeethovenBusiness", "BeethovenBusiness\BeethovenBusiness.csproj", "{45B104BE-0BEB-49A9-96EA-775B54545743}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BeethovenDataAccesLayer", "BeethovenDataAccesLayer\BeethovenDataAccesLayer.csproj", "{AEC830DA-49EB-497E-9B31-DD35804F3F14}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +19,14 @@ Global
 		{EBC4CC07-5A76-4B4E-954C-FC5E732C393D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EBC4CC07-5A76-4B4E-954C-FC5E732C393D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EBC4CC07-5A76-4B4E-954C-FC5E732C393D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{45B104BE-0BEB-49A9-96EA-775B54545743}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{45B104BE-0BEB-49A9-96EA-775B54545743}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{45B104BE-0BEB-49A9-96EA-775B54545743}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{45B104BE-0BEB-49A9-96EA-775B54545743}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AEC830DA-49EB-497E-9B31-DD35804F3F14}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AEC830DA-49EB-497E-9B31-DD35804F3F14}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AEC830DA-49EB-497E-9B31-DD35804F3F14}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AEC830DA-49EB-497E-9B31-DD35804F3F14}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

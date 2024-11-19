@@ -4,8 +4,8 @@
         Title="PianoWindow" 
         Height="800" Width="800" 
         ResizeMode="CanResize"
-        SizeToContent="Manual">
-
+        SizeToContent="Manual"
+        Closing="Window_Closing">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />

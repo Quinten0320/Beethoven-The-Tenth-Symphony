@@ -11,6 +11,7 @@ namespace BeetHovenWPF
     public partial class PianoWindow : Window
     {
         private readonly PianoInputHandler _inputHandler;
+        private Rectangle _movingRectangle;
         public PianoWindow()
         {
             InitializeComponent();
@@ -20,7 +21,7 @@ namespace BeetHovenWPF
             _inputHandler = new PianoInputHandler();
             _inputHandler.NotePressed += OnMidiNotePressed;
 
-            GeneratePiano();
+            Loaded += PianoWindow_Loaded;
         }
 
         private void OnMidiNotePressed(string note)
@@ -75,7 +76,7 @@ namespace BeetHovenWPF
                     };
 
                     Canvas.SetLeft(whiteKey, currentX);
-                    Canvas.SetTop(whiteKey, 0);
+                    Canvas.SetBottom(whiteKey, 0);
                     Panel.SetZIndex(whiteKey, 0);
                     whiteKey.MouseDown += Key_MouseDown;
                     PianoCanvas.Children.Add(whiteKey);
@@ -94,7 +95,7 @@ namespace BeetHovenWPF
                         };
 
                         Canvas.SetLeft(blackKey, currentX + whiteKeyWidth * 0.75 - (blackKeyWidth / 2) + whiteKeyWidth * 0.25);
-                        Canvas.SetTop(blackKey, 0);
+                        Canvas.SetBottom(blackKey, whiteKeyHeight - blackKeyHeight);
                         Panel.SetZIndex(blackKey, 1);
                         blackKey.MouseDown += Key_MouseDown;
                         PianoCanvas.Children.Add(blackKey);

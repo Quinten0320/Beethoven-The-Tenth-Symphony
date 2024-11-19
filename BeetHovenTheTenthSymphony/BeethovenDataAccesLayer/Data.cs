@@ -67,5 +67,17 @@ namespace BeethovenDataAccesLayer
             throw new Exception($"Midi file with name '{name}' not found.");
         }
 
+        public void UploadMidiFile(string selectedFile)
+        {
+            SearchFolder();
+            string destinationFilePath = Path.Combine(folderPath, Path.GetFileName(selectedFile));
+
+            if (File.Exists(destinationFilePath))
+            {
+                throw new IOException("The selected MIDI file already exists in the destination folder.");
+            }
+
+            File.Copy(selectedFile, destinationFilePath);
+        }
     }
 }

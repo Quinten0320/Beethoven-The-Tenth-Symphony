@@ -4,22 +4,39 @@ using System.Windows.Media;
 using System.Windows.Shapes;
 using System.Windows.Input;
 using System.Windows.Media.Animation;
+using BeethovenBusiness;
 
 namespace BeetHovenWPF
 {
     public partial class PianoWindow : Window
     {
+        private readonly PianoInputHandler _inputHandler;
         public PianoWindow()
         {
             InitializeComponent();
 
-            SizeChanged += PianoWindow_SizeChanged; //adjust key size on window resize
+            SizeChanged += PianoWindow_SizeChanged;
+
+            _inputHandler = new PianoInputHandler();
+            _inputHandler.NotePressed += OnMidiNotePressed;
 
             GeneratePiano();
         }
 
-        private int _octaves = 6;
-        private const int _whiteKeyCount = 7; //niet aanpassen
+        private void OnMidiNotePressed(string note)
+        {
+            // Update the TextBox with the received note
+            Dispatcher.Invoke(() => LastPressedNoteTextBox.Text = note);
+        }
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            // Dispose of the PianoInputHandler when the window closes
+            _inputHandler.Dispose();
+        }
+
+        private int _octaves = 8;
+        private const int _whiteKeyCount = 7; //altijd 7
 
         private void GeneratePiano()
         {
@@ -28,19 +45,20 @@ namespace BeetHovenWPF
             double canvasWidth = PianoCanvas.ActualWidth;
             double canvasHeight = PianoCanvas.ActualHeight;
 
-            double whiteKeyWidth = canvasWidth / (_octaves * _whiteKeyCount);
+            double whiteKeyWidth = canvasWidth / (_octaves * _whiteKeyCount); //geeft grootte aan keys
             double whiteKeyHeight = canvasHeight;
             double blackKeyWidth = whiteKeyWidth * 0.6;
             double blackKeyHeight = canvasHeight * 0.6;
 
-            string[] whiteKeysWithBlack = { "C", "D", "F", "G", "A" };
+            string[] whiteKeysWithBlack = { "C", "D", "F", "G", "A" }; //alle witte keys waar een zwarte key op moet zitten
             double currentX = 0;
 
             for (int octave = 0; octave < _octaves; octave++)
             {
                 for (int i = 0; i < _whiteKeyCount; i++)
                 {
-                    //current white kay
+                    string whiteNote = GetWhiteKeyName(i) + (octave+1); //Key naam + Octaaf
+
                     Rectangle whiteKey = new Rectangle
                     {
                         Width = whiteKeyWidth,
@@ -48,27 +66,32 @@ namespace BeetHovenWPF
                         Fill = Brushes.White,
                         Stroke = Brushes.Black,
                         StrokeThickness = 1,
-                        Tag = "White"
+
+                        Tag = whiteNote //geeft witte key een tag
                     };
 
                     Canvas.SetLeft(whiteKey, currentX);
                     Canvas.SetTop(whiteKey, 0);
+                    Panel.SetZIndex(whiteKey, 0);
                     whiteKey.MouseDown += Key_MouseDown;
                     PianoCanvas.Children.Add(whiteKey);
 
-                    //add black keys
                     if (i < _whiteKeyCount - 1 && whiteKeysWithBlack.Contains(GetWhiteKeyName(i)))
                     {
+                        string blackNote = GetWhiteKeyName(i) + "#" + (octave+1);
+
                         Rectangle blackKey = new Rectangle
                         {
                             Width = blackKeyWidth,
                             Height = blackKeyHeight,
                             Fill = Brushes.Black,
-                            Tag = "Black"
+
+                            Tag = blackNote //geeft zwarte key tag
                         };
-                        
-                        Canvas.SetLeft(blackKey, currentX + whiteKeyWidth * 0.75 - (blackKeyWidth / 2));
+
+                        Canvas.SetLeft(blackKey, currentX + whiteKeyWidth * 0.75 - (blackKeyWidth / 2) + whiteKeyWidth * 0.25);
                         Canvas.SetTop(blackKey, 0);
+                        Panel.SetZIndex(blackKey, 1);
                         blackKey.MouseDown += Key_MouseDown;
                         PianoCanvas.Children.Add(blackKey);
                     }
@@ -76,11 +99,12 @@ namespace BeetHovenWPF
                     currentX += whiteKeyWidth;
                 }
             }
+
         }
 
         private void PianoWindow_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            GeneratePiano(); //re-generate piano keys on resize
+            GeneratePiano();
         }
 
         private string GetWhiteKeyName(int index)
@@ -89,9 +113,13 @@ namespace BeetHovenWPF
             return whiteKeyNames[index];
         }
 
-        private void Key_MouseDown(object sender, MouseButtonEventArgs e) //wanneer een piano noot ingedrukt wordt
+        private void Key_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            
+            if (sender is Rectangle key)
+            {
+                string note = key.Tag?.ToString();
+                LastPressedNoteTextBox.Text = note;
+            }
         }
     }
 }

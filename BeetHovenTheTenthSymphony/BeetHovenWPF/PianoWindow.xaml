@@ -4,15 +4,17 @@
         Title="PianoWindow" 
         Height="800" Width="800" 
         ResizeMode="CanResize"
-        SizeToContent="Manual">
+        SizeToContent="Manual"
+        Closing="Window_Closing">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
-            <!-- Empty space above piano -->
             <RowDefinition Height="200" />
-            <!-- Piano area -->
         </Grid.RowDefinitions>
 
         <Canvas Name="PianoCanvas" Background="black" Grid.Row="1" />
+        <Label Content="Last pressed key:" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" />
+        <TextBox x:Name="LastPressedNoteTextBox" HorizontalAlignment="Left" Margin="111,14,0,0" 
+                 TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="60" IsReadOnly="True" />
     </Grid>
 </Window>

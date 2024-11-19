@@ -5,14 +5,25 @@
         Height="800" Width="800" 
         ResizeMode="CanResize"
         SizeToContent="Manual">
+
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
             <!-- Empty space above piano -->
-            <RowDefinition Height="200" />
+            <RowDefinition Height="*" />
             <!-- Piano area -->
         </Grid.RowDefinitions>
 
-        <Canvas Name="PianoCanvas" Background="black" Grid.Row="1" />
+        <Button Content="Start Animatie" 
+                Width="150" 
+                Height="40" 
+                HorizontalAlignment="Center" 
+                VerticalAlignment="Top" 
+                Grid.Row="0"
+                Margin="0,20,0,0" 
+                Click="StartAnimationButton_Click"/>
+
+        <Canvas  Name="PianoCanvas" Background="White" Grid.Row="1"  />
     </Grid>
+    
 </Window>

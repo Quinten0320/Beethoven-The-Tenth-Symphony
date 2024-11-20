@@ -69,11 +69,7 @@ namespace BeethovenBusiness
             return notesToPlay;
         }
 
-        public void telishnabidad()
-        {
-
-        }
-        
+               
         private string GetNoteName(int midiNoteNumber)
         {
             string[] noteNames = { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };

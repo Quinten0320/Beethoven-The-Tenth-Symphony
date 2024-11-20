@@ -10,29 +10,29 @@
     using System.Windows.Media.Imaging;
     using System.Windows.Navigation;
     using System.Windows.Shapes;
+using System.Windows.Threading;
 
     namespace BeetHovenWPF
+{
+    public partial class MainWindow : Window
     {
-        public partial class MainWindow : Window
+        private readonly UitlezenMidiLogica uitlezenLogic;
+        private DateTime startTime;
+        string midiPath = @"C:\Users\quint\Downloads\nyan cat.mid.mid";
+
+        public MainWindow()
         {
-            private readonly UitlezenMidiLogica uitlezenLogic;
-            private DateTime startTime;
-            string midiPath = @"C:\Users\quint\Downloads\nyan cat.mid.mid";
+            InitializeComponent();
+            uitlezenLogic = new UitlezenMidiLogica();
+            Midiuitlezen();
 
-            public MainWindow()
-            {
-                InitializeComponent();
-                uitlezenLogic = new UitlezenMidiLogica();
-
-            }
-            private void OpenPianoWindow(object sender, RoutedEventArgs e)
-            {
-                PianoWindow pianoWindow = new PianoWindow();
-                pianoWindow.Show();
-                Midiuitlezen();
-            }
         }
-        
+        private void OpenPianoWindow(object sender, RoutedEventArgs e)
+        {
+            PianoWindow pianoWindow = new PianoWindow();
+            pianoWindow.Show();
+        }
+
         private void Midiuitlezen()
         {
             string midiPath = @"C:\Users\quint\Downloads\nyan cat.mid.mid";
@@ -75,5 +75,8 @@
                 MessageBox.Show($"Fout in timer: {ex.Message}");
             }
         }
-        
     }
+
+
+
+}

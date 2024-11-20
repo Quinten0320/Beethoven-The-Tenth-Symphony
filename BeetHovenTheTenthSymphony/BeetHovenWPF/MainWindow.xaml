@@ -8,8 +8,8 @@
                 VerticalAlignment="Center" 
                 Width="150" Height="50" 
                 Click="OpenPianoWindow"/>
-                <TextBox Name="NotesTextBox" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" 
-                   VerticalAlignment="Top" Height="300" Width="500" Margin="10,10,10,0"/>
+        <TextBox Name="NotesTextBox" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" 
+                VerticalAlignment="Top" Height="300" Width="500" Margin="10,10,10,0"/>
 
     </Grid>
 </Window>

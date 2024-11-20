@@ -14,15 +14,6 @@
             <!-- Piano area -->
         </Grid.RowDefinitions>
 
-        <Button Content="Start Animatie" 
-                Width="150" 
-                Height="40" 
-                HorizontalAlignment="Center" 
-                VerticalAlignment="Top" 
-                Grid.Row="0"
-                Margin="0,20,0,0" 
-                Click="StartAnimationButton_Click"/>
-
         <Canvas  Name="PianoCanvas" Background="White" Grid.Row="1"  />
         <Label Content="Last pressed key:" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" />
         <TextBox x:Name="LastPressedNoteTextBox" HorizontalAlignment="Left" Margin="111,14,0,0" 

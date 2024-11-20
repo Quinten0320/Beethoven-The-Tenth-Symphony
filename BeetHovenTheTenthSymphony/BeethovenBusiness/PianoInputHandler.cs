@@ -37,7 +37,6 @@ namespace BeethovenBusiness
             {
                 Console.WriteLine(e.Message);
             }
-            
         }
 
         private void OnMidiEventReceived(object sender, MidiEventReceivedEventArgs e)

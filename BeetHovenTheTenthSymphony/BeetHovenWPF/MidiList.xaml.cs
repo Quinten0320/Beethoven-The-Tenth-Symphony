@@ -1,24 +1,27 @@
 ﻿using System.Windows;
-using BeethovenDataAccesLayer;
+using BeethovenBusiness;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Interaction;
+using Melanchall.DryWetMidi.Multimedia;
 using Microsoft.Win32;
 
 namespace BeetHovenWPF
 {
     public partial class MidiList : Window
     {
+        private readonly MidiService _midiService;
         public MidiList()
         {
             InitializeComponent();
+
+            _midiService = new MidiService();
             fillList();
         }
 
         public void fillList()
         {
-            Data data = new Data();
 
-            List<string> midiNames = data.LoadMidiNames();
+            List<string> midiNames = _midiService.GetMidiFileNames();
 
             MidiFileList.ItemsSource = midiNames;
         }
@@ -26,11 +29,10 @@ namespace BeetHovenWPF
         private void MidiFileList_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             string selectedMidiName = MidiFileList.SelectedItem.ToString();
-            Data data = new Data();
 
             try
             {
-                MidiFile midiFile = data.LoadMidiFile(selectedMidiName);
+                MidiFile midiFile = _midiService.GetMidiFile(selectedMidiName);
 
                 var tempoMap = midiFile.GetTempoMap();
 
@@ -59,12 +61,12 @@ namespace BeetHovenWPF
             if (dialog.ShowDialog() == true)
             {
                 string selectedFile = dialog.FileName;
-                Data data = new Data();
 
                 try 
                 { 
-                    data.UploadMidiFile(selectedFile);
-                    MessageBox.Show($"{selectedFile} uploaded successfully!", "Upload Successful", MessageBoxButton.OK, MessageBoxImage.Information);
+                    _midiService.UploadMidiFile(selectedFile);
+                    string fileName = System.IO.Path.GetFileName(selectedFile);
+                    MessageBox.Show($"{fileName} uploaded successfully!", "Upload Successful", MessageBoxButton.OK, MessageBoxImage.Information);
 
                     fillList();
                 }

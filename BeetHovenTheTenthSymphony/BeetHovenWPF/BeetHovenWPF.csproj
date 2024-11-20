@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\BeethovenDataAccesLayer\BeethovenDataAccesLayer.csproj" />
+    <ProjectReference Include="..\BeethovenBusiness\BeethovenBusiness.csproj" />
   </ItemGroup>
 
 </Project>

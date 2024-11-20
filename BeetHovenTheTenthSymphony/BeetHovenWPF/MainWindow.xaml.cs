@@ -1,25 +1,38 @@
-﻿using BeethovenBusiness;
-using System;
-using System.Text;
-using System.Windows;
-using System.Windows.Threading;
 
-namespace BeetHovenWPF
-{
-    public partial class MainWindow : Window
+    using BeethovenBusiness;
+﻿   using System.Text;
+    using System.Windows;
+    using System.Windows.Controls;
+    using System.Windows.Data;
+    using System.Windows.Documents;
+    using System.Windows.Input;
+    using System.Windows.Media;
+    using System.Windows.Media.Imaging;
+    using System.Windows.Navigation;
+    using System.Windows.Shapes;
+
+    namespace BeetHovenWPF
     {
-        private readonly UitlezenMidiLogica uitlezenLogic;
-        private DateTime startTime;
-        
-        string midiPath = @"C:\Users\quint\Downloads\nyan cat.mid.mid";
-        public MainWindow()
+        public partial class MainWindow : Window
         {
-            InitializeComponent();
-            uitlezenLogic = new UitlezenMidiLogica();
-            Midiuitlezen();
+            private readonly UitlezenMidiLogica uitlezenLogic;
+            private DateTime startTime;
+            string midiPath = @"C:\Users\quint\Downloads\nyan cat.mid.mid";
+
+            public MainWindow()
+            {
+                InitializeComponent();
+                uitlezenLogic = new UitlezenMidiLogica();
+
+            }
+            private void OpenPianoWindow(object sender, RoutedEventArgs e)
+            {
+                PianoWindow pianoWindow = new PianoWindow();
+                pianoWindow.Show();
+                Midiuitlezen();
+            }
         }
-
-
+        
         private void Midiuitlezen()
         {
             string midiPath = @"C:\Users\quint\Downloads\nyan cat.mid.mid";
@@ -62,5 +75,5 @@ namespace BeetHovenWPF
                 MessageBox.Show($"Fout in timer: {ex.Message}");
             }
         }
+        
     }
-}

@@ -23,6 +23,10 @@ namespace BeethovenDataAccesLayer
                 Console.WriteLine($"An error occurred: {ex.Message}");
             }
         }
+        public string getFolderPath()
+        {
+            return folderPath;
+        }
 
         public List<string> LoadMidiNames()
         {

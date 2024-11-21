@@ -27,5 +27,10 @@ namespace BeethovenBusiness
         {
             _data.UploadMidiFile(selectedFile);
         }
+
+        public string getFolderPath()
+        {
+            return _data.getFolderPath();
+        }
     }
 }

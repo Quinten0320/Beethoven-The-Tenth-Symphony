@@ -34,13 +34,18 @@ namespace BeetHovenWPF
             {
                 MidiFile midiFile = _midiService.GetMidiFile(selectedMidiName);
 
+                string folderPath = _midiService.getFolderPath();
+                string completePath = folderPath + "\\" + selectedMidiName + ".mid";
+
                 var tempoMap = midiFile.GetTempoMap();
 
-                var tempo = tempoMap.GetTempoAtTime((MidiTimeSpan)0);
-                double microsecondsPerQuarterNote = tempo.MicrosecondsPerQuarterNote; 
-                double bpm = 60_000_000.0 / microsecondsPerQuarterNote;
+                //var tempo = tempoMap.GetTempoAtTime((MidiTimeSpan)0);
+                //double microsecondsPerQuarterNote = tempo.MicrosecondsPerQuarterNote; 
+                //double bpm = 60_000_000.0 / microsecondsPerQuarterNote;
 
-                MessageBox.Show($"Naam: {selectedMidiName} BPM: {bpm:F2}", "Tempo Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                //MessageBox.Show($"Naam: {selectedMidiName} BPM: {bpm:F2}", "Tempo Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                MainWindow mainwindow = new MainWindow(completePath);
+                mainwindow.ShowDialog();
             }
             catch (Exception ex)
             {

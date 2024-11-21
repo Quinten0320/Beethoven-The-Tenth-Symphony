@@ -18,14 +18,14 @@ using System.Windows.Threading;
     {
         private readonly UitlezenMidiLogica uitlezenLogic;
         private DateTime startTime;
-        string midiPath = @"C:\Users\quint\Downloads\nyan cat.mid.mid";
+        string midiPath;
 
-        public MainWindow()
+        public MainWindow(string filePath)
         {
             InitializeComponent();
             uitlezenLogic = new UitlezenMidiLogica();
+            midiPath = filePath;
             Midiuitlezen();
-
         }
         private void OpenPianoWindow(object sender, RoutedEventArgs e)
         {
@@ -35,8 +35,6 @@ using System.Windows.Threading;
 
         private void Midiuitlezen()
         {
-            string midiPath = @"C:\Users\quint\Downloads\nyan cat.mid.mid";
-
             try
             {
                 uitlezenLogic.LaadMidiBestand(midiPath);

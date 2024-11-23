@@ -39,12 +39,12 @@ namespace BeethovenBusiness
         }
 
         
-        public List<string> HaalNotenOp(double elapsedTime)
+        public List<Melanchall.DryWetMidi.Interaction.Note> HaalNotenOp(double elapsedTime)
         {
             if (notes == null || tempoMap == null)
                 throw new InvalidOperationException("Noten of TempoMap zijn niet geïnitialiseerd. Laad eerst een MIDI-bestand.");
 
-            var notesToPlay = new List<string>();
+            var notesToPlay = new List<Melanchall.DryWetMidi.Interaction.Note>();
             var notesToRemove = new List<Melanchall.DryWetMidi.Interaction.Note>();
 
             foreach (var note in notes.ToList())
@@ -57,8 +57,7 @@ namespace BeethovenBusiness
                 //als noot nu afgespeeld moet worden
                 if (elapsedTime >= noteTimeInSeconds)
                 {
-                    string noteName = GetNoteName(note.NoteNumber);
-                    notesToPlay.Add($"Note {noteName} speelt op {elapsedTime:F2} seconden");
+                    notesToPlay.Add(note);
                     notesToRemove.Add(note);
                 }
             }

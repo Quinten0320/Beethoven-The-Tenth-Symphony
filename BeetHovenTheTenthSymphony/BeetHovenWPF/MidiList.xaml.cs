@@ -44,8 +44,8 @@ namespace BeetHovenWPF
                 //double bpm = 60_000_000.0 / microsecondsPerQuarterNote;
 
                 //MessageBox.Show($"Naam: {selectedMidiName} BPM: {bpm:F2}", "Tempo Info", MessageBoxButton.OK, MessageBoxImage.Information);
-                MainWindow mainwindow = new MainWindow(completePath);
-                mainwindow.ShowDialog();
+                PianoWindow pianowindow = new PianoWindow(completePath);
+                pianowindow.ShowDialog();
             }
             catch (Exception ex)
             {

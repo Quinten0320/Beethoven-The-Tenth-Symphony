@@ -31,7 +31,7 @@ namespace BeetHovenWPF
 
         private void PianoWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            GeneratePiano(); // Creëer de piano
+            GeneratePiano();
 
             if (_midiPath != null)
             {
@@ -39,7 +39,7 @@ namespace BeetHovenWPF
                 {
                     uitlezenLogic.LaadMidiBestand(_midiPath);
                     double bpm = uitlezenLogic.BerekenBpm();
-                    // Notitie over BPM wordt nu niet meer weergegeven in de NotesTextBox
+                    //Notitie over BPM wordt nu niet meer weergegeven in de NotesTextBox
 
                     _startTime = DateTime.Now;
 
@@ -59,16 +59,19 @@ namespace BeetHovenWPF
 
         private void PianoWindow_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            GeneratePiano(); // Herteken de piano bij venstergrootte-aanpassing
+            GeneratePiano(); //Herteken de piano bij venstergrootte-aanpassing
         }
 
         private void GeneratePiano()
         {
-            PianoCanvas.Children
-                .OfType<Rectangle>()
-                .Where(r => r.Tag?.ToString() == "White" || r.Tag?.ToString() == "Black")
-                .ToList()
-                .ForEach(r => PianoCanvas.Children.Remove(r));
+            var pianoNotes = PianoCanvas.Children.OfType<UIElement>() 
+                .Where(child => child is Rectangle rect && (rect.Tag is string tag && tag.StartsWith("PianoNote")))
+                .ToList(); //verwijdert alleen children met tag PianoNote zodat er ook andere dingen aanwezig kunnen zijn naast alleen de piano :))
+
+            foreach (var note in pianoNotes)
+            {
+                PianoCanvas.Children.Remove(note);
+            }
 
             double canvasWidth = PianoCanvas.ActualWidth;
             double canvasHeight = PianoCanvas.ActualHeight;
@@ -94,7 +97,7 @@ namespace BeetHovenWPF
                         Fill = Brushes.White,
                         Stroke = Brushes.Black,
                         StrokeThickness = 1,
-                        Tag = whiteNote
+                        Tag = $"PianoNote:{whiteNote}" //geeft deze key tag pianonote
                     };
 
                     Canvas.SetLeft(whiteKey, currentX);
@@ -112,7 +115,7 @@ namespace BeetHovenWPF
                             Width = blackKeyWidth,
                             Height = blackKeyHeight,
                             Fill = Brushes.Black,
-                            Tag = blackNote
+                            Tag = $"PianoNote:{blackNote}" //geeft deze key tag pianonote
                         };
 
                         Canvas.SetLeft(blackKey, currentX + whiteKeyWidth * 0.75 - (blackKeyWidth / 2) + whiteKeyWidth * 0.25);
@@ -151,7 +154,7 @@ namespace BeetHovenWPF
 
                 if (notesToPlay.Count > 0)
                 {
-                    // Weergave van noten in de TextBox is verwijderd
+                    //Weergave van noten in de TextBox is verwijderd
                 }
 
                 foreach (var note in notesToPlay)

@@ -8,6 +8,8 @@ using System.Windows.Shapes;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
 using BeethovenBusiness;
+using System.Diagnostics;
+
 
 namespace BeetHovenWPF
 {
@@ -32,6 +34,7 @@ namespace BeetHovenWPF
         private void PianoWindow_Loaded(object sender, RoutedEventArgs e)
         {
             GeneratePiano();
+            AddPianoKeys();
 
             if (_midiPath != null)
             {
@@ -56,7 +59,40 @@ namespace BeetHovenWPF
                 }
             }
         }
+        private void AddPianoKeys()
+        {
+            string[] notes = { "C", "CSharp", "D", "DSharp", "E", "F", "FSharp", "G", "GSharp", "A", "ASharp", "B" };
 
+            double keyWidth = 50;
+            double keyHeight = 200;
+            double currentLeft = 0;
+
+            foreach (string note in notes)
+            {
+                bool isBlackKey = note.Contains("Sharp");
+
+                Rectangle key = new Rectangle
+                {
+                    Width = isBlackKey ? keyWidth * 0.6 : keyWidth, 
+                    Height = isBlackKey ? keyHeight * 0.6 : keyHeight, 
+                    Fill = isBlackKey ? Brushes.Black : Brushes.White,
+                    Stroke = Brushes.Black,
+                    Tag = note 
+                };
+
+                Canvas.SetLeft(key, currentLeft);
+                Canvas.SetTop(key, 0);
+
+                PianoCanvas.Children.Add(key);
+
+                if (!isBlackKey)
+                {
+                    currentLeft += keyWidth;
+                }
+            }
+
+            Debug.WriteLine("Piano-toetsen toegevoegd aan canvas.");
+        }
         private void PianoWindow_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             GeneratePiano(); //Herteken de piano bij venstergrootte-aanpassing
@@ -147,6 +183,8 @@ namespace BeetHovenWPF
 
         private void Timer_Tick(object sender, EventArgs e)
         {
+           
+
             try
             {
                 double elapsedTime = (DateTime.Now - _startTime).TotalSeconds;
@@ -159,7 +197,7 @@ namespace BeetHovenWPF
 
                 foreach (var note in notesToPlay)
                 {
-                    StartAnimationForNote(note.NoteName.ToString(), note.Length, elapsedTime);
+                    StartAnimationForNote(note.NoteName.ToString(), note.Length);
                 }
             }
             catch (Exception ex)
@@ -168,39 +206,50 @@ namespace BeetHovenWPF
             }
         }
 
-        private void StartAnimationForNote(string note, double duration, double elapsedTime)
+        private void StartAnimationForNote(string note, double duration)
         {
+            double animationDuration = 5; 
+
+            double actualduration = (duration / uitlezenLogic.GetTicksPerBeat()) * (60 / uitlezenLogic.BerekenBpm());
+
             var targetKey = PianoCanvas.Children
                 .OfType<Rectangle>()
                 .FirstOrDefault(r => r.Tag?.ToString() == note);
 
             if (targetKey == null) return;
 
+    
             double keyWidth = targetKey.Width;
             double keyLeft = Canvas.GetLeft(targetKey);
 
+            double noteHeight = PianoCanvas.ActualHeight * (actualduration / animationDuration) * 1000;
+
             Rectangle fallingNote = new Rectangle
             {
-                Width = keyWidth,
-                Height = duration * 100, // Scale duration to height (adjust as needed)
+                Width = keyWidth / 3,  
+                Height = noteHeight, 
                 Fill = Brushes.Blue
             };
 
             Canvas.SetLeft(fallingNote, keyLeft);
-            Canvas.SetTop(fallingNote, 0); // Start from the top
+            Canvas.SetTop(fallingNote, 0); 
             PianoCanvas.Children.Add(fallingNote);
 
-            DoubleAnimation animation = new DoubleAnimation
+            DoubleAnimation fallAnimation = new DoubleAnimation
             {
                 From = 0,
                 To = PianoCanvas.ActualHeight,
-                Duration = TimeSpan.FromSeconds(duration),
+                Duration = new Duration(TimeSpan.FromSeconds(animationDuration)),  // De animatieduur is altijd 5 seconden
                 FillBehavior = FillBehavior.Stop
             };
 
-            animation.Completed += (s, e) => PianoCanvas.Children.Remove(fallingNote);
+            fallAnimation.Completed += (s, e) => PianoCanvas.Children.Remove(fallingNote);
 
-            fallingNote.BeginAnimation(Canvas.TopProperty, animation);
+            fallingNote.BeginAnimation(Canvas.TopProperty, fallAnimation);
         }
+
+
+
+
     }
 }

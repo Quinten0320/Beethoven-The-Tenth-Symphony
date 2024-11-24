@@ -11,13 +11,13 @@ namespace BeethovenBusiness
     {
         private IEnumerable<Melanchall.DryWetMidi.Interaction.Note> notes;
         private TempoMap tempoMap;
-
+        MidiFile midiFile;
         
         public void LaadMidiBestand(string midiPath)
         {
             try
             {
-                var midiFile = MidiFile.Read(midiPath);
+                midiFile = MidiFile.Read(midiPath);
                 tempoMap = midiFile.GetTempoMap();
                 notes = midiFile.GetNotes().OrderBy(n => n.Time).ToList();
             }
@@ -67,8 +67,17 @@ namespace BeethovenBusiness
 
             return notesToPlay;
         }
+        public double GetTicksPerBeat()
+        {
+            var tempo = tempoMap.GetTempoAtTime((MidiTimeSpan)0);
+            double microsecondsPerQuarterNote = tempo.MicrosecondsPerQuarterNote;
+            return microsecondsPerQuarterNote;
+        }
 
-               
+
+
+
+
         private string GetNoteName(int midiNoteNumber)
         {
             string[] noteNames = { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };

@@ -74,7 +74,4 @@ using System.Windows.Threading;
             }
         }
     }
-
-
-
 }*/

@@ -22,15 +22,22 @@ namespace BeethovenBusiness
             //select the first available MIDI input device
             _midiDevice = InputDevice.GetAll().FirstOrDefault();
 
-            //maak hier try catch van
-            if (_midiDevice == null)
+            try
             {
-                throw new InvalidOperationException("No MIDI input devices found.");
+                if (_midiDevice == null)
+                {
+                    throw new InvalidOperationException("No MIDI input devices found.");
+                }
+
+                _midiDevice.EventReceived += OnMidiEventReceived;
+
+                _midiDevice.StartEventsListening();
             }
-
-            _midiDevice.EventReceived += OnMidiEventReceived;
-
-            _midiDevice.StartEventsListening();
+            catch (Exception e)  //console.writeline is niet nodig want we hebben letterlijk geen console maar idc
+            { 
+                Console.WriteLine(e.Message);
+            }
+            
         }
 
         private void OnMidiEventReceived(object sender, MidiEventReceivedEventArgs e)

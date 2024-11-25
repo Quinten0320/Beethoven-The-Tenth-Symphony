@@ -48,7 +48,6 @@ namespace BeetHovenWPF
             _inputHandler.Dispose();
         }
 
-
         private void PianoWindow_Loaded(object sender, RoutedEventArgs e)
         {
             GeneratePiano();
@@ -265,9 +264,5 @@ namespace BeetHovenWPF
 
             fallingNote.BeginAnimation(Canvas.TopProperty, fallAnimation);
         }
-
-
-
-
     }
 }

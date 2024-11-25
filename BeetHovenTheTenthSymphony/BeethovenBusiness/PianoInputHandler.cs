@@ -5,39 +5,74 @@ using System.Linq;
 
 namespace BeethovenBusiness
 {
-    public class PianoInputHandler
+    public class PianoInputHandler : IDisposable
     {
         private InputDevice _midiDevice;
 
-        //event that will be triggered when a note is pressed
         public event Action<string> NotePressed;
+
+        public static DevicesWatcher Instance { get; }
+        public event EventHandler<DeviceAddedRemovedEventArgs> DeviceAdded;
+        public event EventHandler<DeviceAddedRemovedEventArgs> DeviceRemoved;
 
         public PianoInputHandler()
         {
+            //Subscribe to device added and removed events
             InitializeMidiInput();
         }
 
         private void InitializeMidiInput()
         {
-            //select the first available MIDI input device
+            Dispose();
             _midiDevice = InputDevice.GetAll().FirstOrDefault();
+
+            if (_midiDevice == null)
+            {
+                Console.WriteLine("No MIDI device");
+                return;
+            }
 
             try
             {
-                if (_midiDevice == null)
-                {
-                    throw new InvalidOperationException("No MIDI input devices found.");
-                }
-
                 _midiDevice.EventReceived += OnMidiEventReceived;
-
+                _midiDevice.ErrorOccurred += OnMidiDeviceError;
                 _midiDevice.StartEventsListening();
             }
-            catch (Exception e)  //console.writeline is niet nodig want we hebben letterlijk geen console maar idc
-            { 
-                Console.WriteLine(e.Message);
+            catch (Exception e)
+            {
+                Console.WriteLine($"Error initializing MIDI device");
             }
-            
+        }
+
+        private void OnDeviceAdded(object sender, DeviceAddedRemovedEventArgs e)
+        {
+            if (_midiDevice == null)
+            {
+                InitializeMidiInput();
+            }
+        }
+
+        private void OnDeviceRemoved(object sender, DeviceAddedRemovedEventArgs e)
+        {
+            if (_midiDevice != null && _midiDevice.Equals(e.Device))
+            {
+                Dispose();
+            }
+        }
+
+        public void Dispose()
+        {
+            if (_midiDevice != null)
+            {
+                _midiDevice.StopEventsListening();
+                _midiDevice.EventReceived -= OnMidiEventReceived;
+                _midiDevice.ErrorOccurred -= OnMidiDeviceError;
+                _midiDevice = null;
+                Console.WriteLine("MIDI device disposed.");
+            }
+
+            DeviceAdded -= OnDeviceAdded;
+            DeviceRemoved -= OnDeviceRemoved;
         }
 
         private void OnMidiEventReceived(object sender, MidiEventReceivedEventArgs e)
@@ -45,25 +80,22 @@ namespace BeethovenBusiness
             if (e.Event is NoteOnEvent noteOnEvent)
             {
                 string note = ConvertNoteToNameAndOctave(noteOnEvent.NoteNumber);
-
                 NotePressed?.Invoke(note);
             }
+        }
+
+        private void OnMidiDeviceError(object sender, ErrorOccurredEventArgs e)
+        {
+            Console.WriteLine($"MIDI device error: {e.Exception.Message}");
+            InitializeMidiInput();
         }
 
         private string ConvertNoteToNameAndOctave(int noteNumber)
         {
             string[] noteNames = { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
-
             string noteName = noteNames[noteNumber % 12];
-
             int octave = (noteNumber / 12) - 1;
-
             return $"{noteName}{octave}";
-        }
-
-        public void Dispose()
-        {
-            _midiDevice?.Dispose();
         }
     }
 }

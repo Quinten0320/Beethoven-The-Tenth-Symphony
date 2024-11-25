@@ -28,6 +28,12 @@ namespace BeetHovenWPF
 
         private void MidiFileList_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
+            if (MidiFileList.SelectedItem == null)
+            {
+                MessageBox.Show("Please select a valid MIDI file.", "Selection Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
             string selectedMidiName = MidiFileList.SelectedItem.ToString();
 
             try

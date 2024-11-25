@@ -22,6 +22,7 @@ namespace BeethovenBusiness
             //select the first available MIDI input device
             _midiDevice = InputDevice.GetAll().FirstOrDefault();
 
+            //maak hier try catch van
             if (_midiDevice == null)
             {
                 throw new InvalidOperationException("No MIDI input devices found.");

@@ -15,6 +15,8 @@ namespace BeetHovenWPF
 {
     public partial class PianoWindow : Window
     {
+        private readonly PianoInputHandler _inputHandler;
+
         private readonly UitlezenMidiLogica uitlezenLogic;
         private readonly string _midiPath;
         private readonly int _octaves = 8;
@@ -29,7 +31,23 @@ namespace BeetHovenWPF
 
             Loaded += PianoWindow_Loaded;
             SizeChanged += PianoWindow_SizeChanged;
+
+            _inputHandler = new PianoInputHandler();
+            _inputHandler.NotePressed += OnMidiNotePressed;
         }
+
+        private void OnMidiNotePressed(string note)
+        {
+            //update textbox met laatste not input
+            Dispatcher.Invoke(() => LastPressedNoteTextBox.Text = note);
+        }
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            //verwijderd de oude midicontroller wanneer de pianowindow closed (dit is nodig)
+            _inputHandler.Dispose();
+        }
+
 
         private void PianoWindow_Loaded(object sender, RoutedEventArgs e)
         {

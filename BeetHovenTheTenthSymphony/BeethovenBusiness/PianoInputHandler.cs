@@ -11,52 +11,43 @@ namespace BeethovenBusiness
 
         public event Action<string> NotePressed;
 
-        public static DevicesWatcher Instance { get; }
-        public event EventHandler<DeviceAddedRemovedEventArgs> DeviceAdded;
-        public event EventHandler<DeviceAddedRemovedEventArgs> DeviceRemoved;
-
         public PianoInputHandler()
         {
-            //Subscribe to device added and removed events
-            InitializeMidiInput();
+            InitializeMidiInput(); //search for midi input on startup
         }
 
-        private void InitializeMidiInput()
+        public void InitializeMidiInput()
         {
-            Dispose();
-            _midiDevice = InputDevice.GetAll().FirstOrDefault();
-
-            if (_midiDevice == null)
+            //als er al een midi device is
+            if (_midiDevice != null)
             {
-                Console.WriteLine("No MIDI device");
+                Console.WriteLine("A MIDI input device is already connected and listening.");
                 return;
             }
 
+            Dispose();
+            _midiDevice = InputDevice.GetAll().FirstOrDefault();
+
+            //als er geen midi device te vinden is
+            if (_midiDevice == null)
+            {
+                Console.WriteLine("No MIDI input device detected.");
+                return;
+            }
+
+            //connect met midi
             try
             {
                 _midiDevice.EventReceived += OnMidiEventReceived;
                 _midiDevice.ErrorOccurred += OnMidiDeviceError;
                 _midiDevice.StartEventsListening();
+                Console.WriteLine("MIDI input device connected successfully!.");
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Error initializing MIDI device");
-            }
-        }
-
-        private void OnDeviceAdded(object sender, DeviceAddedRemovedEventArgs e)
-        {
-            if (_midiDevice == null)
-            {
-                InitializeMidiInput();
-            }
-        }
-
-        private void OnDeviceRemoved(object sender, DeviceAddedRemovedEventArgs e)
-        {
-            if (_midiDevice != null && _midiDevice.Equals(e.Device))
-            {
+                Console.WriteLine($"Error initializing MIDI device: {e.Message}");
                 Dispose();
+                throw new InvalidOperationException("Failed to initialize MIDI device.", e);
             }
         }
 
@@ -70,9 +61,6 @@ namespace BeethovenBusiness
                 _midiDevice = null;
                 Console.WriteLine("MIDI device disposed.");
             }
-
-            DeviceAdded -= OnDeviceAdded;
-            DeviceRemoved -= OnDeviceRemoved;
         }
 
         private void OnMidiEventReceived(object sender, MidiEventReceivedEventArgs e)
@@ -87,7 +75,7 @@ namespace BeethovenBusiness
         private void OnMidiDeviceError(object sender, ErrorOccurredEventArgs e)
         {
             Console.WriteLine($"MIDI device error: {e.Exception.Message}");
-            InitializeMidiInput();
+            //InitializeMidiInput();
         }
 
         private string ConvertNoteToNameAndOctave(int noteNumber)

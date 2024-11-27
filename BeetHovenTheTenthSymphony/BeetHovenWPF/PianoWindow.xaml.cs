@@ -32,8 +32,18 @@ namespace BeetHovenWPF
             Loaded += PianoWindow_Loaded;
             SizeChanged += PianoWindow_SizeChanged;
 
-            _inputHandler = new PianoInputHandler();
-            _inputHandler.NotePressed += OnMidiNotePressed;
+            //try
+            //{
+            //    _inputHandler = new PianoInputHandler();
+            //    _inputHandler.NotePressed += OnMidiNotePressed;
+            //    Debug.WriteLine("MIDI handler successfully initialized.");
+            //}
+            //catch (Exception ex)
+            //{
+            //    //Debug.WriteLine($"MIDI initialization error: {ex.Message}");
+            //    //MessageBox.Show($"Unable to initialize MIDI device: {ex.Message}", "MIDI Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+            //    _inputHandler = null; // Continue without MIDI
+            //}
         }
 
         private void OnMidiNotePressed(string note)
@@ -44,21 +54,27 @@ namespace BeetHovenWPF
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            //verwijderd de oude midicontroller wanneer de pianowindow closed (dit is nodig)
-            _inputHandler.Dispose();
+            try
+            {
+                _inputHandler?.Dispose();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error disposing MIDI handler: {ex.Message}", "Dispose Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
         }
 
         private void PianoWindow_Loaded(object sender, RoutedEventArgs e)
         {
             GeneratePiano();
 
+            // Do not reinitialize _inputHandler here
             if (_midiPath != null)
             {
                 try
                 {
                     uitlezenLogic.LaadMidiBestand(_midiPath);
                     double bpm = uitlezenLogic.BerekenBpm();
-
                     _startTime = DateTime.Now;
 
                     DispatcherTimer timer = new DispatcherTimer
@@ -70,11 +86,11 @@ namespace BeetHovenWPF
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Fout bij initialisatie: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show($"Error loading MIDI file: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
         }
-        
+
         private void PianoWindow_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             GeneratePiano(); //Herteken de piano bij venstergrootte-aanpassing
@@ -82,7 +98,7 @@ namespace BeetHovenWPF
 
         private void GeneratePiano()
         {
-            // Remove existing piano keys
+            //Remove existing piano keys
             var pianoNotes = PianoCanvas.Children.OfType<UIElement>()
                 .Where(child => child is Rectangle rect && (rect.Tag is string tag && tag.StartsWith("PianoNote")))
                 .ToList();
@@ -213,7 +229,7 @@ namespace BeetHovenWPF
             Rectangle fallingNote = new Rectangle
             {
                 Width = keyWidth,  // De breedte van de vallende noot is een derde van de breedte van de doeltoets
-                Height = noteHeight,
+                Height = noteHeight * 10,
                 Fill = Brushes.Blue
             };
 

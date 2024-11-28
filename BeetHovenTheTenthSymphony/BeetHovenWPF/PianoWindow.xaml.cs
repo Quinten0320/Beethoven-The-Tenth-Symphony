@@ -48,7 +48,7 @@ namespace BeetHovenWPF
 
         private void OnMidiNotePressed(string note)
         {
-            //update textbox met laatste not input
+            //update textbox met laatste note input
             Dispatcher.Invoke(() => LastPressedNoteTextBox.Text = note);
         }
 
@@ -68,7 +68,6 @@ namespace BeetHovenWPF
         {
             GeneratePiano();
 
-            // Do not reinitialize _inputHandler here
             if (_midiPath != null)
             {
                 try
@@ -93,12 +92,12 @@ namespace BeetHovenWPF
 
         private void PianoWindow_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            GeneratePiano(); //Herteken de piano bij venstergrootte-aanpassing
+            GeneratePiano(); //hertekend de piano bij venstergrootte-aanpassing
         }
 
         private void GeneratePiano()
         {
-            //Remove existing piano keys
+            //verwijder vorige keys
             var pianoNotes = PianoCanvas.Children.OfType<UIElement>()
                 .Where(child => child is Rectangle rect && (rect.Tag is string tag && tag.StartsWith("PianoNote")))
                 .ToList();
@@ -183,71 +182,78 @@ namespace BeetHovenWPF
 
         private void Timer_Tick(object sender, EventArgs e)
         {
-            try
+            bool isWindowOpen = Application.Current.Windows.OfType<PianoWindow>().Any(window => window.IsVisible);
+            if(isWindowOpen)
             {
-                double elapsedTime = (DateTime.Now - _startTime).TotalSeconds;
-                var notesToPlay = uitlezenLogic.HaalNotenOp(elapsedTime);
-
-                foreach (var note in notesToPlay)
+                try
                 {
-                    StartAnimationForNote(note.NoteName.ToString(), note.Length, note.Octave);
+                    double elapsedTime = (DateTime.Now - _startTime).TotalSeconds;
+                    var notesToPlay = uitlezenLogic.HaalNotenOp(elapsedTime);
+
+                    foreach (var note in notesToPlay)
+                    {
+                        StartAnimationForNote(note.NoteName.ToString(), note.Length, note.Octave);
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Fout in timer: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Fout in timer: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
         }
 
+        /*
+        ANIMATIE VOOR NOTEN HIERONDER
+        */
+
         private void StartAnimationForNote(string note, double duration, int octave)
         {
-            double animationDuration = 10; // De totale duur van de animatie in seconden
+            double animationDuration = 10;
+            double actualNoteDuration = (duration / uitlezenLogic.GetTicksPerBeat()) * (60 / uitlezenLogic.BerekenBpm());
 
-            // Bereken de werkelijke duur van de noot in seconden
-            double actualduration = (duration / uitlezenLogic.GetTicksPerBeat()) * (60 / uitlezenLogic.BerekenBpm());
-
-            // Zoek de rechthoek die overeenkomt met de noot
+            //geef rechthoek die bij noot hoort bijbehorende tag
             var targetKey = PianoCanvas.Children
                 .OfType<Rectangle>()
                 .FirstOrDefault(r => r.Tag?.ToString() == $"PianoNote:{note}{octave}");
 
+            //als noot niet wordt gevonden
             if (targetKey == null)
             {
                 Debug.WriteLine($"Noot {note}{octave} niet gevonden");
                 return;
-            } // Als de noot niet wordt gevonden, stop de methode
+            }
 
-            // Bereken de breedte en positie van de doeltoets
+            //breedte doeltoets
             double keyWidth = targetKey.Width;
             double keyLeft = Canvas.GetLeft(targetKey);
 
-            // Bereken de hoogte van de vallende noot op basis van de duur en de hoogte van het canvas
-            double noteHeight = (actualduration / animationDuration) * PianoCanvas.ActualHeight;
-            Debug.WriteLine($"noothiehgt {noteHeight} duration {actualduration} animationduration {animationDuration}");
+            //hoogte vallende noot
+            double noteHeight = (actualNoteDuration / animationDuration) * PianoCanvas.ActualHeight;
+            Debug.WriteLine($"noothiehgt {noteHeight} duration {actualNoteDuration} animationduration {animationDuration}");
 
-            // Creëer de rechthoek voor de vallende noot
+            //maak de vallende noot
             Rectangle fallingNote = new Rectangle
             {
-                Width = keyWidth,  // De breedte van de vallende noot is een derde van de breedte van de doeltoets
+                Width = keyWidth,
                 Height = noteHeight * 10,
                 Fill = Brushes.Blue
             };
 
-            // Plaats de vallende noot boven de doeltoets
+            //plaats de vallende noot boven de doeltoets
             Canvas.SetLeft(fallingNote, keyLeft);
             Canvas.SetTop(fallingNote, 0);
             PianoCanvas.Children.Add(fallingNote);
 
-            // Creëer de animatie om de vallende noot van boven naar beneden te bewegen
+            //animeer vallende noot
             DoubleAnimation fallAnimation = new DoubleAnimation
             {
                 From = 0,
                 To = PianoCanvas.ActualHeight,
-                Duration = new Duration(TimeSpan.FromSeconds(animationDuration)),  // De animatieduur is altijd 5 seconden
+                Duration = new Duration(TimeSpan.FromSeconds(animationDuration)),  //de animatieduur is altijd 5 seconden
                 FillBehavior = FillBehavior.Stop
             };
 
-            // Verwijder de vallende noot van het canvas zodra de animatie is voltooid
+            //verwijder de vallende noot van het canvas zodra de animatie is voltooid
             fallAnimation.Completed += (s, e) => PianoCanvas.Children.Remove(fallingNote);
 
             // Start de animatie

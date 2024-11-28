@@ -182,6 +182,7 @@ namespace BeetHovenWPF
 
         private void Timer_Tick(object sender, EventArgs e)
         {
+            //animatie speelt alleen af wanneer pianowindow open is (betere performance en geen console spam)
             bool isWindowOpen = Application.Current.Windows.OfType<PianoWindow>().Any(window => window.IsVisible);
             if(isWindowOpen)
             {
@@ -235,7 +236,7 @@ namespace BeetHovenWPF
             Rectangle fallingNote = new Rectangle
             {
                 Width = keyWidth,
-                Height = noteHeight * 10,
+                Height = noteHeight * 100,
                 Fill = Brushes.Blue
             };
 

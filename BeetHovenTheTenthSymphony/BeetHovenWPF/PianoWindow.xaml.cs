@@ -15,6 +15,7 @@ namespace BeetHovenWPF
 {
     public partial class PianoWindow : Window
     {
+        private List<Rectangle> Blackkeys = new List<Rectangle>();
         private readonly PianoInputHandler _inputHandler;
 
         private readonly UitlezenMidiLogica uitlezenLogic;
@@ -142,6 +143,7 @@ namespace BeetHovenWPF
                         Canvas.SetLeft(blackKey, currentX + whiteKeyWidth * 0.75 - (blackKeyWidth / 2) + whiteKeyWidth * 0.25); Canvas.SetBottom(blackKey, whiteKeyHeight - blackKeyHeight);
                         Panel.SetZIndex(blackKey, 1);
                         blackKey.MouseDown += Key_MouseDown;
+                        Blackkeys.Add(blackKey);
                         PianoCanvas.Children.Add(blackKey);
                     }
 
@@ -185,6 +187,7 @@ namespace BeetHovenWPF
 
         private void StartAnimationForNote(string note, double duration, int octave)
         {
+            Rectangle fallingNote;
             double animationDuration = 10; // De totale duur van de animatie in seconden
 
             // Bereken de werkelijke duur van de noot in seconden
@@ -207,17 +210,32 @@ namespace BeetHovenWPF
 
             // Bereken de hoogte van de vallende noot op basis van de duur en de hoogte van het canvas
             double noteHeight = (actualduration / animationDuration) * PianoCanvas.ActualHeight;
-            Debug.WriteLine($"noothiehgt {noteHeight} duration {actualduration} animationduration {animationDuration}");
+            Debug.WriteLine($"{uitlezenLogic.GetTicksPerBeat()}");
 
             // Creëer de rechthoek voor de vallende noot
-            Rectangle fallingNote = new Rectangle
+            if (Blackkeys.Contains(targetKey))
             {
-                Width = keyWidth,  // De breedte van de vallende noot is een derde van de breedte van de doeltoets
-                Height = noteHeight,
-                Fill = Brushes.Blue
-            };
+                fallingNote = new Rectangle
+                {
+                    Width = keyWidth,  // De breedte van de vallende noot is een derde van de breedte van de doeltoets
+                    Height = noteHeight,
+                    Fill = Brushes.Black,
+                    Stroke = Brushes.Red,
+                };
+            }
+            else
+            {
+                fallingNote = new Rectangle
+                {
+                    Width = keyWidth,  // De breedte van de vallende noot is een derde van de breedte van de doeltoets
+                    Height = noteHeight,
+                    Fill = Brushes.Blue,
+                    Stroke = Brushes.Red,
 
-            // Plaats de vallende noot boven de doeltoets
+                };
+            }
+
+                // Plaats de vallende noot boven de doeltoets
             Canvas.SetLeft(fallingNote, keyLeft);
             Canvas.SetTop(fallingNote, 0);
             PianoCanvas.Children.Add(fallingNote);

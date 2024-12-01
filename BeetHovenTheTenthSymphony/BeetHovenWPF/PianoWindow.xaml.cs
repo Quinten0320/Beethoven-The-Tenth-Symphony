@@ -188,7 +188,8 @@ namespace BeetHovenWPF
         private void StartAnimationForNote(string note, double duration, int octave)
         {
             Rectangle fallingNote;
-            double animationDuration = 10; // De totale duur van de animatie in seconden
+            double animationDuration = 5 * (120 / uitlezenLogic.BerekenBpm());
+            Debug.WriteLine($"Duur: {animationDuration}");
 
             // Bereken de werkelijke duur van de noot in seconden
             double actualduration = (duration / uitlezenLogic.GetTicksPerBeat()) * (60 / uitlezenLogic.BerekenBpm());
@@ -210,7 +211,6 @@ namespace BeetHovenWPF
 
             // Bereken de hoogte van de vallende noot op basis van de duur en de hoogte van het canvas
             double noteHeight = (actualduration / animationDuration) * PianoCanvas.ActualHeight;
-            Debug.WriteLine($"{uitlezenLogic.GetTicksPerBeat()}");
 
             // Creëer de rechthoek voor de vallende noot
             if (Blackkeys.Contains(targetKey))

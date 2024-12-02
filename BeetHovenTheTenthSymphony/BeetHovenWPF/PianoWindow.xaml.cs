@@ -26,42 +26,30 @@ namespace BeetHovenWPF
         public PianoWindow(string midiPath)
         {
             InitializeComponent();
-            uitlezenLogic = new UitlezenMidiLogica();
-            _midiPath = midiPath;
 
-            Loaded += PianoWindow_Loaded;
             SizeChanged += PianoWindow_SizeChanged;
 
-            try
-            {
-                _inputHandler = new PianoInputHandler();
-                _inputHandler.NotePressed += OnMidiNotePressed;
-                MessageBox.Show("MIDI handler successfully initialized.");
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"MIDI initialization error: {ex.Message}");
-                MessageBox.Show($"Unable to initialize MIDI device: {ex.Message}", "MIDI Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                _inputHandler = null;
-            }
+            _inputHandler = PianoInputHandlerService.Instance;
+
+            _inputHandler.NotePressed -= OnMidiNotePressed;
+            _inputHandler.NotePressed += OnMidiNotePressed;
         }
+
 
         private void OnMidiNotePressed(string note)
         {
-            //update textbox met laatste note input
             Dispatcher.Invoke(() => LastPressedNoteTextBox.Text = note);
-            Debug.WriteLine(note);
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             try
             {
-                _inputHandler?.Dispose();
+                _inputHandler.NotePressed -= OnMidiNotePressed;
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error disposing MIDI handler: {ex.Message}", "Dispose Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show($"Error detaching MIDI handler: {ex.Message}", "Detach Error", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
 

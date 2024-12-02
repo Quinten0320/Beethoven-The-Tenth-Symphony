@@ -10,8 +10,6 @@ namespace BeetHovenWPF
     public partial class MidiList : Window
     {
         private readonly MidiService _midiService;
-        PianoInputHandler pianoInputHandler = new PianoInputHandler();
-
 
         public MidiList()
         {
@@ -90,21 +88,32 @@ namespace BeetHovenWPF
         {
             try
             {
-                var pianoInputHandler = new PianoInputHandler();
+                // Dispose of the existing PianoInputHandler instance and its MIDI device
+                var pianoInputHandler = PianoInputHandlerService.Instance;
+                pianoInputHandler.Dispose();
 
-                // Reinitialize MIDI input
+                // Reinitialize MIDI input to detect and connect to a new device
                 pianoInputHandler.InitializeMidiInput();
 
-                MessageBox.Show("MIDI input detection and initialization successful.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("MIDI input detection and initialization successful.",
+                                "Success", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (InvalidOperationException ex)
             {
-                MessageBox.Show($"Error: {ex.Message}", "No MIDI Device Detected", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"No MIDI device detected. Please connect a device and try again.\n\nDetails: {ex.Message}",
+                                "No MIDI Device Detected", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            catch (MidiDeviceException ex)
+            {
+                MessageBox.Show($"Error: The MIDI device is already in use. Please close other programs using the device and try again.\n\nDetails: {ex.Message}",
+                                "MIDI Device In Use", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Unexpected error: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"An unexpected error occurred: {ex.Message}",
+                                "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
     }
 }

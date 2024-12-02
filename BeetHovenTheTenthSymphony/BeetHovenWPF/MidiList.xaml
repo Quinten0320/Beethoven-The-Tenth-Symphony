@@ -6,10 +6,19 @@
         <DockPanel>
             <Button x:Name="RefreshButton" Content="Refresh" HorizontalAlignment="Right" VerticalAlignment="Top" Width="90" Margin="0,10,10,0" Click="refreshButton_Click" DockPanel.Dock="Top"/>
             <Button x:Name="UploadButton" Content="Upload midi file" HorizontalAlignment="Right" Width="90" Margin="0,10,10,0" DockPanel.Dock="Top" Click="UploadButton_Click"/>
+            <ComboBox x:Name="FilterButton" HorizontalAlignment="Right" Width="90" Margin="0,10,10,0" DockPanel.Dock="Top" SelectionChanged="FilterButton_SelectionChanged_1">
+                <ComboBoxItem Visibility="Collapsed" IsSelected="True">Filter</ComboBoxItem>
+                <ComboBoxItem>A-Z</ComboBoxItem>
+                <ComboBoxItem>Z-A</ComboBoxItem>
+                <ComboBoxItem>Easy</ComboBoxItem>
+                <ComboBoxItem>Medium</ComboBoxItem>
+                <ComboBoxItem>Hard</ComboBoxItem>
+            </ComboBox>
             <TextBlock HorizontalAlignment="Center" Margin="0,-40,0,0" TextWrapping="Wrap" Text="Songs:" VerticalAlignment="Top" FontSize="24" DockPanel.Dock="Top"/>
             <DataGrid x:Name="MidiFileList" Margin="0,10,0,0" AutoGenerateColumns="False" IsReadOnly="True" MouseDoubleClick="MidiFileList_MouseDoubleClick" DockPanel.Dock="Top">
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Name" Binding="{Binding}" Width="*" />
+                    <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*" />
+                    <DataGridTextColumn Header="Difficulty" Binding="{Binding Difficulty}" Width="*" />
                 </DataGrid.Columns>
             </DataGrid>
         </DockPanel>

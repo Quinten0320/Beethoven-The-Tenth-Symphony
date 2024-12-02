@@ -17,9 +17,11 @@ namespace BeethovenBusiness
             InitializeMidiInput();
         }
 
+        public bool IsMidiDeviceConnected => _midiDevice != null;
+
         public void InitializeMidiInput()
         {
-            Dispose(); // Dispose of the existing device if any
+            Dispose();
 
             _midiDevice = InputDevice.GetAll().FirstOrDefault();
 
@@ -32,13 +34,11 @@ namespace BeethovenBusiness
             _midiDevice.StartEventsListening();
         }
 
-
         private void OnMidiEventReceived(object sender, MidiEventReceivedEventArgs e)
         {
             if (e.Event is NoteOnEvent noteOnEvent)
             {
                 string note = ConvertNoteToNameAndOctave(noteOnEvent.NoteNumber);
-
                 NotePressed?.Invoke(note);
             }
         }
@@ -48,7 +48,6 @@ namespace BeethovenBusiness
             string[] noteNames = { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
 
             string noteName = noteNames[noteNumber % 12];
-
             int octave = (noteNumber / 12) - 1;
 
             return $"{noteName}{octave}";
@@ -58,12 +57,12 @@ namespace BeethovenBusiness
         {
             if (_midiDevice != null)
             {
-                _midiDevice.StopEventsListening(); 
-                _midiDevice.EventReceived -= OnMidiEventReceived; 
+                _midiDevice.StopEventsListening();
+                _midiDevice.EventReceived -= OnMidiEventReceived;
                 _midiDevice.Dispose();
                 _midiDevice = null;
-                Debug.WriteLine("MIDI device disposed.");
             }
         }
     }
+
 }

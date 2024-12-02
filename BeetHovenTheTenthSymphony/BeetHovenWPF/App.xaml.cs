@@ -10,7 +10,7 @@ namespace BeetHovenWPF
             //// Dispose the shared PianoInputHandler instance
             //PianoInputHandlerService.DisposeInstance();
 
-            base.OnExit(e); 
+            //base.OnExit(e); 
         }
     }
 }

@@ -33,8 +33,28 @@ namespace BeetHovenWPF
 
             _inputHandler.NotePressed -= OnMidiNotePressed;
             _inputHandler.NotePressed += OnMidiNotePressed;
+
+            UpdateMidiStatus();
         }
 
+        private void UpdateMidiStatus()
+        {
+            try
+            {
+                if (_inputHandler != null && _inputHandler.IsMidiDeviceConnected)
+                {
+                    MidiStatusTextBox.Text = "Connected";
+                }
+                else
+                {
+                    MidiStatusTextBox.Text = "Not Connected";
+                }
+            }
+            catch (Exception ex)
+            {
+                MidiStatusTextBox.Text = $"Error: {ex.Message}";
+            }
+        }
 
         private void OnMidiNotePressed(string note)
         {

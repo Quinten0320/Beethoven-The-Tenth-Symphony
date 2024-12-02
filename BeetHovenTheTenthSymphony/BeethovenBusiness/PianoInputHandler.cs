@@ -14,7 +14,7 @@ namespace BeethovenBusiness
 
         public PianoInputHandler()
         {
-            InitializeMidiInput();
+            //InitializeMidiInput();
         }
 
         public bool IsMidiDeviceConnected => _midiDevice != null;
@@ -25,13 +25,20 @@ namespace BeethovenBusiness
 
             _midiDevice = InputDevice.GetAll().FirstOrDefault();
 
-            if (_midiDevice == null)
+            try
+            {
+                if (_midiDevice == null)
+                {
+                    throw new InvalidOperationException("No MIDI input devices found.");
+                }
+
+                _midiDevice.EventReceived += OnMidiEventReceived;
+                _midiDevice.StartEventsListening();
+            }
+            catch(Exception ex)
             {
                 throw new InvalidOperationException("No MIDI input devices found.");
             }
-
-            _midiDevice.EventReceived += OnMidiEventReceived;
-            _midiDevice.StartEventsListening();
         }
 
         private void OnMidiEventReceived(object sender, MidiEventReceivedEventArgs e)

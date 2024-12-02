@@ -1,5 +1,4 @@
 ﻿using System.Windows;
-using BeethovenBusiness;
 
 namespace BeetHovenWPF
 {
@@ -7,10 +6,7 @@ namespace BeetHovenWPF
     {
         protected override void OnExit(ExitEventArgs e)
         {
-            //// Dispose the shared PianoInputHandler instance
-            //PianoInputHandlerService.DisposeInstance();
-
-            //base.OnExit(e); 
+            base.OnExit(e);
         }
     }
 }

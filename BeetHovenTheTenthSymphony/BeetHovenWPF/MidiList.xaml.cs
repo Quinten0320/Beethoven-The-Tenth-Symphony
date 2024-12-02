@@ -88,11 +88,9 @@ namespace BeetHovenWPF
         {
             try
             {
-                // Dispose of the existing PianoInputHandler instance and its MIDI device
                 var pianoInputHandler = PianoInputHandlerService.Instance;
                 pianoInputHandler.Dispose();
 
-                // Reinitialize MIDI input to detect and connect to a new device
                 pianoInputHandler.InitializeMidiInput();
 
                 MessageBox.Show("MIDI input detection and initialization successful.",
@@ -106,7 +104,7 @@ namespace BeetHovenWPF
             catch (MidiDeviceException ex)
             {
                 MessageBox.Show($"Error: The MIDI device is already in use. Please close other programs using the device and try again.\n\nDetails: {ex.Message}",
-                                "MIDI Device In Use", MessageBoxButton.OK, MessageBoxImage.Warning);
+                                "MIDI Device In Use", MessageBoxButton.OK, MessageBoxImage.Error);
             }
             catch (Exception ex)
             {
@@ -114,6 +112,5 @@ namespace BeetHovenWPF
                                 "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
-
     }
 }

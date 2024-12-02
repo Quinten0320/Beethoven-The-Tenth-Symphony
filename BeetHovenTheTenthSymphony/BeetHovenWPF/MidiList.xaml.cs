@@ -17,7 +17,6 @@ namespace BeetHovenWPF
         {
             InitializeComponent();
 
-
             _midiService = new MidiService();
             fillList();
         }
@@ -92,18 +91,19 @@ namespace BeetHovenWPF
             try
             {
                 var pianoInputHandler = new PianoInputHandler();
+
+                // Reinitialize MIDI input
                 pianoInputHandler.InitializeMidiInput();
 
-                //als er geen error ontvangen wordt
                 MessageBox.Show("MIDI input detection and initialization successful.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (InvalidOperationException ex)
             {
-                MessageBox.Show($"MIDI Device Error: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Error: {ex.Message}", "No MIDI Device Detected", MessageBoxButton.OK, MessageBoxImage.Error);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Unexpected error during MIDI initialization: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Unexpected error: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
     }

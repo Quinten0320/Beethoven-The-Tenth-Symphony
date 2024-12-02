@@ -32,24 +32,25 @@ namespace BeetHovenWPF
             Loaded += PianoWindow_Loaded;
             SizeChanged += PianoWindow_SizeChanged;
 
-            //try
-            //{
-            //    _inputHandler = new PianoInputHandler();
-            //    _inputHandler.NotePressed += OnMidiNotePressed;
-            //    Debug.WriteLine("MIDI handler successfully initialized.");
-            //}
-            //catch (Exception ex)
-            //{
-            //    //Debug.WriteLine($"MIDI initialization error: {ex.Message}");
-            //    //MessageBox.Show($"Unable to initialize MIDI device: {ex.Message}", "MIDI Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-            //    _inputHandler = null; // Continue without MIDI
-            //}
+            try
+            {
+                _inputHandler = new PianoInputHandler();
+                _inputHandler.NotePressed += OnMidiNotePressed;
+                MessageBox.Show("MIDI handler successfully initialized.");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"MIDI initialization error: {ex.Message}");
+                MessageBox.Show($"Unable to initialize MIDI device: {ex.Message}", "MIDI Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                _inputHandler = null;
+            }
         }
 
         private void OnMidiNotePressed(string note)
         {
             //update textbox met laatste note input
             Dispatcher.Invoke(() => LastPressedNoteTextBox.Text = note);
+            Debug.WriteLine(note);
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)

@@ -29,25 +29,53 @@ namespace BeetHovenWPF
         public PianoWindow(string midiPath)
         {
             InitializeComponent();
-            uitlezenLogic = new UitlezenMidiLogica();
-            _midiPath = midiPath;
 
-            Loaded += PianoWindow_Loaded;
             SizeChanged += PianoWindow_SizeChanged;
             Closing += PianoWindow_Closing; // Koppel het Closing-evenement
 
-            _inputHandler = new PianoInputHandler();
+            _inputHandler = PianoInputHandlerService.Instance;
+
+            _inputHandler.NotePressed -= OnMidiNotePressed;
             _inputHandler.NotePressed += OnMidiNotePressed;
+
+            UpdateMidiStatus();
+        }
+
+        private void UpdateMidiStatus()
+        {
+            try
+            {
+                if (_inputHandler != null && _inputHandler.IsMidiDeviceConnected)
+                {
+                    MidiStatusTextBox.Text = "Connected";
+                }
+                else
+                {
+                    MidiStatusTextBox.Text = "Not Connected";
+                }
+            }
+            catch (Exception ex)
+            {
+                MidiStatusTextBox.Text = $"Error: {ex.Message}";
+            }
         }
 
         private void OnMidiNotePressed(string note)
         {
-            //update textbox met laatste not input
             Dispatcher.Invoke(() => LastPressedNoteTextBox.Text = note);
         }
 
         private void PianoWindow_Closing(object sender, CancelEventArgs e)
         {
+// <<<<<<< DetectMidiInput
+//             try
+//             {
+//                 _inputHandler.NotePressed -= OnMidiNotePressed;
+//             }
+//             catch (Exception ex)
+//             {
+//                 MessageBox.Show($"Error detaching MIDI handler: {ex.Message}", "Detach Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+// =======
             // Verwijder de oude midicontroller wanneer de pianowindow sluit (dit is nodig)
             _inputHandler.Dispose();
 
@@ -56,6 +84,7 @@ namespace BeetHovenWPF
             {
                 _timer.Stop();
                 _timer.Tick -= Timer_Tick;
+// >>>>>>> main
             }
         }
 
@@ -69,7 +98,6 @@ namespace BeetHovenWPF
                 {
                     uitlezenLogic.LaadMidiBestand(_midiPath);
                     double bpm = uitlezenLogic.BerekenBpm();
-
                     _startTime = DateTime.Now;
 
                     _timer = new DispatcherTimer
@@ -81,19 +109,19 @@ namespace BeetHovenWPF
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Fout bij initialisatie: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show($"Error loading MIDI file: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
         }
 
         private void PianoWindow_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            GeneratePiano(); //Herteken de piano bij venstergrootte-aanpassing
+            GeneratePiano(); //hertekend de piano bij venstergrootte-aanpassing
         }
 
         private void GeneratePiano()
         {
-            // Remove existing piano keys
+            //verwijder vorige keys
             var pianoNotes = PianoCanvas.Children.OfType<UIElement>()
                 .Where(child => child is Rectangle rect && (rect.Tag is string tag && tag.StartsWith("PianoNote")))
                 .ToList();
@@ -179,46 +207,71 @@ namespace BeetHovenWPF
 
         private void Timer_Tick(object sender, EventArgs e)
         {
-            try
+            //animatie speelt alleen af wanneer pianowindow open is (betere performance en geen console spam)
+            bool isWindowOpen = Application.Current.Windows.OfType<PianoWindow>().Any(window => window.IsVisible);
+            if(isWindowOpen)
             {
-                double elapsedTime = (DateTime.Now - _startTime).TotalSeconds;
-                var notesToPlay = uitlezenLogic.HaalNotenOp(elapsedTime);
-
-                foreach (var note in notesToPlay)
+                try
                 {
-                    StartAnimationForNote(note.NoteName.ToString(), note.Length, note.Octave);
+                    double elapsedTime = (DateTime.Now - _startTime).TotalSeconds;
+                    var notesToPlay = uitlezenLogic.HaalNotenOp(elapsedTime);
+
+                    foreach (var note in notesToPlay)
+                    {
+                        StartAnimationForNote(note.NoteName.ToString(), note.Length, note.Octave);
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Fout in timer: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Fout in timer: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
         }
 
+        /*
+        ANIMATIE VOOR NOTEN HIERONDER
+        */
+
         private void StartAnimationForNote(string note, double duration, int octave)
         {
+// <<<<<<< DetectMidiInput
+//             double animationDuration = 10;
+//             double actualNoteDuration = (duration / uitlezenLogic.GetTicksPerBeat()) * (60 / uitlezenLogic.BerekenBpm());
+// =======
             Rectangle fallingNote;
             double animationDuration = 5 * (120 / uitlezenLogic.BerekenBpm());
             Debug.WriteLine($"Duur: {animationDuration}");
+// >>>>>>> main
 
-            // Bereken de werkelijke duur van de noot in seconden
-            double actualduration = (duration / uitlezenLogic.GetTicksPerBeat()) * (60 / uitlezenLogic.BerekenBpm());
-
-            // Zoek de rechthoek die overeenkomt met de noot
+            //geef rechthoek die bij noot hoort bijbehorende tag
             var targetKey = PianoCanvas.Children
                 .OfType<Rectangle>()
                 .FirstOrDefault(r => r.Tag?.ToString() == $"PianoNote:{note}{octave}");
 
+            //als noot niet wordt gevonden
             if (targetKey == null)
             {
                 Debug.WriteLine($"Noot {note}{octave} niet gevonden");
                 return;
-            } // Als de noot niet wordt gevonden, stop de methode
+            }
 
-            // Bereken de breedte en positie van de doeltoets
+            //breedte doeltoets
             double keyWidth = targetKey.Width;
             double keyLeft = Canvas.GetLeft(targetKey);
 
+// <<<<<<< DetectMidiInput
+//             //hoogte vallende noot
+//             double noteHeight = (actualNoteDuration / animationDuration) * PianoCanvas.ActualHeight;
+//             Debug.WriteLine($"noothiehgt {noteHeight} duration {actualNoteDuration} animationduration {animationDuration}");
+
+//             //maak de vallende noot
+//             Rectangle fallingNote = new Rectangle
+//             {
+//                 Width = keyWidth,
+//                 Height = noteHeight * 100,
+//                 Fill = Brushes.Blue
+//             };
+// =======
             // Bereken de hoogte van de vallende noot op basis van de duur en de hoogte van het canvas
             double noteHeight = (actualduration / animationDuration) * PianoCanvas.ActualHeight;
 
@@ -244,22 +297,23 @@ namespace BeetHovenWPF
 
                 };
             }
+// >>>>>>> main
 
-            // Plaats de vallende noot boven de doeltoets
+            //plaats de vallende noot boven de doeltoets
             Canvas.SetLeft(fallingNote, keyLeft);
             Canvas.SetTop(fallingNote, 0);
             PianoCanvas.Children.Add(fallingNote);
 
-            // Creëer de animatie om de vallende noot van boven naar beneden te bewegen
+            //animeer vallende noot
             DoubleAnimation fallAnimation = new DoubleAnimation
             {
                 From = 0,
                 To = PianoCanvas.ActualHeight,
-                Duration = new Duration(TimeSpan.FromSeconds(animationDuration)),  // De animatieduur is altijd 5 seconden
+                Duration = new Duration(TimeSpan.FromSeconds(animationDuration)),  //de animatieduur is altijd 5 seconden
                 FillBehavior = FillBehavior.Stop
             };
 
-            // Verwijder de vallende noot van het canvas zodra de animatie is voltooid
+            //verwijder de vallende noot van het canvas zodra de animatie is voltooid
             fallAnimation.Completed += (s, e) => PianoCanvas.Children.Remove(fallingNote);
 
             // Start de animatie

@@ -10,6 +10,7 @@ namespace BeetHovenWPF
     public partial class MidiList : Window
     {
         private readonly MidiService _midiService;
+
         public MidiList()
         {
             InitializeComponent();
@@ -43,21 +44,16 @@ namespace BeetHovenWPF
                 string folderPath = _midiService.getFolderPath();
                 string completePath = folderPath + "\\" + selectedMidiName + ".mid";
 
-                var tempoMap = midiFile.GetTempoMap();
-
-                //var tempo = tempoMap.GetTempoAtTime((MidiTimeSpan)0);
-                //double microsecondsPerQuarterNote = tempo.MicrosecondsPerQuarterNote; 
-                //double bpm = 60_000_000.0 / microsecondsPerQuarterNote;
-
-                //MessageBox.Show($"Naam: {selectedMidiName} BPM: {bpm:F2}", "Tempo Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                // Open the piano window without assuming the MIDI device state
                 PianoWindow pianowindow = new PianoWindow(completePath);
                 pianowindow.ShowDialog();
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Error opening the MIDI file: {ex.Message}", "File Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
 
         private void refreshButton_Click(object sender, RoutedEventArgs e)
         {
@@ -85,6 +81,32 @@ namespace BeetHovenWPF
                 {
                     MessageBox.Show($"Error uploading the MIDI file: \n{ex.Message}", "Upload Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
+            }
+        }
+
+        private void DetectMidiInputButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var pianoInputHandler = PianoInputHandlerService.Instance;
+                pianoInputHandler.Dispose();
+
+                pianoInputHandler.InitializeMidiInput();
+
+                MessageBox.Show("MIDI input detection and initialization successful.",
+                                "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (InvalidOperationException ex)
+            {
+                MessageBox.Show($"No MIDI device detected. Please connect a device and try again.\n\nDetails: {ex.Message}","No MIDI Device Detected", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            catch (MidiDeviceException ex)
+            {
+                MessageBox.Show($"Error: The MIDI device is already in use. Please close other programs using the device and try again.\n\nDetails: {ex.Message}","MIDI Device In Use", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An unexpected error occurred: {ex.Message}","Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
     }

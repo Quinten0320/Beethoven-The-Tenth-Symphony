@@ -15,7 +15,7 @@ namespace BeethovenDataAccesLayer
             {
                 if (!Directory.Exists(folderPath))
                 {
-                    throw new DirectoryNotFoundException($"The directory '{folderPath}' does not exist.");
+                    Directory.CreateDirectory(folderPath);                    
                 }
             }
             catch (Exception ex)

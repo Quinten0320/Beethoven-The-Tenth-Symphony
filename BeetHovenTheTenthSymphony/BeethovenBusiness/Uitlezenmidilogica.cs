@@ -11,13 +11,13 @@ namespace BeethovenBusiness
     {
         private IEnumerable<Melanchall.DryWetMidi.Interaction.Note> notes;
         private TempoMap tempoMap;
-
+        MidiFile midiFile;
         
         public void LaadMidiBestand(string midiPath)
         {
             try
             {
-                var midiFile = MidiFile.Read(midiPath);
+                midiFile = MidiFile.Read(midiPath);
                 tempoMap = midiFile.GetTempoMap();
                 notes = midiFile.GetNotes().OrderBy(n => n.Time).ToList();
             }
@@ -35,16 +35,16 @@ namespace BeethovenBusiness
 
             var tempo = tempoMap.GetTempoAtTime((MidiTimeSpan)0);
             double microsecondsPerQuarterNote = tempo.MicrosecondsPerQuarterNote;
-            return 60_000_000.0 / microsecondsPerQuarterNote;
+            return 60000000.0 / microsecondsPerQuarterNote;
         }
 
         
-        public List<string> HaalNotenOp(double elapsedTime)
+        public List<Melanchall.DryWetMidi.Interaction.Note> HaalNotenOp(double elapsedTime)
         {
             if (notes == null || tempoMap == null)
                 throw new InvalidOperationException("Noten of TempoMap zijn niet geïnitialiseerd. Laad eerst een MIDI-bestand.");
 
-            var notesToPlay = new List<string>();
+            var notesToPlay = new List<Melanchall.DryWetMidi.Interaction.Note>();
             var notesToRemove = new List<Melanchall.DryWetMidi.Interaction.Note>();
 
             foreach (var note in notes.ToList())
@@ -57,8 +57,7 @@ namespace BeethovenBusiness
                 //als noot nu afgespeeld moet worden
                 if (elapsedTime >= noteTimeInSeconds)
                 {
-                    string noteName = GetNoteName(note.NoteNumber);
-                    notesToPlay.Add($"Note {noteName} speelt op {elapsedTime:F2} seconden");
+                    notesToPlay.Add(note);
                     notesToRemove.Add(note);
                 }
             }
@@ -68,8 +67,22 @@ namespace BeethovenBusiness
 
             return notesToPlay;
         }
+        public double GetTicksPerBeat()
+        {
+            if (tempoMap == null)
+                throw new InvalidOperationException("TempoMap is niet geïnitialiseerd. Laad eerst een MIDI-bestand.");
 
-               
+            var timeDivision = midiFile.TimeDivision as TicksPerQuarterNoteTimeDivision;
+            if (timeDivision == null)
+                throw new InvalidOperationException("TimeDivision is niet van het type TicksPerQuarterNoteTimeDivision.");
+
+            return timeDivision.TicksPerQuarterNote;
+        }
+
+
+
+
+
         private string GetNoteName(int midiNoteNumber)
         {
             string[] noteNames = { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };

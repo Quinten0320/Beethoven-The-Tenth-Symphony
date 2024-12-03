@@ -28,6 +28,12 @@ namespace BeetHovenWPF
 
         private void MidiFileList_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
+            if (MidiFileList.SelectedItem == null)
+            {
+                MessageBox.Show("Please select a valid MIDI file.", "Selection Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
             string selectedMidiName = MidiFileList.SelectedItem.ToString();
 
             try
@@ -44,8 +50,8 @@ namespace BeetHovenWPF
                 //double bpm = 60_000_000.0 / microsecondsPerQuarterNote;
 
                 //MessageBox.Show($"Naam: {selectedMidiName} BPM: {bpm:F2}", "Tempo Info", MessageBoxButton.OK, MessageBoxImage.Information);
-                MainWindow mainwindow = new MainWindow(completePath);
-                mainwindow.ShowDialog();
+                PianoWindow pianowindow = new PianoWindow(completePath);
+                pianowindow.ShowDialog();
             }
             catch (Exception ex)
             {

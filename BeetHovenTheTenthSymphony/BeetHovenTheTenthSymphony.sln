@@ -5,14 +5,13 @@ VisualStudioVersion = 17.11.35222.181
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BeetHovenWPF", "BeetHovenWPF\BeetHovenWPF.csproj", "{EBC4CC07-5A76-4B4E-954C-FC5E732C393D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BeethovenBusiness", "BeethovenBusiness\BeethovenBusiness.csproj", "{45B104BE-0BEB-49A9-96EA-775B54545743}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BeethovenBusiness", "BeethovenBusiness\BeethovenBusiness.csproj", "{45B104BE-0BEB-49A9-96EA-775B54545743}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BeethovenDataAccesLayer", "BeethovenDataAccesLayer\BeethovenDataAccesLayer.csproj", "{AEC830DA-49EB-497E-9B31-DD35804F3F14}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BeethovenDataAccesLayer", "BeethovenDataAccesLayer\BeethovenDataAccesLayer.csproj", "{AEC830DA-49EB-497E-9B31-DD35804F3F14}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{AFF6C682-9606-4DD7-A476-33FC8F8E4EDA}"
-	ProjectSection(SolutionItems) = preProject
-		.editorconfig = .editorconfig
-	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unittesten", "Unittesten\Unittesten.csproj", "{4C1D42DB-D1AB-4307-A07B-E2BE1D3AD96E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -32,6 +31,10 @@ Global
 		{AEC830DA-49EB-497E-9B31-DD35804F3F14}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AEC830DA-49EB-497E-9B31-DD35804F3F14}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AEC830DA-49EB-497E-9B31-DD35804F3F14}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4C1D42DB-D1AB-4307-A07B-E2BE1D3AD96E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4C1D42DB-D1AB-4307-A07B-E2BE1D3AD96E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4C1D42DB-D1AB-4307-A07B-E2BE1D3AD96E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4C1D42DB-D1AB-4307-A07B-E2BE1D3AD96E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

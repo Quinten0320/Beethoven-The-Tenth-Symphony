@@ -5,9 +5,9 @@
         Height="800" Width="1200" 
         ResizeMode="CanResize"
         SizeToContent="Manual"
-
         Loaded="PianoWindow_Loaded"
-        SizeChanged="PianoWindow_SizeChanged">
+        SizeChanged="PianoWindow_SizeChanged"
+        Closing="PianoWindow_Closing">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />

@@ -35,7 +35,7 @@ namespace BeethovenBusiness
 
             var tempo = tempoMap.GetTempoAtTime((MidiTimeSpan)0);
             double microsecondsPerQuarterNote = tempo.MicrosecondsPerQuarterNote;
-            return 60_000_000.0 / microsecondsPerQuarterNote;
+            return 60000000.0 / microsecondsPerQuarterNote;
         }
 
         
@@ -69,9 +69,14 @@ namespace BeethovenBusiness
         }
         public double GetTicksPerBeat()
         {
-            var tempo = tempoMap.GetTempoAtTime((MidiTimeSpan)0);
-            double microsecondsPerQuarterNote = tempo.MicrosecondsPerQuarterNote;
-            return microsecondsPerQuarterNote;
+            if (tempoMap == null)
+                throw new InvalidOperationException("TempoMap is niet geïnitialiseerd. Laad eerst een MIDI-bestand.");
+
+            var timeDivision = midiFile.TimeDivision as TicksPerQuarterNoteTimeDivision;
+            if (timeDivision == null)
+                throw new InvalidOperationException("TimeDivision is niet van het type TicksPerQuarterNoteTimeDivision.");
+
+            return timeDivision.TicksPerQuarterNote;
         }
 
 

@@ -9,25 +9,29 @@ using System.Windows.Media.Animation;
 using System.Windows.Threading;
 using BeethovenBusiness;
 using System.Diagnostics;
+using System.ComponentModel;
+using Microsoft.VisualBasic;
 
 
 namespace BeetHovenWPF
 {
     public partial class PianoWindow : Window
     {
+        private List<Rectangle> Blackkeys = new List<Rectangle>();
         private readonly PianoInputHandler _inputHandler;
-
         private readonly UitlezenMidiLogica uitlezenLogic;
         private readonly string _midiPath;
         private readonly int _octaves = 8;
         private const int _whiteKeyCount = 7;
         private DateTime _startTime;
+        private DispatcherTimer _timer;
 
         public PianoWindow(string midiPath)
         {
             InitializeComponent();
 
             SizeChanged += PianoWindow_SizeChanged;
+            Closing += PianoWindow_Closing; // Koppel het Closing-evenement
 
             _inputHandler = PianoInputHandlerService.Instance;
 
@@ -61,15 +65,26 @@ namespace BeetHovenWPF
             Dispatcher.Invoke(() => LastPressedNoteTextBox.Text = note);
         }
 
-        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        private void PianoWindow_Closing(object sender, CancelEventArgs e)
         {
-            try
+// <<<<<<< DetectMidiInput
+//             try
+//             {
+//                 _inputHandler.NotePressed -= OnMidiNotePressed;
+//             }
+//             catch (Exception ex)
+//             {
+//                 MessageBox.Show($"Error detaching MIDI handler: {ex.Message}", "Detach Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+// =======
+            // Verwijder de oude midicontroller wanneer de pianowindow sluit (dit is nodig)
+            _inputHandler.Dispose();
+
+            // Stop de timer
+            if (_timer != null)
             {
-                _inputHandler.NotePressed -= OnMidiNotePressed;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error detaching MIDI handler: {ex.Message}", "Detach Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                _timer.Stop();
+                _timer.Tick -= Timer_Tick;
+// >>>>>>> main
             }
         }
 
@@ -85,12 +100,12 @@ namespace BeetHovenWPF
                     double bpm = uitlezenLogic.BerekenBpm();
                     _startTime = DateTime.Now;
 
-                    DispatcherTimer timer = new DispatcherTimer
+                    _timer = new DispatcherTimer
                     {
                         Interval = TimeSpan.FromSeconds(1.0 / 120) // 120 FPS
                     };
-                    timer.Tick += Timer_Tick;
-                    timer.Start();
+                    _timer.Tick += Timer_Tick;
+                    _timer.Start();
                 }
                 catch (Exception ex)
                 {
@@ -166,6 +181,7 @@ namespace BeetHovenWPF
                         Canvas.SetLeft(blackKey, currentX + whiteKeyWidth * 0.75 - (blackKeyWidth / 2) + whiteKeyWidth * 0.25); Canvas.SetBottom(blackKey, whiteKeyHeight - blackKeyHeight);
                         Panel.SetZIndex(blackKey, 1);
                         blackKey.MouseDown += Key_MouseDown;
+                        Blackkeys.Add(blackKey);
                         PianoCanvas.Children.Add(blackKey);
                     }
 
@@ -218,8 +234,14 @@ namespace BeetHovenWPF
 
         private void StartAnimationForNote(string note, double duration, int octave)
         {
-            double animationDuration = 10;
-            double actualNoteDuration = (duration / uitlezenLogic.GetTicksPerBeat()) * (60 / uitlezenLogic.BerekenBpm());
+// <<<<<<< DetectMidiInput
+//             double animationDuration = 10;
+//             double actualNoteDuration = (duration / uitlezenLogic.GetTicksPerBeat()) * (60 / uitlezenLogic.BerekenBpm());
+// =======
+            Rectangle fallingNote;
+            double animationDuration = 5 * (120 / uitlezenLogic.BerekenBpm());
+            Debug.WriteLine($"Duur: {animationDuration}");
+// >>>>>>> main
 
             //geef rechthoek die bij noot hoort bijbehorende tag
             var targetKey = PianoCanvas.Children
@@ -237,17 +259,45 @@ namespace BeetHovenWPF
             double keyWidth = targetKey.Width;
             double keyLeft = Canvas.GetLeft(targetKey);
 
-            //hoogte vallende noot
-            double noteHeight = (actualNoteDuration / animationDuration) * PianoCanvas.ActualHeight;
-            Debug.WriteLine($"noothiehgt {noteHeight} duration {actualNoteDuration} animationduration {animationDuration}");
+// <<<<<<< DetectMidiInput
+//             //hoogte vallende noot
+//             double noteHeight = (actualNoteDuration / animationDuration) * PianoCanvas.ActualHeight;
+//             Debug.WriteLine($"noothiehgt {noteHeight} duration {actualNoteDuration} animationduration {animationDuration}");
 
-            //maak de vallende noot
-            Rectangle fallingNote = new Rectangle
+//             //maak de vallende noot
+//             Rectangle fallingNote = new Rectangle
+//             {
+//                 Width = keyWidth,
+//                 Height = noteHeight * 100,
+//                 Fill = Brushes.Blue
+//             };
+// =======
+            // Bereken de hoogte van de vallende noot op basis van de duur en de hoogte van het canvas
+            double noteHeight = (actualduration / animationDuration) * PianoCanvas.ActualHeight;
+
+            // Creëer de rechthoek voor de vallende noot
+            if (Blackkeys.Contains(targetKey))
             {
-                Width = keyWidth,
-                Height = noteHeight * 100,
-                Fill = Brushes.Blue
-            };
+                fallingNote = new Rectangle
+                {
+                    Width = keyWidth,  // De breedte van de vallende noot is een derde van de breedte van de doeltoets
+                    Height = noteHeight,
+                    Fill = Brushes.Black,
+                    Stroke = Brushes.Red,
+                };
+            }
+            else
+            {
+                fallingNote = new Rectangle
+                {
+                    Width = keyWidth,  // De breedte van de vallende noot is een derde van de breedte van de doeltoets
+                    Height = noteHeight,
+                    Fill = Brushes.Blue,
+                    Stroke = Brushes.Red,
+
+                };
+            }
+// >>>>>>> main
 
             //plaats de vallende noot boven de doeltoets
             Canvas.SetLeft(fallingNote, keyLeft);
@@ -270,4 +320,5 @@ namespace BeetHovenWPF
             fallingNote.BeginAnimation(Canvas.TopProperty, fallAnimation);
         }
     }
+    
 }

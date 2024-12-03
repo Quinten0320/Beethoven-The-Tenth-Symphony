@@ -14,8 +14,4 @@
     <PackageReference Include="System.Data.SQLite.EF6" Version="1.0.119" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Files\" />
-  </ItemGroup>
-
 </Project>

@@ -27,7 +27,6 @@ using System.Windows.Threading;
             uitlezenLogic = new UitlezenMidiLogica();
             midiPath = filePath;
             Midiuitlezen();
-            DataBaseHelper.InitializeDatabase();
         }
         private void OpenPianoWindow(object sender, RoutedEventArgs e)
         {

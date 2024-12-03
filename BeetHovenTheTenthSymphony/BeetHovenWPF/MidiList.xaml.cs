@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using BeethovenBusiness;
+using BeethovenDataAccesLayer;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Interaction;
 using Melanchall.DryWetMidi.Multimedia;
@@ -13,7 +14,7 @@ namespace BeetHovenWPF
         public MidiList()
         {
             InitializeComponent();
-
+            DataBaseHelper.InitializeDatabase();
             _midiService = new MidiService();
             fillList();
         }

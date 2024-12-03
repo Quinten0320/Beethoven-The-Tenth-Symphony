@@ -32,5 +32,20 @@ namespace BeethovenBusiness
         {
             return _data.getFolderPath();
         }
+
+        public List<double> GetMidiBPM()
+        {
+            return _data.LoadMidiBPM();
+        }
+
+        public List<double> GetSongtime()
+        {
+            return _data.LoadSongDuration();
+        }
+
+        public List<int> GetTotalNotes()
+        {
+            return _data.LoadTotalNotes();
+        }
     }
 }

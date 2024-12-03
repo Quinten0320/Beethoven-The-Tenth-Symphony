@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using BeethovenBusiness;
@@ -13,14 +14,14 @@ namespace BeetHovenWPF
     public partial class MidiList : Window
     {
         private readonly MidiService _midiService;
-        private List<MidiFileInfo> _midiFileInfos;
+        private ObservableCollection<MidiFileInfo> _midiFileInfos;
         private string _currentFilter = "Default";
         public MidiList()
         {
             InitializeComponent();
 
             _midiService = new MidiService();
-            _midiFileInfos = new List<MidiFileInfo>();
+            _midiFileInfos = new ObservableCollection<MidiFileInfo>();
             fillList();
         }
 
@@ -117,18 +118,22 @@ namespace BeetHovenWPF
                     .OrderByDescending(file => file.Name)
                     .ToList();
             }
+            else if (_currentFilter == "Favourites")
+            {
+                MidiFileList.ItemsSource = _midiFileInfos
+                    .Where(file => file.Favourite == true)
+                    .ToList();
+            }
         }
 
-        public List<MidiFileInfo> CalculateDifficulty()
+        public ObservableCollection<MidiFileInfo> CalculateDifficulty()
         {
-            List<MidiFileInfo> midiFileInfos = new List<MidiFileInfo>();
-
             List<string> midiNames = _midiService.GetMidiFileNames();
             List<double> bpm = _midiService.GetMidiBPM();
             List<double> duration = _midiService.GetSongtime();
             List<int> totalNotes = _midiService.GetTotalNotes();
 
-            return bpm.Select((b, i) =>
+            var midiFileInfos = bpm.Select((b, i) =>
             {
                 double difficultyValue = (Math.Pow(b, 2) / 10000) * (totalNotes[i] / duration[i]);
 
@@ -142,9 +147,12 @@ namespace BeetHovenWPF
                 return new MidiFileInfo
                 {
                     Name = midiNames[i],
-                    Difficulty = difficulty
+                    Difficulty = difficulty,
+
                 };
-            }).ToList();
+            });
+
+            return new ObservableCollection<MidiFileInfo>(midiFileInfos);
         }
     }
 }

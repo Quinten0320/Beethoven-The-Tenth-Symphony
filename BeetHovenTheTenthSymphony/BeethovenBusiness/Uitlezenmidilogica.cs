@@ -12,7 +12,7 @@ namespace BeethovenBusiness
         private IEnumerable<Melanchall.DryWetMidi.Interaction.Note> notes;
         private TempoMap tempoMap;
         MidiFile midiFile;
-        
+
         public void LaadMidiBestand(string midiPath)
         {
             try
@@ -27,7 +27,7 @@ namespace BeethovenBusiness
             }
         }
 
-        
+
         public double BerekenBpm()
         {
             if (tempoMap == null)
@@ -38,7 +38,7 @@ namespace BeethovenBusiness
             return 60000000.0 / microsecondsPerQuarterNote;
         }
 
-        
+
         public List<Melanchall.DryWetMidi.Interaction.Note> HaalNotenOp(double elapsedTime)
         {
             if (notes == null || tempoMap == null)
@@ -51,7 +51,7 @@ namespace BeethovenBusiness
             {
                 //bereken elke noot welke tijd afgespeeld moet worden
                 var noteTimeInTicks = note.Time;
-                var metricTime = TimeConverter.ConvertTo<MetricTimeSpan>(noteTimeInTicks, tempoMap); 
+                var metricTime = TimeConverter.ConvertTo<MetricTimeSpan>(noteTimeInTicks, tempoMap);
                 double noteTimeInSeconds = metricTime.TotalSeconds;
 
                 //als noot nu afgespeeld moet worden

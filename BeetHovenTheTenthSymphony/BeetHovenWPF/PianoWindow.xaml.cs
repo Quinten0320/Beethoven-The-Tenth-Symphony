@@ -202,19 +202,26 @@ namespace BeetHovenWPF
 
         private void Timer_Tick(object sender, EventArgs e)
         {
-            try
+            bool isWindowOpen = Application.Current.Windows.OfType<PianoWindow>().Any(window => window.IsVisible);
+            if (isWindowOpen)
             {
-                double elapsedTime = (DateTime.Now - _startTime).TotalSeconds;
-                var notesToPlay = uitlezenLogic.HaalNotenOp(elapsedTime);
-
-                foreach (var note in notesToPlay)
+                try
                 {
-                    StartAnimationForNote(note.NoteName.ToString(), note.Length, note.Octave);
+                    double elapsedTime = (DateTime.Now - _startTime).TotalSeconds;
+                    var notesToPlay = uitlezenLogic.HaalNotenOp(elapsedTime);
+
+                    foreach (var note in notesToPlay)
+                    {
+                        StartAnimationForNote(note.NoteName.ToString(), note.Length, note.Octave);
+                    }
                 }
-            }
-            catch (Exception ex)
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Fout in timer: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            } else
             {
-                MessageBox.Show($"Fout in timer: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                _timer.Stop();
             }
         }
 

@@ -9,6 +9,8 @@ using System.Windows.Media.Animation;
 using System.Windows.Threading;
 using BeethovenBusiness;
 using System.Diagnostics;
+using System.ComponentModel;
+using Microsoft.VisualBasic;
 
 
 namespace BeetHovenWPF
@@ -17,12 +19,12 @@ namespace BeetHovenWPF
     {
         private List<Rectangle> Blackkeys = new List<Rectangle>();
         private readonly PianoInputHandler _inputHandler;
-
         private readonly UitlezenMidiLogica uitlezenLogic;
         private readonly string _midiPath;
         private readonly int _octaves = 8;
         private const int _whiteKeyCount = 7;
         private DateTime _startTime;
+        private DispatcherTimer _timer;
 
         public PianoWindow(string midiPath)
         {
@@ -32,6 +34,7 @@ namespace BeetHovenWPF
 
             Loaded += PianoWindow_Loaded;
             SizeChanged += PianoWindow_SizeChanged;
+            Closing += PianoWindow_Closing; // Koppel het Closing-evenement
 
             _inputHandler = new PianoInputHandler();
             _inputHandler.NotePressed += OnMidiNotePressed;
@@ -43,10 +46,17 @@ namespace BeetHovenWPF
             Dispatcher.Invoke(() => LastPressedNoteTextBox.Text = note);
         }
 
-        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        private void PianoWindow_Closing(object sender, CancelEventArgs e)
         {
-            //verwijderd de oude midicontroller wanneer de pianowindow closed (dit is nodig)
+            // Verwijder de oude midicontroller wanneer de pianowindow sluit (dit is nodig)
             _inputHandler.Dispose();
+
+            // Stop de timer
+            if (_timer != null)
+            {
+                _timer.Stop();
+                _timer.Tick -= Timer_Tick;
+            }
         }
 
         private void PianoWindow_Loaded(object sender, RoutedEventArgs e)
@@ -62,12 +72,12 @@ namespace BeetHovenWPF
 
                     _startTime = DateTime.Now;
 
-                    DispatcherTimer timer = new DispatcherTimer
+                    _timer = new DispatcherTimer
                     {
                         Interval = TimeSpan.FromSeconds(1.0 / 120) // 120 FPS
                     };
-                    timer.Tick += Timer_Tick;
-                    timer.Start();
+                    _timer.Tick += Timer_Tick;
+                    _timer.Start();
                 }
                 catch (Exception ex)
                 {
@@ -75,7 +85,7 @@ namespace BeetHovenWPF
                 }
             }
         }
-        
+
         private void PianoWindow_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             GeneratePiano(); //Herteken de piano bij venstergrootte-aanpassing
@@ -235,7 +245,7 @@ namespace BeetHovenWPF
                 };
             }
 
-                // Plaats de vallende noot boven de doeltoets
+            // Plaats de vallende noot boven de doeltoets
             Canvas.SetLeft(fallingNote, keyLeft);
             Canvas.SetTop(fallingNote, 0);
             PianoCanvas.Children.Add(fallingNote);
@@ -256,4 +266,5 @@ namespace BeetHovenWPF
             fallingNote.BeginAnimation(Canvas.TopProperty, fallAnimation);
         }
     }
+    
 }

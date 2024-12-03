@@ -396,3 +396,4 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+/BeetHovenTheTenthSymphony/BeethovenDataAccesLayer/Files/BeethovenDataBase.db

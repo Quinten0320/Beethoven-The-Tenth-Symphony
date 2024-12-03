@@ -16,6 +16,7 @@ namespace BeetHovenWPF
         private readonly MidiService _midiService;
         private ObservableCollection<MidiFileInfo> _midiFileInfos;
         private string _currentFilter = "Default";
+
         public MidiList()
         {
             InitializeComponent();
@@ -55,12 +56,14 @@ namespace BeetHovenWPF
                 {
                     MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
+
             }
             else
             {
                 MessageBox.Show("Please select a valid MIDI file.", "Selection Error", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
+
 
         private void UploadButton_Click(object sender, RoutedEventArgs e)
         {
@@ -85,6 +88,7 @@ namespace BeetHovenWPF
                 }
             }
         }
+
 
         private void FilterButton_SelectionChanged_1(object sender, SelectionChangedEventArgs e)
         {
@@ -154,5 +158,32 @@ namespace BeetHovenWPF
 
             return new ObservableCollection<MidiFileInfo>(midiFileInfos);
         }
+
+        private void DetectMidiInputButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var pianoInputHandler = PianoInputHandlerService.Instance;
+                pianoInputHandler.Dispose();
+
+                pianoInputHandler.InitializeMidiInput();
+
+                MessageBox.Show("MIDI input detection and initialization successful.",
+                                "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (InvalidOperationException ex)
+            {
+                MessageBox.Show($"No MIDI device detected. Please connect a device and try again.\n\nDetails: {ex.Message}","No MIDI Device Detected", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            catch (MidiDeviceException ex)
+            {
+                MessageBox.Show($"Error: The MIDI device is already in use. Please close other programs using the device and try again.\n\nDetails: {ex.Message}","MIDI Device In Use", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An unexpected error occurred: {ex.Message}","Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
     }
 }

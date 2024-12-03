@@ -4,8 +4,9 @@
         Title="MidiList" Height="450" Width="800">
     <Grid>
         <DockPanel>
-            <Button x:Name="RefreshButton" Content="Refresh" HorizontalAlignment="Right" VerticalAlignment="Top" Width="90" Margin="0,10,10,0" Click="refreshButton_Click" DockPanel.Dock="Top"/>
-            <Button x:Name="UploadButton" Content="Upload midi file" HorizontalAlignment="Right" Width="90" Margin="0,10,10,0" DockPanel.Dock="Top" Click="UploadButton_Click"/>
+
+            <Button x:Name="DetectMidiInputButton" Content="Detect Midi Input" HorizontalAlignment="Right" VerticalAlignment="Top" Width="120" Margin="0,10,10,0" Click="DetectMidiInputButton_Click" DockPanel.Dock="Top"/>
+            <Button x:Name="RefreshButton" Content="Refresh" HorizontalAlignment="Right" VerticalAlignment="Top" Width="120" Margin="0,10,10,0" Click="refreshButton_Click" DockPanel.Dock="Top"/>
             <ComboBox x:Name="FilterButton" HorizontalAlignment="Right" Width="90" Margin="0,10,10,0" DockPanel.Dock="Top" SelectionChanged="FilterButton_SelectionChanged_1">
                 <ComboBoxItem Visibility="Collapsed" IsSelected="True">Filter</ComboBoxItem>
                 <ComboBoxItem>A-Z</ComboBoxItem>
@@ -15,6 +16,7 @@
                 <ComboBoxItem>Hard</ComboBoxItem>
                 <ComboBoxItem>Favourites</ComboBoxItem>
             </ComboBox>
+            <Button x:Name="UploadButton" Content="Upload midi file" HorizontalAlignment="Right" Width="120" Margin="0,10,10,0" DockPanel.Dock="Top" Click="UploadButton_Click"/>
             <TextBlock HorizontalAlignment="Center" Margin="0,-40,0,0" TextWrapping="Wrap" Text="Songs:" VerticalAlignment="Top" FontSize="24" DockPanel.Dock="Top"/>
             <DataGrid x:Name="MidiFileList" CanUserAddRows="False" Margin="0,10,0,0" AutoGenerateColumns="False" MouseDoubleClick="MidiFileList_MouseDoubleClick" DockPanel.Dock="Top">
                 <DataGrid.Columns>
@@ -23,6 +25,8 @@
                     <DataGridCheckBoxColumn Header="Favourite" Binding="{Binding Favourite}" IsReadOnly="False"/>
                 </DataGrid.Columns>
             </DataGrid>
+
         </DockPanel>
+
     </Grid>
 </Window>

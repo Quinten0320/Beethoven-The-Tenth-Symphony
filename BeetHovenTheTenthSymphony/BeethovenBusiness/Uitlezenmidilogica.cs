@@ -12,7 +12,7 @@ namespace BeethovenBusiness
         private IEnumerable<Melanchall.DryWetMidi.Interaction.Note> notes;
         private TempoMap tempoMap;
         MidiFile midiFile;
-        
+
         public void LaadMidiBestand(string midiPath)
         {
             try
@@ -27,7 +27,7 @@ namespace BeethovenBusiness
             }
         }
 
-        
+
         public double BerekenBpm()
         {
             if (tempoMap == null)
@@ -35,10 +35,10 @@ namespace BeethovenBusiness
 
             var tempo = tempoMap.GetTempoAtTime((MidiTimeSpan)0);
             double microsecondsPerQuarterNote = tempo.MicrosecondsPerQuarterNote;
-            return 60_000_000.0 / microsecondsPerQuarterNote;
+            return 60000000.0 / microsecondsPerQuarterNote;
         }
 
-        
+
         public List<Melanchall.DryWetMidi.Interaction.Note> HaalNotenOp(double elapsedTime)
         {
             if (notes == null || tempoMap == null)
@@ -51,7 +51,7 @@ namespace BeethovenBusiness
             {
                 //bereken elke noot welke tijd afgespeeld moet worden
                 var noteTimeInTicks = note.Time;
-                var metricTime = TimeConverter.ConvertTo<MetricTimeSpan>(noteTimeInTicks, tempoMap); 
+                var metricTime = TimeConverter.ConvertTo<MetricTimeSpan>(noteTimeInTicks, tempoMap);
                 double noteTimeInSeconds = metricTime.TotalSeconds;
 
                 //als noot nu afgespeeld moet worden
@@ -69,9 +69,14 @@ namespace BeethovenBusiness
         }
         public double GetTicksPerBeat()
         {
-            var tempo = tempoMap.GetTempoAtTime((MidiTimeSpan)0);
-            double microsecondsPerQuarterNote = tempo.MicrosecondsPerQuarterNote;
-            return microsecondsPerQuarterNote;
+            if (tempoMap == null)
+                throw new InvalidOperationException("TempoMap is niet geïnitialiseerd. Laad eerst een MIDI-bestand.");
+
+            var timeDivision = midiFile.TimeDivision as TicksPerQuarterNoteTimeDivision;
+            if (timeDivision == null)
+                throw new InvalidOperationException("TimeDivision is niet van het type TicksPerQuarterNoteTimeDivision.");
+
+            return timeDivision.TicksPerQuarterNote;
         }
 
 

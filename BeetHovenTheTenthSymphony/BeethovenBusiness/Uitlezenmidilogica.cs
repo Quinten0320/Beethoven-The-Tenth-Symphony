@@ -78,17 +78,5 @@ namespace BeethovenBusiness
 
             return timeDivision.TicksPerQuarterNote;
         }
-
-
-
-
-
-        private string GetNoteName(int midiNoteNumber)
-        {
-            string[] noteNames = { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
-            int octave = (midiNoteNumber / 12);
-            string noteName = noteNames[midiNoteNumber % 12];
-            return $"{noteName}{octave}";
-        }
     }
 }

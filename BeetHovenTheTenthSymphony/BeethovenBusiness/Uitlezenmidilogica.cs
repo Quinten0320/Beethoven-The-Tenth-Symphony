@@ -78,5 +78,18 @@ namespace BeethovenBusiness
 
             return timeDivision.TicksPerQuarterNote;
         }
-    }
+        public long getMaxLength()
+        {
+            var longestNote = notes.OrderByDescending(n => n.Length).First();
+            long longesnotelength = longestNote.Length;
+            return longesnotelength;
+        }
+        public double BerekenGemiddeldeLengte()
+        {
+            if (notes == null || !notes.Any())
+                throw new InvalidOperationException("Noten zijn niet geïnitialiseerd of de lijst is leeg. Laad eerst een MIDI-bestand.");
+
+            return notes.Average(n => n.Length);
+        }
+}
 }

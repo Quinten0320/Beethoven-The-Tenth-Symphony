@@ -228,13 +228,11 @@ namespace BeetHovenWPF
         private void StartAnimationForNote(string note, double duration, int octave)
         {
             Rectangle fallingNote;
-            double animationDuration = 5 * (120 / uitlezenLogic.BerekenBpm());
-            Debug.WriteLine($"Duur: {animationDuration}");
+            double bpm = uitlezenLogic.BerekenBpm();
+            double baseAnimationDuration = 5 * (120 / bpm);
+            double actualduration = (duration / uitlezenLogic.GetTicksPerBeat()) * (60 / bpm);
+            double maxduration = (uitlezenLogic.getMaxLength()/ uitlezenLogic.GetTicksPerBeat()) * (60/bpm);
 
-            // Bereken de werkelijke duur van de noot in seconden
-            double actualduration = (duration / uitlezenLogic.GetTicksPerBeat()) * (60 / uitlezenLogic.BerekenBpm());
-
-            // Zoek de rechthoek die overeenkomt met de noot
             var targetKey = PianoCanvas.Children
                 .OfType<Rectangle>()
                 .FirstOrDefault(r => r.Tag?.ToString() == $"PianoNote:{note}{octave}");
@@ -243,21 +241,17 @@ namespace BeetHovenWPF
             {
                 Debug.WriteLine($"Noot {note}{octave} niet gevonden");
                 return;
-            } // Als de noot niet wordt gevonden, stop de methode
+            }
 
-            // Bereken de breedte en positie van de doeltoets
             double keyWidth = targetKey.Width;
             double keyLeft = Canvas.GetLeft(targetKey);
+            double noteHeight = (actualduration / baseAnimationDuration) * PianoCanvas.ActualHeight;
 
-            // Bereken de hoogte van de vallende noot op basis van de duur en de hoogte van het canvas
-            double noteHeight = (actualduration / animationDuration) * PianoCanvas.ActualHeight;
-
-            // Creëer de rechthoek voor de vallende noot
             if (Blackkeys.Contains(targetKey))
             {
                 fallingNote = new Rectangle
                 {
-                    Width = keyWidth,  // De breedte van de vallende noot is een derde van de breedte van de doeltoets
+                    Width = keyWidth,
                     Height = noteHeight,
                     Fill = Brushes.Black,
                     Stroke = Brushes.Red,
@@ -267,32 +261,33 @@ namespace BeetHovenWPF
             {
                 fallingNote = new Rectangle
                 {
-                    Width = keyWidth,  // De breedte van de vallende noot is een derde van de breedte van de doeltoets
+                    Width = keyWidth,
                     Height = noteHeight,
                     Fill = Brushes.Blue,
                     Stroke = Brushes.Red,
-
                 };
             }
 
-            // Plaats de vallende noot boven de doeltoets
+            Debug.WriteLine($"{noteHeight}");
             Canvas.SetLeft(fallingNote, keyLeft);
             Canvas.SetTop(fallingNote, 0);
             PianoCanvas.Children.Add(fallingNote);
 
-            // Creëer de animatie om de vallende noot van boven naar beneden te bewegen
+            double longestNoteHeight = ((maxduration / baseAnimationDuration) * PianoCanvas.ActualHeight); //+ (((maxduration / baseAnimationDuration) * PianoCanvas.ActualHeight) / 2);
+            double adjustedAnimationDuration = baseAnimationDuration * (longestNoteHeight / actualduration);
+
+            // Zorg ervoor dat de animatieduur binnen redelijke grenzen blijft
+            adjustedAnimationDuration = Math.Max(1, Math.Min(adjustedAnimationDuration, 10));
+
             DoubleAnimation fallAnimation = new DoubleAnimation
             {
-                From = 0,
+                From = -longestNoteHeight,
                 To = PianoCanvas.ActualHeight,
-                Duration = new Duration(TimeSpan.FromSeconds(animationDuration)),  // De animatieduur is altijd 5 seconden
+                Duration = new Duration(TimeSpan.FromSeconds(adjustedAnimationDuration)),
                 FillBehavior = FillBehavior.Stop
             };
 
-            // Verwijder de vallende noot van het canvas zodra de animatie is voltooid
             fallAnimation.Completed += (s, e) => PianoCanvas.Children.Remove(fallingNote);
-
-            // Start de animatie
             fallingNote.BeginAnimation(Canvas.TopProperty, fallAnimation);
         }
     }

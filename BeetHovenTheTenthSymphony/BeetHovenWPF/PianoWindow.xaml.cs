@@ -26,6 +26,8 @@ namespace BeetHovenWPF
         private DateTime _startTime;
         private DispatcherTimer _timer;
 
+        private bool _isPaused = false;
+
         public PianoWindow(string midiPath)
         {
             InitializeComponent();
@@ -40,9 +42,55 @@ namespace BeetHovenWPF
 
             _inputHandler.NotePressed -= OnMidiNotePressed; //veiligheid, niet perse nodig
             _inputHandler.NotePressed += OnMidiNotePressed;
+            this.KeyDown += PianoWindowPauze;
 
             UpdateMidiStatus();
         }
+
+        private void PianoWindowPauze(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Escape)
+            {
+                e.Handled = true;
+                TogglePause();
+            }
+        }
+        public void TogglePause()
+        {
+            _isPaused = !_isPaused;
+
+            if (_isPaused)
+            {
+                // Timer pauzeren
+                _timer.Stop();
+
+                // Toon het pauzemenu
+                ShowPauseMenu(true);
+            }
+            else
+            {
+                // Timer hervatten
+                _timer.Start();
+
+                // Verberg het pauzemenu
+                ShowPauseMenu(false);
+            }
+        }
+
+        public void ShowPauseMenu(bool show)
+        {
+            if (show)
+            {
+                PauseFrame.Visibility = Visibility.Visible; // Toon de Frame
+                PauseFrame.Navigate(new PauzeMenu());       // Navigeer naar PauzeMenu
+            }
+            else
+            {
+                PauseFrame.Content = null;                 // Leeg de Frame
+                PauseFrame.Visibility = Visibility.Collapsed; // Verberg de Frame
+            }
+        }
+
 
         private void UpdateMidiStatus()
         {
@@ -69,7 +117,7 @@ namespace BeetHovenWPF
             Dispatcher.Invoke(() => LastPressedNoteTextBox.Text = note);
         }
 
-        private void PianoWindow_Closing(object sender, CancelEventArgs e)
+        public void PianoWindow_Closing(object sender, CancelEventArgs e)
         {
             // Verwijder de oude midicontroller wanneer de pianowindow sluit (dit is nodig)
             _inputHandler.Dispose();

@@ -9,6 +9,8 @@ namespace BeethovenBusiness
 {
     public class UitlezenMidiLogica
     {
+        public double fallPercentage = 0;
+        public double animationDurationUitlezenMidiLogica = 0;
         private IEnumerable<Melanchall.DryWetMidi.Interaction.Note> notes;
         private TempoMap tempoMap;
         MidiFile midiFile;
@@ -55,7 +57,7 @@ namespace BeethovenBusiness
                 double noteTimeInSeconds = metricTime.TotalSeconds;
 
                 //als noot nu afgespeeld moet worden
-                if (elapsedTime >= noteTimeInSeconds)
+                if ((elapsedTime - (animationDurationUitlezenMidiLogica * fallPercentage)) >= noteTimeInSeconds) //DIT MOET NOG AANGEPAST WORDEN NAAR + EN MET EEN TIMER
                 {
                     notesToPlay.Add(note);
                     notesToRemove.Add(note);

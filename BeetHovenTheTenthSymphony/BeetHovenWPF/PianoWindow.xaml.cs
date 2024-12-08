@@ -16,9 +16,18 @@ namespace BeetHovenWPF
 {
     public partial class PianoWindow : Window
     {
+
+        /*private List<double> fallPercentages = new List<double>();
+        double totalDistance = PianoCanvas.ActualHeight + maxNoteHeight * 0.5;
+        double distanceToBottom = PianoCanvas.ActualHeight - targetKey.Height;
+        double fallPercentage = distanceToBottom / totalDistance;
+        fallPercentages.Add(fallPercentage);*/
+
+
+
         private List<Rectangle> Blackkeys = new List<Rectangle>();
         private readonly PianoInputHandler _inputHandler;
-
+        private double Fallpercentage;
         private readonly UitlezenMidiLogica uitlezenLogic;
         private readonly string _midiPath;
         private readonly int _octaves = 8;
@@ -45,6 +54,14 @@ namespace BeetHovenWPF
             _inputHandler.NotePressed += OnMidiNotePressed;
 
             UpdateMidiStatus();
+        }
+
+        private double BerekenFallPercentage(Rectangle targetKey, double maxNoteHeight)
+        {
+            double totalDistance = PianoCanvas.ActualHeight + maxNoteHeight * 0.5;
+            double distanceToBottom = PianoCanvas.ActualHeight - targetKey.Height;
+            double fallPercentage = distanceToBottom / totalDistance;
+            return fallPercentage;
         }
 
         private void UpdateMidiStatus()
@@ -94,10 +111,7 @@ namespace BeetHovenWPF
                 try
                 {
                     uitlezenLogic.LaadMidiBestand(_midiPath);
-                    double bpm = uitlezenLogic.BerekenBpm();
-
                     _startTime = DateTime.Now;
-
                     _timer = new DispatcherTimer
                     {
                         Interval = TimeSpan.FromSeconds(1.0 / 120) // 120 FPS
@@ -212,6 +226,10 @@ namespace BeetHovenWPF
                 {
                     double elapsedTime = (DateTime.Now - _startTime).TotalSeconds;
                     var notesToPlay = uitlezenLogic.HaalNotenOp(elapsedTime);
+                    if (allesopgevraagd)
+                    {
+                        StartAnimationForNote("C", 0, 0);
+                    }
 
                     foreach (var note in notesToPlay)
                     {
@@ -242,19 +260,6 @@ namespace BeetHovenWPF
 
         private void StartAnimationForNote(string note, double length, int octave)
         {
-            if (allesopgevraagd)
-            {
-                allesopgevraagd = false;
-                getmaxlength = uitlezenLogic.getMaxLength();
-                getgemiddeldelengte = uitlezenLogic.BerekenGemiddeldeLengte();
-            }
-
-            Rectangle fallingNote;
-            double bpm = uitlezenLogic.BerekenBpm();
-            double baseAnimationDuration = 5 * (120 / bpm);
-            double actualLength = (length / uitlezenLogic.GetTicksPerBeat()) * (60 / bpm); //lengte noot
-            double maxLength = (getmaxlength / uitlezenLogic.GetTicksPerBeat()) * (60 / bpm); //lengte langste noot
-
             var targetKey = PianoCanvas.Children
                 .OfType<Rectangle>()
                 .FirstOrDefault(r => r.Tag?.ToString() == $"PianoNote:{note}{octave}");
@@ -264,43 +269,46 @@ namespace BeetHovenWPF
                 Debug.WriteLine($"Noot {note}{octave} niet gevonden");
                 return;
             }
+            if (allesopgevraagd)
+            {
+                getmaxlength = uitlezenLogic.getMaxLength();
+                getgemiddeldelengte = uitlezenLogic.BerekenGemiddeldeLengte();
+            }
 
-            double keyWidth = targetKey.Width;
-            double keyLeft = Canvas.GetLeft(targetKey);
+            double bpm = uitlezenLogic.BerekenBpm();
+            double baseAnimationDuration = 5 * (120 / bpm);
+            double actualLength = (length / uitlezenLogic.GetTicksPerBeat()) * (60 / bpm);
+            double maxLength = (getmaxlength / uitlezenLogic.GetTicksPerBeat()) * (60 / bpm);
             double noteHeight = (actualLength / baseAnimationDuration) * PianoCanvas.ActualHeight;
             double maxNoteHeight = (maxLength / baseAnimationDuration) * PianoCanvas.ActualHeight;
 
-            if (Blackkeys.Contains(targetKey))
-            {
-                fallingNote = new Rectangle
+            
+                Rectangle fallingNote = new Rectangle
                 {
-                    Width = keyWidth,
+                    Width = targetKey.Width,
                     Height = noteHeight,
-                    Fill = Brushes.Black,
+                    Fill = Blackkeys.Contains(targetKey) ? Brushes.Black : Brushes.Blue,
                     Stroke = Brushes.Red,
                 };
-            }
-            else
+            if (!allesopgevraagd)
             {
-                fallingNote = new Rectangle
-                {
-                    Width = keyWidth,
-                    Height = noteHeight,
-                    Fill = Brushes.Blue,
-                    Stroke = Brushes.Red,
-                };
+                Canvas.SetLeft(fallingNote, Canvas.GetLeft(targetKey));
+                Canvas.SetBottom(fallingNote, PianoCanvas.ActualHeight);
+                PianoCanvas.Children.Add(fallingNote);
             }
 
-            Canvas.SetLeft(fallingNote, keyLeft);
-            Canvas.SetBottom(fallingNote, PianoCanvas.ActualHeight);
-
-            PianoCanvas.Children.Add(fallingNote);
             double gemiddeldeLengte = (((getgemiddeldelengte / uitlezenLogic.GetTicksPerBeat()) * (60 / bpm)) / baseAnimationDuration) * PianoCanvas.ActualHeight;
-            double adjustedAnimationDuration = baseAnimationDuration + (maxNoteHeight / gemiddeldeLengte); //animatie duur
-
+            double adjustedAnimationDuration = baseAnimationDuration + (maxNoteHeight / gemiddeldeLengte);
             adjustedAnimationDuration = Math.Max(1, Math.Min(adjustedAnimationDuration, 10));
-            double vanaf = PianoCanvas.ActualHeight + maxNoteHeight * 0.5;
-            Debug.WriteLine($"noteheight: {noteHeight}, maxnoteheight: {maxNoteHeight}, adjustedanimationduration: {adjustedAnimationDuration}");
+            
+            if (allesopgevraagd)
+            {
+                allesopgevraagd = false;
+                Fallpercentage = BerekenFallPercentage(targetKey, maxNoteHeight);
+                uitlezenLogic.fallPercentage = Fallpercentage;
+                uitlezenLogic.animationDurationUitlezenMidiLogica = adjustedAnimationDuration;
+                return;
+            }
 
             DoubleAnimation fallAnimation = new DoubleAnimation
             {

@@ -12,7 +12,7 @@ namespace BeethovenBusiness
         private IEnumerable<Melanchall.DryWetMidi.Interaction.Note> notes;
         private TempoMap tempoMap;
         MidiFile midiFile;
-
+        
         public void LaadMidiBestand(string midiPath)
         {
             try
@@ -69,27 +69,26 @@ namespace BeethovenBusiness
         }
         public double GetTicksPerBeat()
         {
-            if (tempoMap == null)
-                throw new InvalidOperationException("TempoMap is niet geïnitialiseerd. Laad eerst een MIDI-bestand.");
-
             var timeDivision = midiFile.TimeDivision as TicksPerQuarterNoteTimeDivision;
-            if (timeDivision == null)
-                throw new InvalidOperationException("TimeDivision is niet van het type TicksPerQuarterNoteTimeDivision.");
-
             return timeDivision.TicksPerQuarterNote;
         }
         public long getMaxLength()
         {
-            var longestNote = notes.OrderByDescending(n => n.Length).First();
-            long longesnotelength = longestNote.Length;
-            return longesnotelength;
+            long longestNote = 0;
+            foreach (var note in notes)
+            {
+                if (note.Length > longestNote)
+                {
+                    longestNote = note.Length;
+                }
+            }
+            return longestNote;
         }
-        public double BerekenGemiddeldeLengte()
+        public long BerekenGemiddeldeLengte()
         {
-            if (notes == null || !notes.Any())
-                throw new InvalidOperationException("Noten zijn niet geïnitialiseerd of de lijst is leeg. Laad eerst een MIDI-bestand.");
-
-            return notes.Average(n => n.Length);
+            long gemiddeldelengte = 0;
+            gemiddeldelengte = (long)notes.Average(n => n.Length);            
+            return gemiddeldelengte;
         }
 }
 }

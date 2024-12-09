@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -27,9 +27,15 @@ namespace BeetHovenWPF
 
         private List<Rectangle> Blackkeys = new List<Rectangle>();
         private readonly PianoInputHandler _inputHandler;
+// <<<<<<< Pauzemenu
+//         private List<Storyboard> activeAnimations = new List<Storyboard>();
+//         private DateTime _pauseStartTime;
+//         private TimeSpan _totalPauseDuration = TimeSpan.Zero;
+
+// =======
         private double Fallpercentage;
         private readonly UitlezenMidiLogica uitlezenLogic;
-        private readonly string _midiPath;
+        public readonly string _midiPath;
         private readonly int _octaves = 8;
         private const int _whiteKeyCount = 7;
         private DateTime _startTime;
@@ -37,6 +43,8 @@ namespace BeetHovenWPF
         private bool allesopgevraagd = true;
         long getmaxlength;
         long getgemiddeldelengte;
+
+        private bool _isPaused = false;
 
         public PianoWindow(string midiPath)
         {
@@ -56,9 +64,71 @@ namespace BeetHovenWPF
 
             _inputHandler.NotePressed -= OnMidiNotePressed; // Veiligheid, niet per se nodig
             _inputHandler.NotePressed += OnMidiNotePressed;
+            this.KeyDown += PianoWindowPauze;
 
             UpdateMidiStatus();
         }
+
+// <<<<<<< Pauzemenu
+//         private void PianoWindowPauze(object sender, KeyEventArgs e)
+//         {
+//             if (e.Key == Key.Escape)
+//             {
+//                 e.Handled = true;
+//                 TogglePause();
+//             }
+//         }
+//         public void TogglePause()
+//         {
+//             _isPaused = !_isPaused;
+
+//             if (_isPaused)
+//             {
+//                 //stop de timer en registreer de start van de pauze
+//                 _timer?.Stop();
+//                 _pauseStartTime = DateTime.Now;
+
+//                 //pauzeer animaties
+//                 foreach (var storyboard in activeAnimations)
+//                 {
+//                     storyboard.Pause();
+//                 }
+
+//                 ShowPauseMenu(true);
+//             }
+//             else
+//             {
+//                 //bereken de totale pauzeduur en pas deze toe op de starttijd
+//                 _totalPauseDuration += DateTime.Now - _pauseStartTime;
+//                 _startTime = _startTime.Add(_totalPauseDuration);
+
+//                 //reset de pauzeduur
+//                 _totalPauseDuration = TimeSpan.Zero;
+
+//                 //start de timer opnieuw en hervat animaties
+//                 _timer?.Start();
+//                 foreach (var storyboard in activeAnimations)
+//                 {
+//                     storyboard.Resume();
+//                 }
+
+//                 ShowPauseMenu(false);
+//             }
+//         }
+
+//         public void ShowPauseMenu(bool show)
+//         {
+//             if (show)
+//             {
+//                 PauseFrame.Visibility = Visibility.Visible; //toon de Frame
+//                 PauseFrame.Navigate(new PauzeMenu());       //navigeer naar PauzeMenu
+//             }
+//             else
+//             {
+//                 PauseFrame.Content = null;                 //leeg de Frame
+//                 PauseFrame.Visibility = Visibility.Collapsed; //verberg de Frame
+//             }
+//         }
 
         private double BerekenFallPercentage(Rectangle targetKey, double maxNoteHeight)
         {
@@ -93,7 +163,7 @@ namespace BeetHovenWPF
             Dispatcher.Invoke(() => LastPressedNoteTextBox.Text = note);
         }
 
-        private void PianoWindow_Closing(object sender, CancelEventArgs e)
+        public void PianoWindow_Closing(object sender, CancelEventArgs e)
         {
             // Verwijder de oude midicontroller wanneer de pianowindow sluit (dit is nodig)
             _inputHandler.Dispose();
@@ -223,7 +293,14 @@ namespace BeetHovenWPF
 
         private void Timer_Tick(object sender, EventArgs e)
         {
+            if (_isPaused)
+            {
+                // Timer is actief, maar logica wordt niet uitgevoerd als de applicatie is gepauzeerd.
+                return;
+            }
+
             bool isWindowOpen = Application.Current.Windows.OfType<PianoWindow>().Any(window => window.IsVisible);
+
             if (isWindowOpen)
             {
                 try
@@ -244,7 +321,8 @@ namespace BeetHovenWPF
                 {
                     MessageBox.Show($"Fout in timer: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
-            } else
+            }
+            else
             {
                 _timer.Stop();
             }
@@ -268,6 +346,38 @@ namespace BeetHovenWPF
                 .OfType<Rectangle>()
                 .FirstOrDefault(r => r.Tag?.ToString() == $"PianoNote:{note}{octave}");
 
+// <<<<<<< Pauzemenu
+//             if (targetKey == null) return;
+
+//             var fallingNote = new Rectangle
+//             {
+//                 Width = targetKey.Width,
+//                 Height = (duration / uitlezenLogic.GetTicksPerBeat()) * (60 / uitlezenLogic.BerekenBpm()) * PianoCanvas.ActualHeight,
+//                 Fill = Blackkeys.Contains(targetKey) ? Brushes.Black : Brushes.Blue,
+//                 Stroke = Brushes.Red
+//             };
+
+//             Canvas.SetLeft(fallingNote, Canvas.GetLeft(targetKey));
+//             Canvas.SetTop(fallingNote, 0);
+//             PianoCanvas.Children.Add(fallingNote);
+
+//             var fallAnimation = new DoubleAnimation
+//             {
+//                 From = 0,
+//                 To = PianoCanvas.ActualHeight,
+//                 Duration = new Duration(TimeSpan.FromSeconds(5)),
+//                 FillBehavior = FillBehavior.Stop
+//             };
+
+//             var storyboard = new Storyboard();
+//             Storyboard.SetTarget(fallAnimation, fallingNote);
+//             Storyboard.SetTargetProperty(fallAnimation, new PropertyPath("(Canvas.Top)"));
+//             storyboard.Children.Add(fallAnimation);
+//             storyboard.Completed += (s, e) => PianoCanvas.Children.Remove(fallingNote);
+
+//             activeAnimations.Add(storyboard);
+//             storyboard.Begin();
+// =======
             if (targetKey == null)
             {
                 Debug.WriteLine($"Noot {note}{octave} niet gevonden");

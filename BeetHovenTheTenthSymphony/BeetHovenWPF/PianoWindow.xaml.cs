@@ -284,7 +284,6 @@ namespace BeetHovenWPF
             double noteHeight = (actualLength / baseAnimationDuration) * PianoCanvas.ActualHeight;
             double maxNoteHeight = (maxLength / baseAnimationDuration) * PianoCanvas.ActualHeight;
 
-
             Rectangle fallingNote = new Rectangle
             {
                 Width = targetKey.Width,
@@ -320,8 +319,16 @@ namespace BeetHovenWPF
                 FillBehavior = FillBehavior.Stop
             };
 
-            fallAnimation.Completed += (s, e) => PianoCanvas.Children.Remove(fallingNote);
-            fallingNote.BeginAnimation(Canvas.BottomProperty, fallAnimation);
+            //fallAnimation.Completed += (s, e) => PianoCanvas.Children.Remove(fallingNote);
+            //fallingNote.BeginAnimation(Canvas.BottomProperty, fallAnimation);
+            var storyboard = new Storyboard();
+            Storyboard.SetTarget(fallAnimation, fallingNote);
+            Storyboard.SetTargetProperty(fallAnimation, new PropertyPath("(Canvas.Bottom)"));
+            storyboard.Children.Add(fallAnimation);
+            storyboard.Completed += (s, e) => PianoCanvas.Children.Remove(fallingNote);
+
+            activeAnimations.Add(storyboard);
+            storyboard.Begin();
         }
 
         private void PianoWindowPauze(object sender, KeyEventArgs e)

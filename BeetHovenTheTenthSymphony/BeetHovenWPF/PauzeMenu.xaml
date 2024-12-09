@@ -26,7 +26,7 @@
         <Button Content="Herstarten" Width="200" Height="50"
                 Grid.Row="1" Grid.Column="0"
                 HorizontalAlignment="Center" VerticalAlignment="Top"
-                Click="ContinueClick"/>
+                Click="RestartClick"/>
 
         <Button Content="Hervatten" Width="200" Height="50"
                 Grid.Row="1" Grid.Column="1"

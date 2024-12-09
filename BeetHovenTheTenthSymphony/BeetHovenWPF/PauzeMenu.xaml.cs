@@ -25,32 +25,48 @@ namespace BeetHovenWPF
 
         private void ContinueClick(object sender, RoutedEventArgs e)
         {
-            // Verberg het pauzemenu
+            //verberg pauzemenu
             var pianoWindow = Window.GetWindow(this) as PianoWindow;
             if (pianoWindow != null)
             {
-                pianoWindow.ShowPauseMenu(false); // Pauzemenu sluiten
-                pianoWindow.TogglePause();       // Pauze beëindigen
+                pianoWindow.ShowPauseMenu(false); //pauzemenu sluiten
+                pianoWindow.TogglePause();       //pauze beëindigen
             }
         }
 
         private void StopClick(object sender, RoutedEventArgs e)
         {
-            // Haal de referentie naar het hoofdvenster
             var pianoWindow = Window.GetWindow(this) as PianoWindow;
             if (pianoWindow != null)
             {
-                // Maak een nieuwe CancelEventArgs
+                //maak een nieuwe CancelEventArgs
                 var cancelEventArgs = new CancelEventArgs();
 
-                // Roep de sluitmethode van PianoWindow aan
+                //roep de sluitmethode van PianoWindow aan
                 pianoWindow.PianoWindow_Closing(sender, cancelEventArgs);
 
-                // Sluit het venster
-                if (!cancelEventArgs.Cancel) // Controleer of sluiting niet is geannuleerd
+                //sluit het venster
+                if (!cancelEventArgs.Cancel) //controleer of sluiting niet is geannuleerd
                 {
                     pianoWindow.Close();
                 }
+            }
+        }
+
+        private void RestartClick(object sender, RoutedEventArgs e)
+        {
+            var pianoWindow = Window.GetWindow(this) as PianoWindow;
+            if (pianoWindow != null)
+            {
+                //sla het pad van het huidige MIDI-bestand op
+                string midiPath = pianoWindow._midiPath;
+
+                //sluit het huidige venster
+                pianoWindow.Close();
+
+                //maak een nieuw exemplaar van PianoWindow
+                var newPianoWindow = new PianoWindow(midiPath);
+                newPianoWindow.Show();
             }
         }
 

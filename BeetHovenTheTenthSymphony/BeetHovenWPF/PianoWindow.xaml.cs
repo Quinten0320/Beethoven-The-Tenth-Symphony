@@ -41,6 +41,10 @@ namespace BeetHovenWPF
         public PianoWindow(string midiPath)
         {
             InitializeComponent();
+            this.WindowState = WindowState.Maximized; // Set window to fullscreen
+            this.WindowStyle = WindowStyle.None;     // Remove the title bar and borders
+            this.ResizeMode = ResizeMode.NoResize;  // Prevent resizing to enforce fullscreen
+
             uitlezenLogic = new UitlezenMidiLogica();
             _midiPath = midiPath;
 
@@ -50,7 +54,7 @@ namespace BeetHovenWPF
 
             _inputHandler = PianoInputHandlerService.Instance;
 
-            _inputHandler.NotePressed -= OnMidiNotePressed; //veiligheid, niet perse nodig
+            _inputHandler.NotePressed -= OnMidiNotePressed; // Veiligheid, niet per se nodig
             _inputHandler.NotePressed += OnMidiNotePressed;
 
             UpdateMidiStatus();

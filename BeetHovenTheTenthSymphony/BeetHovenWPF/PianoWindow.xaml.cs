@@ -1,6 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -10,7 +8,6 @@ using System.Windows.Threading;
 using BeethovenBusiness;
 using System.Diagnostics;
 using System.ComponentModel;
-using Microsoft.VisualBasic;
 
 namespace BeetHovenWPF
 {
@@ -20,6 +17,7 @@ namespace BeetHovenWPF
         private readonly PianoInputHandler _inputHandler;
 
         private readonly UitlezenMidiLogica uitlezenLogic;
+        private FeedbackLogic _feedbackLogic;
         private readonly string _midiPath;
         private readonly int _octaves = 8;
         private const int _whiteKeyCount = 7;
@@ -209,6 +207,7 @@ namespace BeetHovenWPF
                 {
                     double elapsedTime = (DateTime.Now - _startTime).TotalSeconds;
                     var notesToPlay = uitlezenLogic.HaalNotenOp(elapsedTime);
+                    _feedbackLogic = new FeedbackLogic(notesToPlay);
 
                     foreach (var note in notesToPlay)
                     {

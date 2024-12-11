@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,7 +12,7 @@ namespace BeethovenBusiness
     {
         public string Name { get; set; }
         public string Difficulty { get; set; }
-        public bool _favourite { get; set; }
+        private bool _favourite { get; set; }
         public bool Favourite
         {
             get => _favourite;
@@ -29,7 +30,7 @@ namespace BeethovenBusiness
 
         protected virtual void OnPropertyChanged(string propertyName)
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));         
         }
     }
 }

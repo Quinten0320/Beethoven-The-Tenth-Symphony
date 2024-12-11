@@ -149,15 +149,34 @@ namespace BeetHovenWPF
                     _ => "Hard"
                 };
 
+                bool isFavourite = _midiService.IsSongFavourite(midiNames[i]);
+
                 return new MidiFileInfo
                 {
                     Name = midiNames[i],
                     Difficulty = difficulty,
-
+                    Favourite = isFavourite,
                 };
             });
 
             return new ObservableCollection<MidiFileInfo>(midiFileInfos);
+        }
+
+        private void FavouriteFucntion(object sender, DataGridCellEditEndingEventArgs e)
+        {
+            if (e.Column is DataGridCheckBoxColumn && e.EditingElement is CheckBox checkBox)
+            {
+                MidiFileInfo selectedMidiInfo = e.Row.Item as MidiFileInfo;
+
+                if (selectedMidiInfo != null)
+                {
+                    bool isFavourite = checkBox.IsChecked ?? false;
+
+                    selectedMidiInfo.Favourite = isFavourite;
+
+                    _midiService.AddFavourite(selectedMidiInfo.Name);
+                }
+            }
         }
 
         private void DetectMidiInputButton_Click(object sender, RoutedEventArgs e)

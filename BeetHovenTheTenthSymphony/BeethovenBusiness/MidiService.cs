@@ -1,51 +1,73 @@
 ﻿using BeethovenDataAccesLayer;
 using Melanchall.DryWetMidi.Core;
+using Melanchall.DryWetMidi.Interaction;
 using System.Collections.Generic;
 
 namespace BeethovenBusiness
 {
     public class MidiService
     {
-        private readonly Data _data;
-
-        public MidiService()
-        {
-            _data = new Data();
-        }
-
         public List<string> GetMidiFileNames()
         {
-            return _data.LoadMidiNames();
+            return Data.LoadMidiNames();
+        }
+
+        public void AddFavourite(string songName)
+        {
+            int songId = GetSongIdByName(songName);
+
+            DataBaseHelper.AddFavourite(songId);
+        }
+
+        public bool IsSongFavourite(string songName)
+        {
+            return DataBaseHelper.IsSongFavourite(songName);
+        }
+
+        public int GetSongIdByName(string songName)
+        {
+            return DataBaseHelper.GetSongIdByName(songName);
         }
 
         public MidiFile GetMidiFile(string name)
         {
-            return _data.LoadMidiFile(name);
+            DataBaseHelper.GetDataInfoDEBUG();
+            return Data.LoadMidiFile(name);
         }
 
         public void UploadMidiFile(string selectedFile)
         {
-            _data.UploadMidiFile(selectedFile);
+            Data.UploadMidiFile(selectedFile);
+
+            string fileName = Path.GetFileNameWithoutExtension(selectedFile);
+            string folderPath = Data.getFolderPath();
+            string fullPath = Path.Combine(folderPath, Path.GetFileName(selectedFile));
+            MidiFile midiFile = Data.LoadMidiFile(fileName);
+
+            var duration = midiFile.GetDuration<MetricTimeSpan>();
+            int durationInSeconds = (int)(duration.TotalMicroseconds / 1_000_000);
+
+            DataBaseHelper.AddSong(fileName, durationInSeconds, fullPath);
         }
 
         public string getFolderPath()
         {
-            return _data.getFolderPath();
+            return Data.getFolderPath();
         }
 
         public List<double> GetMidiBPM()
         {
-            return _data.LoadMidiBPM();
+            return Data.LoadMidiBPM();
         }
 
         public List<double> GetSongtime()
         {
-            return _data.LoadSongDuration();
+            return Data.LoadSongDuration();
         }
 
         public List<int> GetTotalNotes()
         {
-            return _data.LoadTotalNotes();
+            return Data.LoadTotalNotes();
         }
     }
 }

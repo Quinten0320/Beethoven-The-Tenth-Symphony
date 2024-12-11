@@ -7,11 +7,11 @@ using System.IO;
 
 namespace BeethovenDataAccesLayer
 {
-    public class Data
+    public static class Data
     {
-        private string folderPath = "C:\\MIDI_Files";
+        private static string folderPath = "C:\\MIDI_Files";
 
-        private void SearchFolder()
+        private static void SearchFolder()
         {
             try
             {
@@ -25,12 +25,12 @@ namespace BeethovenDataAccesLayer
                 Console.WriteLine($"An error occurred: {ex.Message}");
             }
         }
-        public string getFolderPath()
+        public static string getFolderPath()
         {
             return folderPath;
         }
 
-        public List<string> LoadMidiNames()
+        public static List<string> LoadMidiNames()
         {
             SearchFolder();
 
@@ -46,7 +46,7 @@ namespace BeethovenDataAccesLayer
             return names;
         }
 
-        public List<double> LoadMidiBPM()
+        public static List<double> LoadMidiBPM()
         {
             SearchFolder();
 
@@ -68,7 +68,7 @@ namespace BeethovenDataAccesLayer
             return midiBPMs;
         }
 
-        public List<double> LoadSongDuration()
+        public static List<double> LoadSongDuration()
         {
             SearchFolder();
 
@@ -88,7 +88,7 @@ namespace BeethovenDataAccesLayer
             return songDurations;
         }
 
-        public List<int> LoadTotalNotes()
+        public static List<int> LoadTotalNotes()
         {
             SearchFolder();
 
@@ -107,7 +107,7 @@ namespace BeethovenDataAccesLayer
             return totalNotesList;
         }
 
-        public MidiFile LoadMidiFile(string name)
+        public static MidiFile LoadMidiFile(string name)
         {
             SearchFolder();
 
@@ -133,7 +133,7 @@ namespace BeethovenDataAccesLayer
             throw new Exception($"Midi file with name '{name}' not found.");
         }
 
-        public void UploadMidiFile(string selectedFile)
+        public static void UploadMidiFile(string selectedFile)
         {
             SearchFolder();
             string destinationFilePath = Path.Combine(folderPath, Path.GetFileName(selectedFile));

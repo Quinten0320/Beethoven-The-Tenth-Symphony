@@ -2,6 +2,7 @@
 using Melanchall.DryWetMidi.Core;
 using System;
 using System.Linq;
+using System.Diagnostics;
 
 namespace BeethovenBusiness
 {
@@ -9,27 +10,35 @@ namespace BeethovenBusiness
     {
         private InputDevice _midiDevice;
 
-        //event that will be triggered when a note is pressed
         public event Action<string> NotePressed;
 
         public PianoInputHandler()
         {
-            InitializeMidiInput();
+            //InitializeMidiInput();
         }
 
-        private void InitializeMidiInput()
+        public bool IsMidiDeviceConnected => _midiDevice != null;
+
+        public void InitializeMidiInput()
         {
-            //select the first available MIDI input device
+            Dispose();
+
             _midiDevice = InputDevice.GetAll().FirstOrDefault();
 
-            if (_midiDevice == null)
+            try
+            {
+                if (_midiDevice == null)
+                {
+                    throw new InvalidOperationException("No MIDI input devices found.");
+                }
+
+                _midiDevice.EventReceived += OnMidiEventReceived;
+                _midiDevice.StartEventsListening();
+            }
+            catch(Exception ex)
             {
                 throw new InvalidOperationException("No MIDI input devices found.");
             }
-
-            _midiDevice.EventReceived += OnMidiEventReceived;
-
-            _midiDevice.StartEventsListening();
         }
 
         private void OnMidiEventReceived(object sender, MidiEventReceivedEventArgs e)
@@ -37,7 +46,6 @@ namespace BeethovenBusiness
             if (e.Event is NoteOnEvent noteOnEvent)
             {
                 string note = ConvertNoteToNameAndOctave(noteOnEvent.NoteNumber);
-
                 NotePressed?.Invoke(note);
             }
         }
@@ -47,7 +55,6 @@ namespace BeethovenBusiness
             string[] noteNames = { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
 
             string noteName = noteNames[noteNumber % 12];
-
             int octave = (noteNumber / 12) - 1;
 
             return $"{noteName}{octave}";
@@ -55,7 +62,14 @@ namespace BeethovenBusiness
 
         public void Dispose()
         {
-            _midiDevice?.Dispose();
+            if (_midiDevice != null)
+            {
+                _midiDevice.StopEventsListening();
+                _midiDevice.EventReceived -= OnMidiEventReceived;
+                _midiDevice.Dispose();
+                _midiDevice = null;
+            }
         }
     }
+
 }

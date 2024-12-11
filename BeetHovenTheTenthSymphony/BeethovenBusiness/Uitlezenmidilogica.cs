@@ -9,15 +9,17 @@ namespace BeethovenBusiness
 {
     public class UitlezenMidiLogica
     {
+        public double fallPercentage = 0;
+        public double animationDurationUitlezenMidiLogica = 0;
         private IEnumerable<Melanchall.DryWetMidi.Interaction.Note> notes;
         private TempoMap tempoMap;
-
+        MidiFile midiFile;
         
         public void LaadMidiBestand(string midiPath)
         {
             try
             {
-                var midiFile = MidiFile.Read(midiPath);
+                midiFile = MidiFile.Read(midiPath);
                 tempoMap = midiFile.GetTempoMap();
                 notes = midiFile.GetNotes().OrderBy(n => n.Time).ToList();
             }
@@ -27,7 +29,7 @@ namespace BeethovenBusiness
             }
         }
 
-        
+
         public double BerekenBpm()
         {
             if (tempoMap == null)
@@ -35,30 +37,29 @@ namespace BeethovenBusiness
 
             var tempo = tempoMap.GetTempoAtTime((MidiTimeSpan)0);
             double microsecondsPerQuarterNote = tempo.MicrosecondsPerQuarterNote;
-            return 60_000_000.0 / microsecondsPerQuarterNote;
+            return 60000000.0 / microsecondsPerQuarterNote;
         }
 
-        
-        public List<string> HaalNotenOp(double elapsedTime)
+
+        public List<Melanchall.DryWetMidi.Interaction.Note> HaalNotenOp(double elapsedTime)
         {
             if (notes == null || tempoMap == null)
                 throw new InvalidOperationException("Noten of TempoMap zijn niet geïnitialiseerd. Laad eerst een MIDI-bestand.");
 
-            var notesToPlay = new List<string>();
+            var notesToPlay = new List<Melanchall.DryWetMidi.Interaction.Note>();
             var notesToRemove = new List<Melanchall.DryWetMidi.Interaction.Note>();
 
             foreach (var note in notes.ToList())
             {
                 //bereken elke noot welke tijd afgespeeld moet worden
                 var noteTimeInTicks = note.Time;
-                var metricTime = TimeConverter.ConvertTo<MetricTimeSpan>(noteTimeInTicks, tempoMap); 
+                var metricTime = TimeConverter.ConvertTo<MetricTimeSpan>(noteTimeInTicks, tempoMap);
                 double noteTimeInSeconds = metricTime.TotalSeconds;
 
                 //als noot nu afgespeeld moet worden
-                if (elapsedTime >= noteTimeInSeconds)
+                if ((elapsedTime - (animationDurationUitlezenMidiLogica * fallPercentage)) >= noteTimeInSeconds) //DIT MOET NOG AANGEPAST WORDEN NAAR + EN MET EEN TIMER
                 {
-                    string noteName = GetNoteName(note.NoteNumber);
-                    notesToPlay.Add($"Note {noteName} speelt op {elapsedTime:F2} seconden");
+                    notesToPlay.Add(note);
                     notesToRemove.Add(note);
                 }
             }
@@ -68,14 +69,28 @@ namespace BeethovenBusiness
 
             return notesToPlay;
         }
-
-               
-        private string GetNoteName(int midiNoteNumber)
+        public double GetTicksPerBeat()
         {
-            string[] noteNames = { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
-            int octave = (midiNoteNumber / 12);
-            string noteName = noteNames[midiNoteNumber % 12];
-            return $"{noteName}{octave}";
+            var timeDivision = midiFile.TimeDivision as TicksPerQuarterNoteTimeDivision;
+            return timeDivision.TicksPerQuarterNote;
         }
-    }
+        public long getMaxLength()
+        {
+            long longestNote = 0;
+            foreach (var note in notes)
+            {
+                if (note.Length > longestNote)
+                {
+                    longestNote = note.Length;
+                }
+            }
+            return longestNote;
+        }
+        public long BerekenGemiddeldeLengte()
+        {
+            long gemiddeldelengte = 0;
+            gemiddeldelengte = (long)notes.Average(n => n.Length);            
+            return gemiddeldelengte;
+        }
+}
 }

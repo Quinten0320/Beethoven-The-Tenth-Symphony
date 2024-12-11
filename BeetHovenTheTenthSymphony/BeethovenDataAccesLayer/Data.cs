@@ -1,4 +1,6 @@
 ﻿using Melanchall.DryWetMidi.Core;
+using Melanchall.DryWetMidi.Interaction;
+using Melanchall.DryWetMidi.MusicTheory;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -15,7 +17,7 @@ namespace BeethovenDataAccesLayer
             {
                 if (!Directory.Exists(folderPath))
                 {
-                    throw new DirectoryNotFoundException($"The directory '{folderPath}' does not exist.");
+                    Directory.CreateDirectory(folderPath);                    
                 }
             }
             catch (Exception ex)
@@ -44,6 +46,66 @@ namespace BeethovenDataAccesLayer
             return names;
         }
 
+        public List<double> LoadMidiBPM()
+        {
+            SearchFolder();
+
+            string[] midiFilePaths = Directory.GetFiles(folderPath, "*.mid");
+            List<double> midiBPMs = new List<double>();
+
+            foreach (string midiFilePath in midiFilePaths)
+            {
+                    MidiFile midiFile = MidiFile.Read(midiFilePath);
+                    var tempoMap = midiFile.GetTempoMap();
+
+                    var tempo = tempoMap.GetTempoAtTime((MidiTimeSpan)0);
+
+                    double microsecondsPerQuarterNote = tempo.MicrosecondsPerQuarterNote;
+                    double bpm = 60_000_000.0 / microsecondsPerQuarterNote;
+
+                    midiBPMs.Add((int)Math.Round(bpm));               
+            }
+            return midiBPMs;
+        }
+
+        public List<double> LoadSongDuration()
+        {
+            SearchFolder();
+
+            string[] midiFilePaths = Directory.GetFiles(folderPath, "*.mid");
+            List<double> songDurations = new List<double>();
+
+            foreach (string midiFilePath in midiFilePaths)
+            {
+                    MidiFile midiFile = MidiFile.Read(midiFilePath);
+                    var duration = midiFile.GetDuration<MetricTimeSpan>();
+
+                    double durationInSeconds = duration.TotalMicroseconds / 1_000_000.0;
+
+                    songDurations.Add((int)Math.Round(durationInSeconds));                
+            }
+
+            return songDurations;
+        }
+
+        public List<int> LoadTotalNotes()
+        {
+            SearchFolder();
+
+            string[] midiFilePaths = Directory.GetFiles(folderPath, "*.mid");
+            List<int> totalNotesList = new List<int>();
+
+            foreach (string midiFilePath in midiFilePaths)
+            {
+                    MidiFile midiFile = MidiFile.Read(midiFilePath);
+                    var notes = midiFile.GetNotes().OrderBy(n => n.Time).ToList();
+
+                    int totalNotes = notes.Count(); 
+                    totalNotesList.Add(totalNotes);
+            }
+
+            return totalNotesList;
+        }
 
         public MidiFile LoadMidiFile(string name)
         {

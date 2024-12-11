@@ -18,11 +18,17 @@ namespace BeethovenDataAccesLayer
             {
                 SQLiteConnection.CreateFile(@"..\..\..\..\BeethovenDataAccesLayer\BeethovenDataBase.db");
 
+
                 using (var connection = new SQLiteConnection(connectionString))
                 {
                     connection.Open();
 
-                    // Create tables for the data
+                    using (var command = new SQLiteCommand("PRAGMA foreign_keys = ON;", connection))
+                    {
+                        command.ExecuteNonQuery();
+                    }
+
+                    //Create tables for the data
                     string createScoreTableQuery = @"
                         CREATE TABLE IF NOT EXISTS Score (
                             ID INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -33,35 +39,29 @@ namespace BeethovenDataAccesLayer
                         CREATE TABLE IF NOT EXISTS Song (
                             ID INTEGER PRIMARY KEY AUTOINCREMENT,
                             Title TEXT NOT NULL,
-                            Duration INT NOT NULl,
+                            Duration INT NOT NULL,
                             FilePath VARCHAR NOT NULL,
                             Checkpoint INT,
                             ScoreID INT,
-                            FOREIGN KEY (ScoreID) REFERENCES Score(ScoreID)
+                            FOREIGN KEY (ScoreID) REFERENCES Score(ID)
                         );";
 
                     string createFavouritesTableQuery = @"
                         CREATE TABLE IF NOT EXISTS Favourites (
                             ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                            SongID INT NOT NULL
-                            FOREIGN KEY (SongID) REFERENCES Song(SongID)
-                        );";
-
-                    string createUserTableQuery = @"
-                        CREATE TABLE IF NOT EXISTS User (
-                            ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                            Name TEXT NOT NULL,
-                            FavouritesID INT,
-                            FOREIGN KEY (FavouritesID) REFERENCES Favourites(FavouritesID)
+                            SongID INT NOT NULL,
+                            FOREIGN KEY(SongID) REFERENCES Song(ID)
                         );";
 
                     using (var command = new SQLiteCommand(connection))
                     {
                         command.CommandText = createScoreTableQuery;
-                        command.CommandText = createSongTableQuery;
-                        command.CommandText = createFavouritesTableQuery;
-                        command.CommandText = createUserTableQuery;
+                        command.ExecuteNonQuery();
 
+                        command.CommandText = createSongTableQuery;
+                        command.ExecuteNonQuery();
+
+                        command.CommandText = createFavouritesTableQuery;
                         command.ExecuteNonQuery();
                     }
                 }

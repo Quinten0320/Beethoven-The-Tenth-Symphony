@@ -11,6 +11,9 @@ using BeethovenBusiness;
 using System.Diagnostics;
 using System.ComponentModel;
 using Microsoft.VisualBasic;
+using Melanchall.DryWetMidi.Core;
+using Melanchall.DryWetMidi.Multimedia;
+using Melanchall.DryWetMidi.Interaction;
 
 namespace BeetHovenWPF
 {
@@ -32,15 +35,23 @@ namespace BeetHovenWPF
         private DateTime _startTime;
         private DispatcherTimer _timer;
         private bool allesopgevraagd = true;
+        private readonly MidiFile _currentMidi;
+        private OutputDevice _outputDevice;
+        private Playback _playback;
         long getmaxlength;
         long getgemiddeldelengte;
+        double elapsedTime;
+
+        //bool patatje = true;
+        //bool patatje2 = true;
+        //double patatje4 = 0;
 
         private List<Storyboard> activeAnimations = new List<Storyboard>();
         private DateTime _pauseStartTime;
         private TimeSpan _totalPauseDuration = TimeSpan.Zero;
         private bool _isPaused = false;
 
-        public PianoWindow(string midiPath)
+        public PianoWindow(string midiPath, MidiFile midiFile)
         {
             InitializeComponent();
             uitlezenLogic = new UitlezenMidiLogica();
@@ -51,6 +62,11 @@ namespace BeetHovenWPF
             Closing += PianoWindow_Closing; // Koppel het Closing-evenement
 
             _inputHandler = PianoInputHandlerService.Instance;
+
+            _currentMidi = midiFile;
+            _outputDevice = OutputDevice.GetByName("Microsoft GS Wavetable Synth");
+            _playback = midiFile.GetPlayback(_outputDevice);
+            
 
             _inputHandler.NotePressed -= OnMidiNotePressed; //veiligheid, niet perse nodig
             _inputHandler.NotePressed += OnMidiNotePressed;
@@ -66,8 +82,9 @@ namespace BeetHovenWPF
         private double BerekenFallPercentage(Rectangle targetKey, double maxNoteHeight)
         {
             double totalDistance = PianoCanvas.ActualHeight + maxNoteHeight * 0.5;
-            double distanceToBottom = PianoCanvas.ActualHeight - targetKey.Height;
+            double distanceToBottom = PianoCanvas.ActualHeight - targetKey.Height - targetKey.Height * 0.5;
             double fallPercentage = distanceToBottom / totalDistance;
+            Debug.WriteLine($"Fallpercentage: {fallPercentage}");
             return fallPercentage;
         }
 
@@ -100,6 +117,7 @@ namespace BeetHovenWPF
         {
             // Verwijder de oude midicontroller wanneer de pianowindow sluit (dit is nodig)
             _inputHandler.Dispose();
+            StopAndDisposePlayback();
 
             // Stop de timer
             if (_timer != null)
@@ -237,12 +255,14 @@ namespace BeetHovenWPF
             {
                 try
                 {
-                    double elapsedTime = (DateTime.Now - _startTime).TotalSeconds;
-                    var notesToPlay = uitlezenLogic.HaalNotenOp(elapsedTime);
+                    elapsedTime = (DateTime.Now - _startTime).TotalSeconds;
                     if (allesopgevraagd)
                     {
-                        StartAnimationForNote("C", 0, 0);
+                        StartAnimationForNote("C", 1, 1);
+                        return;
                     }
+                    var notesToPlay = uitlezenLogic.HaalNotenOp(elapsedTime);
+                    
 
                     foreach (var note in notesToPlay)
                     {
@@ -265,7 +285,7 @@ namespace BeetHovenWPF
             var targetKey = PianoCanvas.Children
                 .OfType<Rectangle>()
                 .FirstOrDefault(r => r.Tag?.ToString() == $"PianoNote:{note}{octave}");
-
+            
             if (targetKey == null)
             {
                 Debug.WriteLine($"Noot {note}{octave} niet gevonden");
@@ -291,16 +311,10 @@ namespace BeetHovenWPF
                 Fill = Blackkeys.Contains(targetKey) ? Brushes.Black : Brushes.Blue,
                 Stroke = Brushes.Red,
             };
-            if (!allesopgevraagd)
-            {
-                Canvas.SetLeft(fallingNote, Canvas.GetLeft(targetKey));
-                Canvas.SetBottom(fallingNote, PianoCanvas.ActualHeight);
-                PianoCanvas.Children.Add(fallingNote);
-            }
+            
 
             double gemiddeldeLengte = (((getgemiddeldelengte / uitlezenLogic.GetTicksPerBeat()) * (60 / bpm)) / baseAnimationDuration) * PianoCanvas.ActualHeight;
             double adjustedAnimationDuration = baseAnimationDuration + (maxNoteHeight / gemiddeldeLengte);
-            adjustedAnimationDuration = Math.Max(1, Math.Min(adjustedAnimationDuration, 10));
 
             if (allesopgevraagd)
             {
@@ -310,6 +324,28 @@ namespace BeetHovenWPF
                 uitlezenLogic.animationDurationUitlezenMidiLogica = adjustedAnimationDuration;
                 return;
             }
+            if (!allesopgevraagd)
+            {
+                //if(patatje2)
+                //{
+                //    patatje2 = false;
+                //    DateTime patatje3 = DateTime.Now;
+                //    patatje4 = patatje3.Second - _startTime.Second;
+                //    Debug.WriteLine($"patatje4: {patatje4} ");
+                //}
+                //if (patatje)
+                //{
+                //    if (elapsedTime > patatje4 + (Fallpercentage * adjustedAnimationDuration))
+                //    {
+                //        patatje = false;
+                     _playback.Start();
+                //    }
+                //}
+                Canvas.SetLeft(fallingNote, Canvas.GetLeft(targetKey));
+                Canvas.SetBottom(fallingNote, PianoCanvas.ActualHeight);
+                PianoCanvas.Children.Add(fallingNote);
+            }
+            
 
             DoubleAnimation fallAnimation = new DoubleAnimation
             {
@@ -348,6 +384,8 @@ namespace BeetHovenWPF
                 //stop de timer en registreer de start van de pauze
                 _timer?.Stop();
                 _pauseStartTime = DateTime.Now;
+               
+                _playback.Stop();
 
                 //pauzeer animaties
                 foreach (var storyboard in activeAnimations)
@@ -362,6 +400,10 @@ namespace BeetHovenWPF
                 //bereken de totale pauzeduur en pas deze toe op de starttijd
                 _totalPauseDuration += DateTime.Now - _pauseStartTime;
                 _startTime = _startTime.Add(_totalPauseDuration);
+;
+                TimeSpan tijd = 1;
+                _playback.MoveToTime();
+                _playback.Start();
 
                 //reset de pauzeduur
                 _totalPauseDuration = TimeSpan.Zero;
@@ -382,12 +424,28 @@ namespace BeetHovenWPF
             if (show)
             {
                 PauseFrame.Visibility = Visibility.Visible; //toon de Frame
-                PauseFrame.Navigate(new PauzeMenu());       //navigeer naar PauzeMenu
+                PauseFrame.Navigate(new PauzeMenu(_currentMidi));       //navigeer naar PauzeMenu
             }
             else
             {
                 PauseFrame.Content = null;                 //leeg de Frame
                 PauseFrame.Visibility = Visibility.Collapsed; //verberg de Frame
+            }
+        }
+
+        public void StopAndDisposePlayback()
+        {
+            if (_playback != null)
+            {
+                _playback.Stop(); // Stop playback
+                _playback.Dispose(); // Dispose playback instance
+                _playback = null; // Clear the reference
+            }
+
+            if (_outputDevice != null)
+            {
+                _outputDevice.Dispose(); // Dispose output device
+                _outputDevice = null; // Clear the reference
             }
         }
     }

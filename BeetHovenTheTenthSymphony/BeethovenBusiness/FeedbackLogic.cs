@@ -32,7 +32,7 @@ namespace BeethovenBusiness
                 string noteName = noteToCheck.NoteName.ToString() + noteToCheck.Octave.ToString();
                 if(noteName == note)
                 {
-
+                    Debug.WriteLine("NOTE INGEDRUKT");
                 }
             }
         }

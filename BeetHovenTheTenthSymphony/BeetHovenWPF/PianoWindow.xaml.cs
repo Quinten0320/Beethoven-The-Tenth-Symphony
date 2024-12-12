@@ -228,7 +228,7 @@ namespace BeetHovenWPF
         {
             Rectangle fallingNote;
             double animationDuration = 5 * (120 / uitlezenLogic.BerekenBpm());
-            Debug.WriteLine($"Duur: {animationDuration}");
+            //Debug.WriteLine($"Duur: {animationDuration}");
 
             // Bereken de werkelijke duur van de noot in seconden
             double actualduration = (duration / uitlezenLogic.GetTicksPerBeat()) * (60 / uitlezenLogic.BerekenBpm());

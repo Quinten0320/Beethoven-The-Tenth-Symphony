@@ -42,7 +42,7 @@ namespace BeethovenDataAccesLayer
                         CREATE TABLE IF NOT EXISTS Song (
                             ID INTEGER PRIMARY KEY AUTOINCREMENT,
                             Title TEXT NOT NULL,
-                            Duration INT NOT NULL,
+                            Duration DOUBLE NOT NULL,
                             FilePath VARCHAR NOT NULL,
                             Checkpoint INT,
                             ScoreID INT,
@@ -71,7 +71,7 @@ namespace BeethovenDataAccesLayer
             }
         }
 
-        public static void AddSong(string title, int duration, string filePath)
+        public static void AddSong(string title, double duration, string filePath)
         {
             string insertSongQuery = @"
             INSERT INTO Song (Title, Duration, FilePath)
@@ -157,53 +157,6 @@ namespace BeethovenDataAccesLayer
                     return Convert.ToInt32(command.ExecuteScalar());
                 }
             }
-        }
-
-
-        public static void GetDataInfoDEBUG()                                         //DEBUG
-        {
-            string query = "SELECT Id, Title, Duration FROM Song;";  // song query
-            //string query = "SELECT Id, SongID FROM Favourites;";   // favourite query
-            var info = new List<string>();
-
-            try
-            {            
-                using (var connection = new SQLiteConnection(_connectionString))
-                {
-                    connection.Open();
-
-                    using (var command = new SQLiteCommand(query, connection))
-                    using (var reader = command.ExecuteReader())
-                    {
-                        // Voor Song tabel
-                        while (reader.Read())
-                        {
-                            int id = reader.GetInt32(0);
-                            string title = reader.GetString(1);
-                            int duration = reader.GetInt32(2);
-
-                            info.Add($"Id: {id}, Title: {title}, Duration: {duration}");
-                        }
-                        // Voor Favourite tabel
-                        /*while (reader.Read())
-                        {
-                            int id = reader.GetInt32(0);
-                            int songId = reader.GetInt32(1);
-
-                            info.Add($"Id: {id}, SongId: {songId}");
-                        }*/
-                    }
-                }
-                foreach (var info_ in info)
-                {
-                    Debug.WriteLine(info_);
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine(ex.Message);
-            }
-
         }
     }
 }

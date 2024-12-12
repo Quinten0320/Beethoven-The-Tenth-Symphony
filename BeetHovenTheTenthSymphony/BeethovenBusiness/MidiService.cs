@@ -31,7 +31,6 @@ namespace BeethovenBusiness
 
         public MidiFile GetMidiFile(string name)
         {
-            DataBaseHelper.GetDataInfoDEBUG();
             return Data.LoadMidiFile(name);
         }
 
@@ -45,9 +44,10 @@ namespace BeethovenBusiness
             MidiFile midiFile = Data.LoadMidiFile(fileName);
 
             var duration = midiFile.GetDuration<MetricTimeSpan>();
-            int durationInSeconds = (int)(duration.TotalMicroseconds / 1_000_000);
+            double durationInSeconds = duration.TotalMicroseconds / 1_000_000.0;
+            double secondsDecimals = Math.Round(durationInSeconds, 2);
 
-            DataBaseHelper.AddSong(fileName, durationInSeconds, fullPath);
+            DataBaseHelper.AddSong(fileName, secondsDecimals, fullPath);
         }
 
         public string getFolderPath()

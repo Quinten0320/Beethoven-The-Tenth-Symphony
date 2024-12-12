@@ -135,6 +135,11 @@ namespace BeethovenDataAccesLayer
 
         public static void UploadMidiFile(string selectedFile)
         {
+            if (!ConfirmMidi(selectedFile))
+            {
+                throw new InvalidDataException("The selected file is not a valid MIDI file.");
+            }
+
             SearchFolder();
             string destinationFilePath = Path.Combine(folderPath, Path.GetFileName(selectedFile));
 
@@ -144,6 +149,19 @@ namespace BeethovenDataAccesLayer
             }
 
             File.Copy(selectedFile, destinationFilePath);
+        }
+
+        private static bool ConfirmMidi(string filePath)
+        {
+            try
+            {
+                MidiFile.Read(filePath);
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
     }
 }

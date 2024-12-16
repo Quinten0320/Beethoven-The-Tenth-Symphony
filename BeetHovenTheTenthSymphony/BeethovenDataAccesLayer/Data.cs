@@ -14,8 +14,8 @@ namespace BeethovenDataAccesLayer
 {
     public class Data
     {
-        private string folderPath = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\..\..\BeethovenDataAccesLayer\MidiFiles"));
-
+        private string _folderPath = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\..\..\BeethovenDataAccesLayer\MidiFiles"));
+        private static string _connectionString = @"Data Source=..\..\..\..\..\BeethovenDataAccesLayer\BeethovenDataBase.db;Version=3";
         private void SearchFolder()
         {
             try
@@ -29,7 +29,7 @@ namespace BeethovenDataAccesLayer
             {
                 Console.WriteLine($"An error occurred: {ex.Message}");
             }
-            Debug.WriteLine(folderPath);
+            Debug.WriteLine(_folderPath);
         }
         public string getFolderPath()
         {

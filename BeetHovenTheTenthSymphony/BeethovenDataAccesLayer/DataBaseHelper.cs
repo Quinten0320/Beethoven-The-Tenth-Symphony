@@ -14,7 +14,7 @@ namespace BeethovenDataAccesLayer
     public static class DataBaseHelper
     {
 
-        private static string connectionString = @"Data Source=..\..\..\..\..\BeethovenDataAccesLayer\BeethovenDataBase.db;Version=3";
+        private static string _connectionString = @"Data Source=..\..\..\..\..\BeethovenDataAccesLayer\BeethovenDataBase.db;Version=3";
 
         public static void InitializeDatabase()
         {

@@ -26,12 +26,19 @@
              IsReadOnly="True" Margin="10,0,0,0" />
         </StackPanel>
 
-
         <!-- Piano Area -->
         <Canvas Name="PianoCanvas" 
                 Background="White" 
                 Grid.Row="1" 
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch"/>
+
+        <!-- Frame voor het PauzeMenu -->
+        <Frame x:Name="PauseFrame"
+               Grid.RowSpan="2"
+               HorizontalAlignment="Stretch"
+               VerticalAlignment="Stretch"
+               NavigationUIVisibility="Hidden"
+               Visibility="Collapsed" />
     </Grid>
 </Window>

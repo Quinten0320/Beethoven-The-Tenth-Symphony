@@ -11,6 +11,7 @@ using BeethovenBusiness;
 using System.Diagnostics;
 using System.ComponentModel;
 using Microsoft.VisualBasic;
+using Melanchall.DryWetMidi.Interaction;
 
 namespace BeetHovenWPF
 {
@@ -118,7 +119,7 @@ namespace BeetHovenWPF
                     _startTime = DateTime.Now;
                     _timer = new DispatcherTimer
                     {
-                        Interval = TimeSpan.FromSeconds(1.0 / 120) // 120 FPS
+                        Interval = TimeSpan.FromSeconds(1.0 / 120) 
                     };
                     _timer.Tick += Timer_Tick;
                     _timer.Start();
@@ -230,10 +231,10 @@ namespace BeetHovenWPF
                 {
                     double elapsedTime = (DateTime.Now - _startTime).TotalSeconds;
                     var notesToPlay = uitlezenLogic.HaalNotenOp(elapsedTime);
-                    if (allesopgevraagd)
-                    {
-                        StartAnimationForNote("C", 0, 0);
-                    }
+                    //if (allesopgevraagd)
+                    //{
+                    //    //StartAnimationForNote("C", 0, 0);
+                    //}
 
                     foreach (var note in notesToPlay)
                     {
@@ -249,20 +250,90 @@ namespace BeetHovenWPF
                 _timer.Stop();
             }
         }
-        //private void StopAnimationForNote(string note, double length, int octave)
-        //{
-        //    var targetKey = PianoCanvas.Children
-        //        .OfType<Rectangle>()
-        //        .FirstOrDefault(r => r.Tag?.ToString() == $"PianoNote:{note}{octave}");
-        //    Rectangle fallingNote;
-        //    double bpm = uitlezenLogic.BerekenBpm();
-        //    double AnimationDuration = 5 * (120 / bpm);
-        //    double actualLength = (length / uitlezenLogic.GetTicksPerBeat()) * (60 / bpm); //lengte noot
-        //    double noteHeight = (actualLength / AnimationDuration) * PianoCanvas.ActualHeight;
 
-        //}
+        private void StartAnimationForNote(string note, long length, double octave)
+        {
+            var targetKey = PianoCanvas.Children
+                .OfType<Rectangle>()
+                .FirstOrDefault(r => r.Tag?.ToString() == $"PianoNote:{note}{octave}");
+            if (targetKey == null)
+            {
+                Debug.WriteLine($"Note {note}{octave} not found");
+                return;
+            }
 
-        private void StartAnimationForNote(string note, double length, int octave)
+            // Calculate the fall height and animation duration
+            double animationDuration = 10;
+            MetricTimeSpan noteInSeconds = TimeConverter.ConvertTo<MetricTimeSpan>(length, uitlezenLogic.tempoMap);
+            double noteHeight = (noteInSeconds.TotalSeconds / animationDuration) * 2000 * 2;
+            Debug.WriteLine($"NoteHeight: {noteHeight}");
+
+            // Create the falling rectangle
+            Rectangle fallingNote = new Rectangle
+            {
+                Width = targetKey.Width,
+                Height = noteHeight,
+                Fill = Blackkeys.Contains(targetKey) ? Brushes.Black : Brushes.Blue,
+                Stroke = Brushes.Red
+            };
+
+            // Set the position of the falling note
+            double left = Canvas.GetLeft(targetKey);
+            double bottom = 2000;
+            Canvas.SetLeft(fallingNote, left);
+            Canvas.SetBottom(fallingNote, bottom);
+            PianoCanvas.Children.Add(fallingNote);
+
+            // Apply the OpacityMask to make the bottom of the note invisible and the top visible
+            LinearGradientBrush opacityMask = new LinearGradientBrush
+            {
+                StartPoint = new Point(0, 0),
+                EndPoint = new Point(0, 1)
+            };
+            opacityMask.GradientStops.Add(new GradientStop(Colors.Black, 0.0));
+            opacityMask.GradientStops.Add(new GradientStop(Colors.Black, 0.5));
+            opacityMask.GradientStops.Add(new GradientStop(Colors.Transparent, 0.5));
+            opacityMask.GradientStops.Add(new GradientStop(Colors.Transparent, 1.0));
+            fallingNote.OpacityMask = opacityMask;
+
+            // Add the animation
+            DoubleAnimation fallAnimation = new DoubleAnimation
+            {
+                From = 2000,
+                To = -2000,
+                Duration = new Duration(TimeSpan.FromSeconds(animationDuration)),
+                FillBehavior = FillBehavior.Stop
+            };
+            fallAnimation.Completed += (s, e) => PianoCanvas.Children.Remove(fallingNote);
+            fallingNote.BeginAnimation(Canvas.BottomProperty, fallAnimation);
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*        private void StartAnimatinForNote(string note, double length, int octave)
         {
             var targetKey = PianoCanvas.Children
                 .OfType<Rectangle>()
@@ -282,6 +353,7 @@ namespace BeetHovenWPF
             double bpm = uitlezenLogic.BerekenBpm();
             double baseAnimationDuration = 5 * (120 / bpm);
             double actualLength = (length / uitlezenLogic.GetTicksPerBeat()) * (60 / bpm);
+
             double maxLength = (getmaxlength / uitlezenLogic.GetTicksPerBeat()) * (60 / bpm);
             double noteHeight = (actualLength / baseAnimationDuration) * PianoCanvas.ActualHeight;
             double maxNoteHeight = (maxLength / baseAnimationDuration) * PianoCanvas.ActualHeight;
@@ -303,7 +375,6 @@ namespace BeetHovenWPF
 
             double gemiddeldeLengte = (((getgemiddeldelengte / uitlezenLogic.GetTicksPerBeat()) * (60 / bpm)) / baseAnimationDuration) * PianoCanvas.ActualHeight;
             double adjustedAnimationDuration = baseAnimationDuration + (maxNoteHeight / gemiddeldeLengte);
-            adjustedAnimationDuration = Math.Max(1, Math.Min(adjustedAnimationDuration, 10));
             
             if (allesopgevraagd)
             {
@@ -325,5 +396,5 @@ namespace BeetHovenWPF
             fallAnimation.Completed += (s, e) => PianoCanvas.Children.Remove(fallingNote);
             fallingNote.BeginAnimation(Canvas.BottomProperty, fallAnimation);
         }
-    }
+*/    }
 }

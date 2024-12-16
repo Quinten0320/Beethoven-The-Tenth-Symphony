@@ -15,7 +15,7 @@ namespace BeethovenBusiness
         private double _animationDuration = 7;
         private double _actualDuration;
         private Stopwatch _timer;
-
+         
         public double AnimationDuration 
         {
             get { return _animationDuration; }
@@ -38,13 +38,6 @@ namespace BeethovenBusiness
             _elapsedTime = elapsedTime;
             _midiFilePath = midiFilePath;
 
-            Data data = new Data();
-            MidiFile midiFile = data.LoadMidiFile(_midiFilePath);
-
-            var duration = midiFile.GetDuration<MetricTimeSpan>();
-            double durationInSeconds = duration.TotalMicroseconds / 1_000_000.0;
-            //double secondsDecimals = Math.Round(durationInSeconds, 2);
-
             _timer = Stopwatch.StartNew();
 
             _inputHandler = PianoInputHandlerService.Instance;
@@ -53,7 +46,7 @@ namespace BeethovenBusiness
 
         private void HandleNotePressed(string note)
         {
-            double currentTime = _timer.Elapsed.TotalSeconds;
+            double currentTime = _elapsedTime;
 
             foreach (Melanchall.DryWetMidi.Interaction.Note noteToCheck in _notes)
             {
@@ -80,7 +73,8 @@ namespace BeethovenBusiness
             double difference = pressTime - noteStartTime;
 
             // Controleer of de timing binnen een acceptabele marge valt
-            const double tolerance = 0.15; // 150 ms tolerantie
+            //const double tolerance = 0.15; // 150 ms tolerantie
+            const double tolerance = 0.5; // 150 ms tolerantie
             if (difference >= -tolerance && difference <= tolerance)
             {
                 Debug.WriteLine("Timing correct! Afwijking: " + difference + " seconden.");

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Melanchall.DryWetMidi.Core;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -18,9 +19,11 @@ namespace BeetHovenWPF
 {
     public partial class PauzeMenu : Page
     {
-        public PauzeMenu()
+        private readonly MidiFile _midiFile;
+        public PauzeMenu(MidiFile midiFile)
         {
             InitializeComponent();
+            _midiFile = midiFile;
         }
 
         private void ContinueClick(object sender, RoutedEventArgs e)
@@ -39,6 +42,7 @@ namespace BeetHovenWPF
             var pianoWindow = Window.GetWindow(this) as PianoWindow;
             if (pianoWindow != null)
             {
+                pianoWindow.StopAndDisposePlayback();
                 //maak een nieuwe CancelEventArgs
                 var cancelEventArgs = new CancelEventArgs();
 
@@ -58,6 +62,7 @@ namespace BeetHovenWPF
             var pianoWindow = Window.GetWindow(this) as PianoWindow;
             if (pianoWindow != null)
             {
+                pianoWindow.StopAndDisposePlayback();
                 //sla het pad van het huidige MIDI-bestand op
                 string midiPath = pianoWindow._midiPath;
 
@@ -65,10 +70,9 @@ namespace BeetHovenWPF
                 pianoWindow.Close();
 
                 //maak een nieuw exemplaar van PianoWindow
-                var newPianoWindow = new PianoWindow(midiPath);
+                var newPianoWindow = new PianoWindow(midiPath, _midiFile);
                 newPianoWindow.Show();
             }
         }
-
     }
 }

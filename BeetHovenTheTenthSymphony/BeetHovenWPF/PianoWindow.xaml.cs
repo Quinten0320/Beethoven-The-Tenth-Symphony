@@ -480,7 +480,7 @@ namespace BeetHovenWPF
 
 
 
-        private async void StartSongAtSegment(Checkpoint checkpoint)
+        private void StartSongAtSegment(Checkpoint checkpoint)
         {
             // Cancel all previous timers and animations
             CancelAllTimersAndAnimations();

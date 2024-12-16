@@ -12,7 +12,7 @@ namespace BeethovenBusiness
         private HashSet<Melanchall.DryWetMidi.Interaction.Note> _processedNotes = new();
         private double _elapsedTime;
         private string _midiFilePath;
-        private double _animationDuration = 7;
+        private double _animationDuration = 4;
         private double _actualDuration;
         private Stopwatch _timer;
          

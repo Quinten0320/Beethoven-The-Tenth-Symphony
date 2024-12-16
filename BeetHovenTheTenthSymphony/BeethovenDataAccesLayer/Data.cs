@@ -3,15 +3,18 @@ using Melanchall.DryWetMidi.Interaction;
 using Melanchall.DryWetMidi.MusicTheory;
 using System;
 using System.Collections.Generic;
+
 using System.Data.SQLite;
+
+using System.Diagnostics;
+
 using System.IO;
 
 namespace BeethovenDataAccesLayer
 {
     public class Data
     {
-        private static string _folderPath = "C:\\MIDI_Files";
-        private static string _connectionString = @"Data Source=..\..\..\..\BeethovenDataAccesLayer\BeethovenDataBase.db;Version=3";
+        private string folderPath = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\..\..\BeethovenDataAccesLayer\MidiFiles"));
 
         private void SearchFolder()
         {
@@ -26,6 +29,7 @@ namespace BeethovenDataAccesLayer
             {
                 Console.WriteLine($"An error occurred: {ex.Message}");
             }
+            Debug.WriteLine(folderPath);
         }
         public string getFolderPath()
         {

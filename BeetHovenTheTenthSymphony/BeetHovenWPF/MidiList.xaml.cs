@@ -51,7 +51,7 @@ namespace BeetHovenWPF
                     string folderPath = _midiService.getFolderPath();
                     string completePath = folderPath + "\\" + selectedMidiName + ".mid";
 
-                    PianoWindow pianowindow = new PianoWindow(completePath);
+                    PianoWindow pianowindow = new PianoWindow(completePath, midiFile);
                     pianowindow.ShowDialog();
                 }
                 catch (Exception ex)

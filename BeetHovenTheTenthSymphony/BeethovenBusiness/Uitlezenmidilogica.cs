@@ -9,10 +9,12 @@ namespace BeethovenBusiness
 {
     public class UitlezenMidiLogica
     {
+        public double fallPercentage = 0;
+        public double animationDurationUitlezenMidiLogica = 0;
         private IEnumerable<Melanchall.DryWetMidi.Interaction.Note> notes;
         private TempoMap tempoMap;
         MidiFile midiFile;
-
+        
         public void LaadMidiBestand(string midiPath)
         {
             try
@@ -53,8 +55,10 @@ namespace BeethovenBusiness
                 var metricTime = TimeConverter.ConvertTo<MetricTimeSpan>(noteTimeInTicks, tempoMap);
                 double noteTimeInSeconds = metricTime.TotalSeconds;
 
+
                 // Check if the note should be played (allowing a small threshold for precision)
                 if (elapsedTime >= noteTimeInSeconds && elapsedTime <= noteTimeInSeconds + 0.05)
+
                 {
                     notesToPlay.Add(note);
                 }
@@ -64,26 +68,26 @@ namespace BeethovenBusiness
         }
         public double GetTicksPerBeat()
         {
-            if (tempoMap == null)
-                throw new InvalidOperationException("TempoMap is niet geïnitialiseerd. Laad eerst een MIDI-bestand.");
-
             var timeDivision = midiFile.TimeDivision as TicksPerQuarterNoteTimeDivision;
-            if (timeDivision == null)
-                throw new InvalidOperationException("TimeDivision is niet van het type TicksPerQuarterNoteTimeDivision.");
-
             return timeDivision.TicksPerQuarterNote;
         }
-
-
-
-
-
-        private string GetNoteName(int midiNoteNumber)
+        public long getMaxLength()
         {
-            string[] noteNames = { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
-            int octave = (midiNoteNumber / 12);
-            string noteName = noteNames[midiNoteNumber % 12];
-            return $"{noteName}{octave}";
+            long longestNote = 0;
+            foreach (var note in notes)
+            {
+                if (note.Length > longestNote)
+                {
+                    longestNote = note.Length;
+                }
+            }
+            return longestNote;
         }
-    }
+        public long BerekenGemiddeldeLengte()
+        {
+            long gemiddeldelengte = 0;
+            gemiddeldelengte = (long)notes.Average(n => n.Length);            
+            return gemiddeldelengte;
+        }
+}
 }

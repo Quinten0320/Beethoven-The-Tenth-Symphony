@@ -60,12 +60,22 @@
             </StackPanel>
         </Grid>
 
-
         <!-- Piano Area -->
         <Canvas Name="PianoCanvas" 
                 Background="White" 
                 Grid.Row="1" 
                 HorizontalAlignment="Stretch"
+
+                VerticalAlignment="Stretch"/>
+
+        <!-- Frame voor het PauzeMenu -->
+        <Frame x:Name="PauseFrame"
+               Grid.RowSpan="2"
+               HorizontalAlignment="Stretch"
+               VerticalAlignment="Stretch"
+               NavigationUIVisibility="Hidden"
+               Visibility="Collapsed" />
+
                 VerticalAlignment="Stretch">
             <TextBlock x:Name="CountdownTextBlock" 
            FontSize="30" 
@@ -74,6 +84,7 @@
            VerticalAlignment="Center" Height="260" Width="579" Canvas.Left="535" Canvas.Top="212" 
            Visibility="Hidden"/>
         </Canvas>
+
     </Grid>
     
 </Window>

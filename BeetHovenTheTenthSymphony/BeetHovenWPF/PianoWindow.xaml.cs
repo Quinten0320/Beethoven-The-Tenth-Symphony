@@ -207,7 +207,10 @@ namespace BeetHovenWPF
                 {
                     double elapsedTime = (DateTime.Now - _startTime).TotalSeconds;
                     var notesToPlay = uitlezenLogic.HaalNotenOp(elapsedTime);
-                    _feedbackLogic = new FeedbackLogic(notesToPlay);
+
+
+                    //Aanmaken feedbacklogic en data meegeven.
+                    _feedbackLogic = new FeedbackLogic(notesToPlay, elapsedTime, _midiPath);
 
                     foreach (var note in notesToPlay)
                     {
@@ -232,6 +235,10 @@ namespace BeetHovenWPF
 
             // Bereken de werkelijke duur van de noot in seconden
             double actualduration = (duration / uitlezenLogic.GetTicksPerBeat()) * (60 / uitlezenLogic.BerekenBpm());
+
+            //Geef animatie gegeves mee aan feedbacklogic
+            _feedbackLogic.AnimationDuration = animationDuration;
+            _feedbackLogic.AcutalDuration = actualduration;
 
             // Zoek de rechthoek die overeenkomt met de noot
             var targetKey = PianoCanvas.Children

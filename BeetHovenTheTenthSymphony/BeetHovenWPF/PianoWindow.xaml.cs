@@ -14,6 +14,7 @@ using Microsoft.VisualBasic;
 using BeethovenDataAccesLayer;
 using System.Reflection;
 using System.Xml.Linq;
+using System.Configuration;
 
 namespace BeetHovenWPF
 {
@@ -39,6 +40,7 @@ namespace BeetHovenWPF
         private Dictionary<Checkpoint, DispatcherTimer> _checkpointTimers = new Dictionary<Checkpoint, DispatcherTimer>();
         private bool checkpointEnded = false;
         private bool checkpointIsProcessed = false;
+        private readonly string connectionString = @"Data Source=C:\Users\gielz\source\repos\Beethoven-The-Tenth-Symphony\BeetHovenTheTenthSymphony\BeethovenDataAccesLayer\Files\BeethovenDataBase.db;Version=3;";
 
 
 
@@ -454,7 +456,7 @@ namespace BeetHovenWPF
             _checkpoints.Add(newCheckpoint);
 
            
-            //_data.SaveSegment(newCheckpoint);
+            //SaveSegment(newCheckpoint);
 
             
             DrawSegmentMarker(timestamp);
@@ -465,13 +467,7 @@ namespace BeetHovenWPF
             // Remove checkpoint and cancel its associated timer or animations if active
             _checkpoints.Remove(checkpoint);
 
-            if (_checkpointTimers.ContainsKey(checkpoint))
-            {
-                var timer = _checkpointTimers[checkpoint];
-                timer.Stop();
-                _checkpointTimers.Remove(checkpoint);
-            }
-
+            DeleteSegment(checkpoint);
             RemoveSegmentMarker(checkpoint);
             Debug.WriteLine($"Removed checkpoint: {checkpoint.Name}, Timestamp: {checkpoint.TimeStamp}s");
         }
@@ -747,34 +743,69 @@ namespace BeetHovenWPF
             //Debug.WriteLine($"Animatie gestart vanaf checkpoint: {checkpoint.Name} op {checkpoint.TimeStamp} seconden.");
             ShowNotesFromCheckpoint(checkpoint);
         }
-        //public void SaveSegment(Checkpoint checkpoint)
-        //{
-        //    // Bewaar de segmenten in de database, bijvoorbeeld in een SQL-tabel
-        //    using (var connection = new SqlConnection(connectionString))
-        //    {
-        //        connection.Open();
-        //        var command = new SqlCommand("INSERT INTO Segments (Timestamp, Name) VALUES (@Timestamp, @Name)", connection);
-        //        command.Parameters.AddWithValue("@Timestamp", checkpoint.TimeStamp);
-        //        command.Parameters.AddWithValue("@Name", checkpoint.Name);
-        //        command.ExecuteNonQuery();
-        //    }
-        //}
-        //public void DeleteSegment(Checkpoint checkpoint)
-        //{
-        //    // Verwijder het segment uit de database
-        //    using (var connection = new SqlConnection(connectionString))
-        //    {
-        //        connection.Open();
-        //        var command = new SqlCommand("DELETE FROM Segments WHERE Timestamp = @Timestamp", connection);
-        //        command.Parameters.AddWithValue("@Timestamp", checkpoint.TimeStamp);
-        //        command.ExecuteNonQuery();
-        //    }
-        //}
-        //private void SaveCheckpointToDatabase(double timestamp)
-        //{
-        //    // Voeg de timestamp van het segment toe aan de database
-        //    // Dit kan worden uitgebreid om de tijd te verwerken en op te slaan in een segmentenlijst of database
-        //    _data.SaveCheckpoint(timestamp);
-        //}
+        public void SaveSegment(Checkpoint checkpoint)
+        {
+            // Bewaar de segmenten in de database, bijvoorbeeld in een SQL-tabel
+            using (var connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+                using (var command = new SQLiteCommand("INSERT INTO Segments (Timestamp, Name) VALUES (@Timestamp, @Name)", connection))
+                {
+                    command.Parameters.AddWithValue("@Timestamp", checkpoint.TimeStamp);
+                    command.Parameters.AddWithValue("@Name", checkpoint.Name);
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+        public void DeleteSegment(Checkpoint checkpoint)
+        {
+            // Verwijder het segment uit de database
+            using (var connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+
+                using (var command = new SQLiteCommand("DELETE FROM Segments WHERE Timestamp = @Timestamp", connection))
+                {
+                    command.Parameters.AddWithValue("@Timestamp", checkpoint.TimeStamp);
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+        private void SaveCheckpointToDatabase(double timestamp)
+        {
+            // Voeg de timestamp van het segment toe aan de database
+            // Dit kan worden uitgebreid om de tijd te verwerken en op te slaan in een segmentenlijst of database
+            var checkpoint = new Checkpoint
+            {
+                TimeStamp = timestamp,
+                Name = $"Checkpoint at {timestamp:F2} seconds"
+            };
+
+            SaveSegment(checkpoint);
+        }
+        public List<Checkpoint> LoadAllCheckpoints()
+        {
+            var checkpoints = new List<Checkpoint>();
+
+            using (var connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+                using (var command = new SQLiteCommand("SELECT Timestamp, Name FROM Segments", connection))
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        checkpoints.Add(new Checkpoint
+                        {
+                            TimeStamp = reader.GetDouble(0),
+                            Name = reader.GetString(1)
+                        });
+                    }
+                }
+            }
+
+            Debug.WriteLine($"{checkpoints.Count} checkpoints loaded from the database.");
+            return checkpoints;
+        }
     }
 }

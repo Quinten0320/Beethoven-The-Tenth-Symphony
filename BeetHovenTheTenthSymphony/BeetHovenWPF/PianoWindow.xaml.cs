@@ -41,6 +41,7 @@ namespace BeetHovenWPF
         long getmaxlength;
         long getgemiddeldelengte;
         double elapsedTime;
+        bool muziekafspelen = true;
 
         //bool patatje = true;
         //bool patatje2 = true;
@@ -257,7 +258,11 @@ namespace BeetHovenWPF
                 {
 
                     elapsedTime = (DateTime.Now - _startTime).TotalSeconds;
-                    
+                    if (elapsedTime > 4 && muziekafspelen)
+                    {
+                        muziekafspelen = false;
+                        _playback.Start();
+                    }
                     var notesToPlay = uitlezenLogic.HaalNotenOp(elapsedTime);
                     foreach (var note in notesToPlay)
                     {
@@ -288,6 +293,7 @@ namespace BeetHovenWPF
 
             // Calculate the fall height and animation duration
             double animationDuration = 10;
+            
             MetricTimeSpan noteInSeconds = TimeConverter.ConvertTo<MetricTimeSpan>(length, uitlezenLogic.tempoMap);
             double noteHeight = (noteInSeconds.TotalSeconds / animationDuration) * 2000 * 2;
             Debug.WriteLine($"NoteHeight: {noteHeight}");
@@ -371,9 +377,9 @@ namespace BeetHovenWPF
                 //bereken de totale pauzeduur en pas deze toe op de starttijd
                 _totalPauseDuration += DateTime.Now - _pauseStartTime;
                 _startTime = _startTime.Add(_totalPauseDuration);
-;
-                TimeSpan tijd = 1;
-                _playback.MoveToTime();
+
+                //TimeSpan tijd = 1;
+                //_playback.MoveToTime();
                 _playback.Start();
 
                 //reset de pauzeduur
@@ -419,5 +425,5 @@ namespace BeetHovenWPF
                 _outputDevice = null; // Clear the reference
             }
         }
-*/    }
+    }
 }

@@ -172,6 +172,55 @@ namespace BeethovenDataAccesLayer
 
         //////////////////////////////////////////// SQL Lite \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
+        public void AddMissingMidiFilesToDatabase()
+        {
+            string[] midiFilePaths = Directory.GetFiles(_folderPath, "*.mid");
+
+            foreach (string midiFilePath in midiFilePaths)
+            {
+                try
+                {
+                    string fileName = Path.GetFileNameWithoutExtension(midiFilePath);
+
+                    if (!IsSongInDatabase(fileName))
+                    {
+                        double duration = GetMidiFileDuration(midiFilePath);
+
+                        AddSong(fileName, duration, midiFilePath);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error processing file '{midiFilePath}': {ex.Message}");
+                }
+            }
+        }
+
+        private bool IsSongInDatabase(string title)
+        {
+            string query = "SELECT COUNT(*) FROM Song WHERE Title = @Title";
+
+            using (var connection = new SQLiteConnection(_connectionString))
+            {
+                connection.Open();
+
+                using (var command = new SQLiteCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@Title", title);
+                    int count = Convert.ToInt32(command.ExecuteScalar());
+
+                    return count > 0;
+                }
+            }
+        }
+
+        private double GetMidiFileDuration(string filePath)
+        {
+            MidiFile midiFile = MidiFile.Read(filePath);
+            var duration = midiFile.GetDuration<MetricTimeSpan>();
+            return duration.TotalMicroseconds / 1_000_000.0; // Convert to seconds
+        }
+
         public void AddSong(string title, double duration, string filePath)
         {
             string insertSongQuery = @"

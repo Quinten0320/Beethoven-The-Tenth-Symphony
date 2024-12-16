@@ -17,7 +17,6 @@ namespace BeetHovenWPF
         private readonly MidiService _midiService;
         private ObservableCollection<MidiFileInfo> _midiFileInfos;
         private string _currentFilter = "Default";
-        private readonly IData _iData;
         public MidiList()
         {
             InitializeComponent();
@@ -25,6 +24,7 @@ namespace BeetHovenWPF
 
             _midiService = new MidiService();
             _midiFileInfos = new ObservableCollection<MidiFileInfo>();
+            _midiService.AddMissingMidiFilesToDatabase();
             fillList();
         }
 

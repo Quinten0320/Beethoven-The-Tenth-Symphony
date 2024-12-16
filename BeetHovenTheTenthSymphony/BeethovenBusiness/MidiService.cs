@@ -79,5 +79,9 @@ namespace BeethovenBusiness
         {
             return _data.LoadTotalNotes();
         }
+        public void AddMissingMidiFilesToDatabase()
+        {
+            _data.AddMissingMidiFilesToDatabase();
+        }
     }
 }

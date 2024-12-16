@@ -20,5 +20,6 @@ namespace BeethovenBusiness
         List<double> LoadMidiBPM();
         List<double> LoadSongDuration();
         List<int> LoadTotalNotes();
+        void AddMissingMidiFilesToDatabase();
     }
 }

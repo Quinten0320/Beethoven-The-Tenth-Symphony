@@ -10,13 +10,13 @@ namespace BeethovenDataAccesLayer
 {
     public static class DataBaseHelper
     {
-        private static string connectionString = @"Data Source=..\..\..\..\BeethovenDataAccesLayer\BeethovenDataBase.db;Version=3";
+        private static string connectionString = @"Data Source=..\..\..\..\..\BeethovenDataAccesLayer\BeethovenDataBase.db;Version=3";
 
         public static void InitializeDatabase()
         {
-            if (!File.Exists(@"..\..\..\..\BeethovenDataAccesLayer\BeethovenDataBase.db"))
+            if (!File.Exists(@"..\..\..\..\..\BeethovenDataAccesLayer\BeethovenDataBase.db"))
             {
-                SQLiteConnection.CreateFile(@"..\..\..\..\BeethovenDataAccesLayer\BeethovenDataBase.db");
+                SQLiteConnection.CreateFile(@"..\..\..\..\..\BeethovenDataAccesLayer\BeethovenDataBase.db");
 
 
                 using (var connection = new SQLiteConnection(connectionString))

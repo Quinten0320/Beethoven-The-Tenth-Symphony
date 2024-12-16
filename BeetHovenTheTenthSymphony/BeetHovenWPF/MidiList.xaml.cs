@@ -17,11 +17,12 @@ namespace BeetHovenWPF
         private readonly MidiService _midiService;
         private ObservableCollection<MidiFileInfo> _midiFileInfos;
         private string _currentFilter = "Default";
-
+        private readonly IData _iData;
         public MidiList()
         {
             InitializeComponent();
             DataBaseHelper.InitializeDatabase();
+
             _midiService = new MidiService();
             _midiFileInfos = new ObservableCollection<MidiFileInfo>();
             fillList();
@@ -45,7 +46,7 @@ namespace BeetHovenWPF
 
                 try
                 {
-                    MidiFile midiFile = _midiService.GetMidiFile(selectedMidiName);// niet nodig maar kan handig zijn misschien
+                    MidiFile midiFile = _midiService.LoadMidiFile(selectedMidiName);// niet nodig maar kan handig zijn misschien
 
                     string folderPath = _midiService.getFolderPath();
                     string completePath = folderPath + "\\" + selectedMidiName + ".mid";
@@ -133,10 +134,10 @@ namespace BeetHovenWPF
 
         public ObservableCollection<MidiFileInfo> CalculateDifficulty()
         {
-            List<string> midiNames = _midiService.GetMidiFileNames();
-            List<double> bpm = _midiService.GetMidiBPM();
-            List<double> duration = _midiService.GetSongtime();
-            List<int> totalNotes = _midiService.GetTotalNotes();
+            List<string> midiNames = _midiService.LoadMidiNames();
+            List<double> bpm = _midiService.LoadMidiBPM();
+            List<double> duration = _midiService.LoadSongDuration();
+            List<int> totalNotes = _midiService.LoadTotalNotes();
 
             var midiFileInfos = bpm.Select((b, i) =>
             {
@@ -174,7 +175,7 @@ namespace BeetHovenWPF
 
                     selectedMidiInfo.Favourite = isFavourite;
 
-                    _midiService.AddFavourite(selectedMidiInfo.Name);
+                    _midiService.AddFavouriteHelper(selectedMidiInfo.Name);
                 }
             }
         }

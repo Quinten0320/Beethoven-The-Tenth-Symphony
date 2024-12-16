@@ -5,11 +5,15 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Data.SQLite;
 using System.IO;
+using System.Diagnostics;
+using System.Xml.Linq;
+using System.Security.Policy;
 
 namespace BeethovenDataAccesLayer
 {
     public static class DataBaseHelper
     {
+
         private static string connectionString = @"Data Source=..\..\..\..\..\BeethovenDataAccesLayer\BeethovenDataBase.db;Version=3";
 
         public static void InitializeDatabase()
@@ -19,7 +23,7 @@ namespace BeethovenDataAccesLayer
                 SQLiteConnection.CreateFile(@"..\..\..\..\..\BeethovenDataAccesLayer\BeethovenDataBase.db");
 
 
-                using (var connection = new SQLiteConnection(connectionString))
+                using (var connection = new SQLiteConnection(_connectionString))
                 {
                     connection.Open();
 
@@ -39,7 +43,7 @@ namespace BeethovenDataAccesLayer
                         CREATE TABLE IF NOT EXISTS Song (
                             ID INTEGER PRIMARY KEY AUTOINCREMENT,
                             Title TEXT NOT NULL,
-                            Duration INT NOT NULL,
+                            Duration DOUBLE NOT NULL,
                             FilePath VARCHAR NOT NULL,
                             Checkpoint INT,
                             ScoreID INT,
@@ -65,11 +69,7 @@ namespace BeethovenDataAccesLayer
                         command.ExecuteNonQuery();
                     }
                 }
-
-
             }
         }
-
-
     }
 }

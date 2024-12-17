@@ -27,7 +27,8 @@ namespace BeethovenBusiness
                 var pianoTracks = midiFile.GetTrackChunks()
                                           .Where(track => track.Events
                                               .OfType<ProgramChangeEvent>()
-                                              .Any(ev => ev.ProgramNumber >= 0 && ev.ProgramNumber <= 7)) // General MIDI piano range
+                                              .Any(ev => ev.ProgramNumber >= 0 && ev.ProgramNumber <= 7) ||
+                                              !track.Events.OfType<ProgramChangeEvent>().Any()) // Neem ook tracks zonder ProgramChangeEvent mee
                                           .ToList();
 
                 if (!pianoTracks.Any())
@@ -90,24 +91,6 @@ namespace BeethovenBusiness
         {
             var timeDivision = midiFile.TimeDivision as TicksPerQuarterNoteTimeDivision;
             return timeDivision.TicksPerQuarterNote;
-        }
-        public long getMaxLength()
-        {
-            long longestNote = 0;
-            foreach (Note note in notes)
-            {
-                if (note.Length > longestNote)
-                {
-                    longestNote = note.Length;
-                }
-            }
-            return longestNote;
-        }
-        public long BerekenGemiddeldeLengte()
-        {
-            long gemiddeldelengte = 0;
-            gemiddeldelengte = (long)notes.Average(n => n.Length);            
-            return gemiddeldelengte;
         }
 }
 }

@@ -19,12 +19,6 @@ namespace BeetHovenWPF
 {
     public partial class PianoWindow : Window
     {
-        /*private List<double> fallPercentages = new List<double>();
-        double totalDistance = PianoCanvas.ActualHeight + maxNoteHeight * 0.5;
-        double distanceToBottom = PianoCanvas.ActualHeight - targetKey.Height;
-        double fallPercentage = distanceToBottom / totalDistance;
-        fallPercentages.Add(fallPercentage);*/
-
         private List<Rectangle> Blackkeys = new List<Rectangle>();
         private readonly PianoInputHandler _inputHandler;
         private double Fallpercentage;
@@ -38,15 +32,8 @@ namespace BeetHovenWPF
         private readonly MidiFile _currentMidi;
         private OutputDevice _outputDevice;
         private Playback _playback;
-        long getmaxlength;
-        long getgemiddeldelengte;
         double elapsedTime;
         bool muziekafspelen = true;
-
-        //bool patatje = true;
-        //bool patatje2 = true;
-        //double patatje4 = 0;
-
         private List<Storyboard> activeAnimations = new List<Storyboard>();
         private DateTime _pauseStartTime;
         private TimeSpan _totalPauseDuration = TimeSpan.Zero;
@@ -78,15 +65,6 @@ namespace BeetHovenWPF
             this.ResizeMode = ResizeMode.NoResize;  // Prevent resizing to enforce fullscreen
 
             UpdateMidiStatus();
-        }
-
-        private double BerekenFallPercentage(Rectangle targetKey, double maxNoteHeight)
-        {
-            double totalDistance = PianoCanvas.ActualHeight + maxNoteHeight * 0.5;
-            double distanceToBottom = PianoCanvas.ActualHeight - targetKey.Height - targetKey.Height * 0.5;
-            double fallPercentage = distanceToBottom / totalDistance;
-            Debug.WriteLine($"Fallpercentage: {fallPercentage}");
-            return fallPercentage;
         }
 
         private void UpdateMidiStatus()
@@ -291,14 +269,12 @@ namespace BeetHovenWPF
                 return;
             }
 
-            // Calculate the fall height and animation duration
             double animationDuration = 10;
             
             MetricTimeSpan noteInSeconds = TimeConverter.ConvertTo<MetricTimeSpan>(length, uitlezenLogic.tempoMap);
             double noteHeight = (noteInSeconds.TotalSeconds / animationDuration) * 2000 * 2;
             Debug.WriteLine($"NoteHeight: {noteHeight}");
 
-            // Create the falling rectangle
             Rectangle fallingNote = new Rectangle
             {
                 Width = targetKey.Width,
@@ -307,14 +283,12 @@ namespace BeetHovenWPF
                 Stroke = Brushes.Red
             };
 
-            // Set the position of the falling note
             double left = Canvas.GetLeft(targetKey);
             double bottom = 2000;
             Canvas.SetLeft(fallingNote, left);
             Canvas.SetBottom(fallingNote, bottom);
             PianoCanvas.Children.Add(fallingNote);
 
-            // Apply the OpacityMask to make the bottom of the note invisible and the top visible
             LinearGradientBrush opacityMask = new LinearGradientBrush
             {
                 StartPoint = new Point(0, 0),
@@ -326,7 +300,6 @@ namespace BeetHovenWPF
             opacityMask.GradientStops.Add(new GradientStop(Colors.Transparent, 1.0));
             fallingNote.OpacityMask = opacityMask;
 
-            // Add the animation
             DoubleAnimation fallAnimation = new DoubleAnimation
             {
                 From = 2000,

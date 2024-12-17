@@ -29,7 +29,6 @@ namespace BeethovenDataAccesLayer
             {
                 Console.WriteLine($"An error occurred: {ex.Message}");
             }
-            Debug.WriteLine(_folderPath);
         }
         public string getFolderPath()
         {
@@ -308,5 +307,29 @@ namespace BeethovenDataAccesLayer
                 }
             }
         }
+
+        public void DeleteSong(int songId)
+        {
+            string deleteSongQuery = "DELETE FROM Song WHERE ID = @SongID;";
+            string deleteFavouriteQuery = "DELETE FROM Favourites WHERE SongID = @SongID;";
+
+            using (var connection = new SQLiteConnection(_connectionString))
+            {
+                connection.Open();
+
+                using (var favouriteCommand = new SQLiteCommand(deleteFavouriteQuery, connection))
+                {
+                    favouriteCommand.Parameters.AddWithValue("@SongID", songId);
+                    favouriteCommand.ExecuteNonQuery();
+                }
+
+                using (var songCommand = new SQLiteCommand(deleteSongQuery, connection))
+                {
+                    songCommand.Parameters.AddWithValue("@SongID", songId);
+                    songCommand.ExecuteNonQuery();
+                }
+            }
+        }
+
     }
 }

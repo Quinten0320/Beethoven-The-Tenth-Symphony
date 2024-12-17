@@ -21,5 +21,6 @@ namespace BeethovenBusiness
         List<double> LoadSongDuration();
         List<int> LoadTotalNotes();
         void AddMissingMidiFilesToDatabase();
+        void DeleteSong(string songName);
     }
 }

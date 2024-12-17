@@ -1,7 +1,8 @@
 ﻿<Window x:Class="BeetHovenWPF.MidiList"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Beethoven the tenth symphony" Height="450" Width="800">
+        Title="Beethoven the tenth symphony" Height="1000" Width="1000"
+        WindowStartupLocation="CenterScreen">
     <Grid>
         <DockPanel>
 
@@ -23,6 +24,13 @@
                     <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*" IsReadOnly="True"/>
                     <DataGridTextColumn Header="Difficulty" Binding="{Binding Difficulty}" Width="*" IsReadOnly="True"/>
                     <DataGridCheckBoxColumn Header="Favourite" Binding="{Binding Favourite}" IsReadOnly="False"/>
+                    <DataGridTemplateColumn Header="Actions">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Button Content="Delete" Click="DeleteButton_Click" Tag="{Binding Name}" />
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
                 </DataGrid.Columns>
             </DataGrid>
 

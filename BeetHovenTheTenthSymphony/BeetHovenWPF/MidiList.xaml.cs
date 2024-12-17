@@ -205,6 +205,25 @@ namespace BeetHovenWPF
                 MessageBox.Show($"An unexpected error occurred: {ex.Message}","Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+        private void DeleteButton_Click(object sender, RoutedEventArgs e)
+        {
+            var button = sender as Button;
+            if (button != null && button.Tag != null)
+            {
+                string songName = button.Tag.ToString();
 
+                var result = MessageBox.Show($"Are you sure you want to delete '{songName}'?",
+                                             "Confirm Deletion", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    MidiService midiService = new MidiService();
+                    midiService.DeleteSong(songName); 
+
+                    MidiFileList.ItemsSource = midiService.LoadMidiNames();
+                    fillList();
+                }
+            }
+        }
     }
 }

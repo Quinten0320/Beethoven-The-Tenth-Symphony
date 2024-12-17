@@ -83,5 +83,19 @@ namespace BeethovenBusiness
         {
             _data.AddMissingMidiFilesToDatabase();
         }
+        public void DeleteSong(string songName)
+        {
+            int songId = GetSongIdByName(songName);
+
+            _data.DeleteSong(songId);
+
+            string folderPath = getFolderPath();
+            string filePath = Path.Combine(folderPath, songName + ".mid");
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
+            }
+        }
+
     }
 }

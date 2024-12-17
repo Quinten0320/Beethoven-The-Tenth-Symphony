@@ -118,7 +118,7 @@ namespace BeetHovenWPF
                     _startTime = DateTime.Now;
                     _timer = new DispatcherTimer
                     {
-                        Interval = TimeSpan.FromSeconds(1.0 / 120) 
+                        Interval = TimeSpan.FromSeconds(1.0 / 1000) 
                     };
                     _timer.Tick += Timer_Tick;
                     _timer.Start();
@@ -221,10 +221,11 @@ namespace BeetHovenWPF
             }
         }
 
-        private void Timer_Tick(object sender, EventArgs e)
+        private async void Timer_Tick(object sender, EventArgs e)
         {
             if (_isPaused)
             {
+                Debug.WriteLine("Timer is paused");
                 // Timer is actief, maar logica wordt niet uitgevoerd als de applicatie is gepauzeerd.
                 return;
             }
@@ -239,7 +240,7 @@ namespace BeetHovenWPF
                     if (elapsedTime > 4 && muziekafspelen)
                     {
                         muziekafspelen = false;
-                        _playback.Start();
+                        await Task.Run(() => _playback.Start());
                     }
                     var notesToPlay = uitlezenLogic.HaalNotenOp(elapsedTime);
                     foreach (var note in notesToPlay)
@@ -254,6 +255,7 @@ namespace BeetHovenWPF
             }
             else
             {
+                Debug.WriteLine("Window is dicht");
                 _timer.Stop();
             }
         }
@@ -270,7 +272,7 @@ namespace BeetHovenWPF
             }
 
             double animationDuration = 10;
-            
+
             MetricTimeSpan noteInSeconds = TimeConverter.ConvertTo<MetricTimeSpan>(length, uitlezenLogic.tempoMap);
             double noteHeight = (noteInSeconds.TotalSeconds / animationDuration) * 2000 * 2;
             Debug.WriteLine($"NoteHeight: {noteHeight}");
@@ -307,14 +309,34 @@ namespace BeetHovenWPF
                 Duration = new Duration(TimeSpan.FromSeconds(animationDuration)),
                 FillBehavior = FillBehavior.Stop
             };
+
             var storyboard = new Storyboard();
             Storyboard.SetTarget(fallAnimation, fallingNote);
             Storyboard.SetTargetProperty(fallAnimation, new PropertyPath("(Canvas.Bottom)"));
             storyboard.Children.Add(fallAnimation);
-            storyboard.Completed += (s, e) => PianoCanvas.Children.Remove(fallingNote);
+
+            // Asynchrone taak om de noot na 10 seconden te verwijderen
+            _ = RemoveNoteAfterDelay(fallingNote, 10);
+
+            storyboard.Completed += (s, e) =>
+            {
+                activeAnimations.Remove(storyboard);
+            };
 
             activeAnimations.Add(storyboard);
             storyboard.Begin();
+        }
+
+        private async Task RemoveNoteAfterDelay(Rectangle note, int delayInSeconds)
+        {
+            await Task.Delay(delayInSeconds * 1000); // Wacht 10 seconden
+            Dispatcher.Invoke(() =>
+            {
+                if (PianoCanvas.Children.Contains(note))
+                {
+                    PianoCanvas.Children.Remove(note);
+                }
+            });
         }
 
         private void PianoWindowPauze(object sender, KeyEventArgs e)

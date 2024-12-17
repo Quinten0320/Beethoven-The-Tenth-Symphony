@@ -93,6 +93,31 @@ namespace BeethovenDataAccesLayer
 
             return songDurations;
         }
+        public List<Melanchall.DryWetMidi.Interaction.Note> HaalNotenOp(double elapsedTime)
+        {
+            //if (notes == null || tempoMap == null)
+            //    throw new InvalidOperationException("Noten of TempoMap zijn niet geïnitialiseerd. Laad eerst een MIDI-bestand.");
+
+            var notesToPlay = new List<Melanchall.DryWetMidi.Interaction.Note>();
+
+            foreach (var note in notes)
+            {
+                // Calculate note start time in seconds
+                var noteTimeInTicks = note.Time;
+                var metricTime = TimeConverter.ConvertTo<MetricTimeSpan>(noteTimeInTicks, tempoMap);
+                double noteTimeInSeconds = metricTime.TotalSeconds;
+
+
+                // Check if the note should be played (allowing a small threshold for precision)
+                if (elapsedTime >= noteTimeInSeconds && elapsedTime <= noteTimeInSeconds + 0.05)
+
+                {
+                    notesToPlay.Add(note);
+                }
+            }
+
+            return notesToPlay;
+        }
 
         public List<int> LoadTotalNotes()
         {

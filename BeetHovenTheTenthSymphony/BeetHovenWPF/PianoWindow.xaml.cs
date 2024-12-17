@@ -14,6 +14,7 @@ using Microsoft.VisualBasic;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Multimedia;
 using Melanchall.DryWetMidi.Interaction;
+using BeethovenDataAccesLayer;
 
 namespace BeetHovenWPF
 {
@@ -34,6 +35,10 @@ namespace BeetHovenWPF
         private const int _whiteKeyCount = 7;
         private DateTime _startTime;
         private DispatcherTimer _timer;
+        private readonly Data _data;
+        private string _selectedMidiName;
+        private Slider slider;
+        private TextBlock sliderValue;
         private bool allesopgevraagd = true;
         private readonly MidiFile _currentMidi;
         private OutputDevice _outputDevice;
@@ -42,6 +47,13 @@ namespace BeetHovenWPF
         long getgemiddeldelengte;
         double elapsedTime;
         bool muziekafspelen = true;
+        private List<Checkpoint> _checkpoints = new List<Checkpoint>();
+        private const int MaxSegments = 5;
+        private List<Rectangle> checkpointMarkers = new List<Rectangle>();
+        private Dictionary<Checkpoint, DispatcherTimer> _checkpointTimers = new Dictionary<Checkpoint, DispatcherTimer>();
+
+        private bool checkpointEnded = false;
+        private bool checkpointIsProcessed = false;
 
         //bool patatje = true;
         //bool patatje2 = true;
@@ -57,6 +69,8 @@ namespace BeetHovenWPF
             InitializeComponent();
             uitlezenLogic = new UitlezenMidiLogica();
             _midiPath = midiPath;
+            _data = new Data();
+            //_selectedMidiName = midiFile;
 
             Loaded += PianoWindow_Loaded;
             SizeChanged += PianoWindow_SizeChanged;
@@ -155,7 +169,116 @@ namespace BeetHovenWPF
         private void PianoWindow_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             GeneratePiano(); //Herteken de piano bij venstergrootte-aanpassing
+            GenerateSlider();
         }
+        private void UpdateSlider(double value)
+        {
+            int minutes = (int)value / 60;
+            int seconds = (int)value % 60;
+            slider.Value = value;
+            sliderValue.Text = $"Duur: {minutes}:{seconds:00}";
+        }
+        private double SelectedSongDuration()
+        {
+            List<string> Nameslist = _data.LoadMidiNames();
+            List<double> DurationsList = _data.LoadSongDuration();
+
+
+            //int voor het goede nummer in de lijst
+            int i = Nameslist.FindIndex(d => d.ToString().Contains(_selectedMidiName));
+            if (i == -1)
+                throw new Exception("Geen duur gevonden voor geselecteerde MIDI.");
+            double SelectedDuration = DurationsList[i];
+            return SelectedDuration;
+        }
+
+        double RoundBasedOnFirstDecimal(double value)
+        {
+            // Haal de eerste decimaal op
+            double fractionalPart = value - Math.Floor(value); // Geeft alleen de decimale waarde
+            int firstDecimal = (int)(fractionalPart * 10); // Vermenigvuldig met 10 en cast naar int
+
+            if (firstDecimal >= 5)
+            {
+                // Rond af naar boven
+                return Math.Ceiling(value);
+            }
+            else
+            {
+                // Rond af naar beneden
+                return Math.Floor(value);
+            }
+        }
+        private void GenerateSlider()
+        {
+
+
+            string totalSeconds = string.Empty;
+
+            double DurationSonginSec = SelectedSongDuration() % 60;
+            double DurationSonginMin = 0;
+
+            if (SelectedSongDuration() > 60)
+            {
+                DurationSonginMin = RoundBasedOnFirstDecimal(SelectedSongDuration() / 60);
+            }
+
+
+
+            MidiSliderContainer.Children.Clear();
+
+            // Slider aanmaken
+            slider = new Slider()
+            {
+                Minimum = 0,
+                Maximum = SelectedSongDuration(),
+                Value = 0,
+                Orientation = Orientation.Horizontal,
+                Width = 200,
+                VerticalAlignment = VerticalAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                TickFrequency = 1,
+                IsSnapToTickEnabled = true,
+                IsEnabled = false
+
+            };
+
+            // TextBlock aanmaken
+            sliderValue = new TextBlock
+            {
+                VerticalAlignment = VerticalAlignment.Top,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                Margin = new Thickness(0, 20, 0, 0),
+                FontSize = 16,
+
+            };
+
+
+
+            // Event koppelen
+            slider.ValueChanged += (s, e) =>
+            {
+                int wholeNumber = (int)Math.Round(e.NewValue);  // Rond naar het dichtstbijzijnde hele getal
+                int min = 0;
+                int sec = 0;
+                if (wholeNumber >= 60)
+                {
+                    min = wholeNumber / 60;
+                    sec = wholeNumber % 60;
+                }
+                else
+                {
+                    sec = wholeNumber;
+                }
+
+                sliderValue.Text = $"Duur: {min}:{sec:00}";
+            };
+
+            MidiSliderContainer.Children.Add(slider);
+            MidiSliderContainer.Children.Add(sliderValue);
+        }
+
+
 
         private void GeneratePiano()
         {
@@ -258,6 +381,19 @@ namespace BeetHovenWPF
                 {
 
                     elapsedTime = (DateTime.Now - _startTime).TotalSeconds;
+                    // Ensure slider reflects elapsed time
+                    double songDuration = SelectedSongDuration();
+                    if (elapsedTime >= songDuration)
+                    {
+                        UpdateSlider(songDuration);
+                        _timer.Stop();
+                        checkpointEnded = true;
+                        return;
+                    }
+                    else
+                    {
+                        UpdateSlider(elapsedTime);
+                    }
                     if (elapsedTime > 4 && muziekafspelen)
                     {
                         muziekafspelen = false;
@@ -277,6 +413,7 @@ namespace BeetHovenWPF
             else
             {
                 _timer.Stop();
+                
             }
         }
 
@@ -425,5 +562,340 @@ namespace BeetHovenWPF
                 _outputDevice = null; // Clear the reference
             }
         }
+        private void AddCheckpoint(double timestamp, string name)
+        {
+            if (_checkpoints.Count >= MaxSegments)
+            {
+                MessageBox.Show("Maximum aantal segmenten bereikt!");
+                return;
+            }
+
+
+            Checkpoint newCheckpoint = new Checkpoint { TimeStamp = timestamp, Name = name };
+            _checkpoints.Add(newCheckpoint);
+
+
+            //_data.SaveSegment(newCheckpoint);
+
+
+            DrawSegmentMarker(timestamp);
+
+        }
+        private void RemoveSegment(Checkpoint checkpoint)
+        {
+            // Remove checkpoint and cancel its associated timer or animations if active
+            _checkpoints.Remove(checkpoint);
+
+            if (_checkpointTimers.ContainsKey(checkpoint))
+            {
+                var timer = _checkpointTimers[checkpoint];
+                timer.Stop();
+                _checkpointTimers.Remove(checkpoint);
+            }
+
+            RemoveSegmentMarker(checkpoint);
+            Debug.WriteLine($"Removed checkpoint: {checkpoint.Name}, Timestamp: {checkpoint.TimeStamp}s");
+        }
+
+
+
+
+
+        private void StartSongAtSegment(Checkpoint checkpoint)
+        {
+            // Cancel all previous timers and animations
+            CancelAllTimersAndAnimations();
+            _startTime = DateTime.Now - TimeSpan.FromSeconds(checkpoint.TimeStamp);
+            // Display countdown in a TextBlock
+            //CountdownTextBlock.Visibility = Visibility.Visible;
+            UpdateSlider(checkpoint.TimeStamp);
+
+            //for (int i = 3; i > 0; i--)
+            //{
+            //    CountdownTextBlock.Text = i.ToString();
+            //    await Task.Delay(1000); // Wait 1 second between each number
+            //}
+
+            //CountdownTextBlock.Visibility = Visibility.Hidden;
+
+
+
+            // Start a fresh timer
+            _timer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(1.0 / 120) // 120 FPS
+            };
+            _timer.Tick += Timer_Tick;
+            _timer.Start();
+
+            // Start animations for notes from this checkpoint
+            ShowNotesFromCheckpoint(checkpoint);
+
+            Debug.WriteLine($"Started song at checkpoint: {checkpoint.Name}, Timestamp: {checkpoint.TimeStamp}s after countdown.");
+        }
+        private void CancelAllTimersAndAnimations()
+        {
+            // Stop the master timer
+            if (_timer != null && _timer.IsEnabled)
+            {
+                _timer.Stop();
+                _timer.Tick -= Timer_Tick;
+            }
+
+            // Remove all falling note animations
+            var fallingNotes = PianoCanvas.Children.OfType<Rectangle>()
+                .Where(r => r.Tag != null && r.Tag.ToString().StartsWith("FallingNote"))
+                .ToList();
+
+            foreach (var note in fallingNotes)
+            {
+                PianoCanvas.Children.Remove(note);
+            }
+
+            Debug.WriteLine("Canceled all timers and animations.");
+        }
+
+
+        private void ShowNotesFromCheckpoint(Checkpoint checkpoint)
+        {
+            // Calculate the elapsed duration from the checkpoint's timestamp to the song's end
+            double remainingDuration = SelectedSongDuration() - checkpoint.TimeStamp;
+
+            // Fetch notes starting from the checkpoint's timestamp
+            var notesToPlay = uitlezenLogic.HaalNotenOp(remainingDuration);
+
+            // Animate the notes
+            foreach (var note in notesToPlay)
+            {
+                StartAnimationForNote(note.NoteName.ToString(), note.Length, note.Octave);
+            }
+
+            Debug.WriteLine($"Showing notes from checkpoint: {checkpoint.Name}, Timestamp: {checkpoint.TimeStamp}s");
+        }
+        private void ShowCheckpointsPopup()
+        {
+            // Maak een nieuw venster voor de pop-up
+            Window checkpointsWindow = new Window
+            {
+                Title = "Checkpoints",
+                Height = 300,
+                Width = 400,
+                ResizeMode = ResizeMode.NoResize,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner
+            };
+
+            // Maak een ListBox voor de checkpoints
+            ListBox checkpointsListBox = new ListBox
+            {
+                Margin = new Thickness(10)
+            };
+
+            // Voeg alle checkpoints toe aan de ListBox
+            foreach (var checkpoint in _checkpoints)
+            {
+                // Maak een horizontale StackPanel
+                var stackPanel = new StackPanel
+                {
+                    Orientation = Orientation.Horizontal
+                };
+
+                // Maak het listItem voor de checkpoint
+                var listItem = new TextBlock
+                {
+                    Text = $"{checkpoint.Name}, Timestamp: {checkpoint.TimeStamp:F2}s",
+                    Margin = new Thickness(0, 0, 10, 0), // Kleine marge aan de rechterkant
+                    VerticalAlignment = VerticalAlignment.Center
+                };
+
+                // Voeg klik event toe aan het listItem
+                listItem.MouseLeftButtonUp += (sender, e) =>
+                {
+                    StartSongAtSegment(checkpoint);
+                    checkpointsWindow.Close();
+                };
+
+                // Maak het removeCheckpoint item
+                var removeCheckpoint = new TextBlock
+                {
+                    Text = "Remove Checkpoint",
+                    Foreground = new SolidColorBrush(Colors.Red),
+                    Cursor = Cursors.Hand,
+                    VerticalAlignment = VerticalAlignment.Center
+                };
+
+                // Voeg klik event toe aan removeCheckpoint
+                removeCheckpoint.MouseLeftButtonUp += (sender, e) =>
+                {
+                    RemoveSegment(checkpoint);
+                    checkpointsListBox.Items.Refresh();
+                };
+
+                // Voeg beide items toe aan de StackPanel
+                stackPanel.Children.Add(listItem);
+                stackPanel.Children.Add(removeCheckpoint);
+                var listBoxItem = new ListBoxItem
+                {
+                    Content = stackPanel
+                };
+
+                // Voeg de StackPanel toe aan de ListBox
+                checkpointsListBox.Items.Add(listBoxItem);
+            }
+
+
+            // Voeg de ListBox toe aan de pop-up venster
+            checkpointsWindow.Content = checkpointsListBox;
+
+
+            // Toon de pop-up
+            checkpointsWindow.ShowDialog();
+        }
+
+
+
+        private void DrawSegmentMarker(double timestamp)
+        {
+            double position = (timestamp / SelectedSongDuration()) * slider.ActualWidth;
+
+
+            if (position >= 0 && position <= MarkerCanvas.ActualWidth)
+            {
+                // Maak de marker (bijvoorbeeld een rechthoek)
+                var marker = new Rectangle
+                {
+                    Width = 5,
+                    Height = 10,
+                    Fill = Brushes.Red,
+                    Stroke = Brushes.Black
+                };
+
+                // Zet de marker op de juiste horizontale positie
+                Canvas.SetLeft(marker, position);
+                Canvas.SetTop(marker, 0); // Zet de marker boven de slider
+
+                // Voeg de marker toe aan de MarkerCanvas
+                MarkerCanvas.Children.Add(marker);
+                checkpointMarkers.Add(marker);
+            }
+            else
+            {
+                MessageBox.Show("De marker valt buiten het zichtbare bereik.");
+            }
+
+        }
+        private void AddCheckpointButton_Click(object sender, RoutedEventArgs e)
+        {
+            double timestamp = slider.Value;
+
+
+            //Debug.WriteLine(slider.Value);
+            // Haal de naam op van de checkpoint (bijvoorbeeld uit een TextBox)
+            string name = "Checkpoint " + (_checkpoints.Count + 1);  // Genereer een naam voor het checkpoint
+
+            // Voeg het checkpoint toe aan de lijst
+            AddCheckpoint(timestamp, name);
+
+
+
+        }
+        private void PlaySegmentsButton_Click(object sender, RoutedEventArgs e)
+        {
+            ShowCheckpointsPopup();
+        }
+
+        private void RemoveSegmentMarker(Checkpoint checkpoint)
+        {
+            double calculatedPosition = (checkpoint.TimeStamp / SelectedSongDuration()) * slider.ActualWidth;
+
+            var marker = checkpointMarkers.FirstOrDefault(m =>
+                Math.Abs(Canvas.GetLeft(m) - calculatedPosition) < 2);
+
+            if (marker != null)
+            {
+                checkpointMarkers.Remove(marker);
+                MarkerCanvas.Children.Remove(marker);
+                Debug.WriteLine($"Removed marker for checkpoint: {checkpoint.Name}, Timestamp: {checkpoint.TimeStamp}s");
+            }
+            else
+            {
+                Debug.WriteLine("No marker found.");
+            }
+        }
+
+        private void StartCheckpointTimer(Checkpoint checkpoint)
+        {
+            if (_timer != null && _timer.IsEnabled)
+            {
+                _timer.Stop();
+                checkpointIsProcessed = false; // Stop de timer eerst voordat je deze opnieuw start
+            }
+            // Maak een nieuwe timer
+            _timer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(1.0 / 120) // 120 FPS
+            };
+
+            // Starttijd instellen
+            DateTime checkpointStartTime = DateTime.Now + TimeSpan.FromSeconds(checkpoint.TimeStamp);
+
+            _timer.Tick += Timer_Tick;
+            _timer.Start();
+
+            _startTime = DateTime.Now;
+            // Voeg de timer toe aan de lijst en start deze
+
+        }
+        private void StopCheckpointTimers()
+        {
+            checkpointIsProcessed = false;
+            foreach (var timer in _checkpointTimers.Values)
+            {
+                timer.Stop();
+                Debug.WriteLine("Stopped checkpoint timer.");
+            }
+            _checkpointTimers.Clear();
+        }
+        private void StartAnimationFromCheckpoint(Checkpoint checkpoint)
+        {
+
+            if (checkpointEnded)
+            {
+
+                StartSongAtSegment(checkpoint);
+            }
+
+            // Logica om de animatie vanaf het checkpoint te starten
+            //Debug.WriteLine($"Animatie gestart vanaf checkpoint: {checkpoint.Name} op {checkpoint.TimeStamp} seconden.");
+            ShowNotesFromCheckpoint(checkpoint);
+        }
+        //public void SaveSegment(Checkpoint checkpoint)
+        //{
+        //    // Bewaar de segmenten in de database, bijvoorbeeld in een SQL-tabel
+        //    using (var connection = new SqlConnection(connectionString))
+        //    {
+        //        connection.Open();
+        //        var command = new SqlCommand("INSERT INTO Segments (Timestamp, Name) VALUES (@Timestamp, @Name)", connection);
+        //        command.Parameters.AddWithValue("@Timestamp", checkpoint.TimeStamp);
+        //        command.Parameters.AddWithValue("@Name", checkpoint.Name);
+        //        command.ExecuteNonQuery();
+        //    }
+        //}
+        //public void DeleteSegment(Checkpoint checkpoint)
+        //{
+        //    // Verwijder het segment uit de database
+        //    using (var connection = new SqlConnection(connectionString))
+        //    {
+        //        connection.Open();
+        //        var command = new SqlCommand("DELETE FROM Segments WHERE Timestamp = @Timestamp", connection);
+        //        command.Parameters.AddWithValue("@Timestamp", checkpoint.TimeStamp);
+        //        command.ExecuteNonQuery();
+        //    }
+        //}
+        //private void SaveCheckpointToDatabase(double timestamp)
+        //{
+        //    // Voeg de timestamp van het segment toe aan de database
+        //    // Dit kan worden uitgebreid om de tijd te verwerken en op te slaan in een segmentenlijst of database
+        //    _data.SaveCheckpoint(timestamp);
+        //}
     }
 }

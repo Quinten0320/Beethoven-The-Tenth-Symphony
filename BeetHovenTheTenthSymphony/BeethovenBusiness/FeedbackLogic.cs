@@ -68,12 +68,12 @@ namespace BeethovenBusiness
         {
             // Bereken het moment waarop de noot de doelzone bereikt
             double noteStartTime = noteToCheck.TimeAs<MetricTimeSpan>(TempoMap.Default).TotalMicroseconds / 1_000_000.0;
-            //double noteEndTime = noteStartTime + noteToCheck.LengthAs<MetricTimeSpan>(TempoMap.Default).TotalMicroseconds / 1_000_000.0;
-            double estimatedEnd = (_elapsedTime + AnimationDuration) - noteStartTime;
+            double noteEndTime = noteStartTime + noteToCheck.LengthAs<MetricTimeSpan>(TempoMap.Default).TotalMicroseconds / 1_000_000.0;
+            //double estimatedEnd = (_elapsedTime + AnimationDuration) - noteStartTime;
 
             // Bereken de afwijking
-            //double difference = pressTime - noteStartTime;
-            double difference = pressTime - estimatedEnd;
+            double difference = pressTime - noteStartTime;
+            //double difference = pressTime - estimatedEnd;
 
             Debug.WriteLine($"{noteStartTime}, {pressTime}, {noteToCheck.LengthAs<MetricTimeSpan>(TempoMap.Default).TotalMicroseconds}");
 

@@ -38,6 +38,7 @@ namespace BeetHovenWPF
         private DateTime _pauseStartTime;
         private TimeSpan _totalPauseDuration = TimeSpan.Zero;
         private bool _isPaused = false;
+        private FeedbackLogic _feedbacklogic;
 
         public PianoWindow(string midiPath, MidiFile midiFile)
         {
@@ -243,6 +244,7 @@ namespace BeetHovenWPF
                         await Task.Run(() => _playback.Start());
                     }
                     var notesToPlay = uitlezenLogic.HaalNotenOp(elapsedTime);
+                    _feedbacklogic = new FeedbackLogic(notesToPlay, elapsedTime, uitlezenLogic);
                     foreach (var note in notesToPlay)
                     {
                         StartAnimationForNote(note.NoteName.ToString(), note.Length, note.Octave);

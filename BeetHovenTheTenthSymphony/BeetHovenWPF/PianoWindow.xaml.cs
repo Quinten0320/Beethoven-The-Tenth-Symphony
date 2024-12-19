@@ -23,7 +23,8 @@ namespace BeetHovenWPF
         private readonly PianoInputHandler _inputHandler;
         private double Fallpercentage;
         private readonly UitlezenMidiLogica uitlezenLogic;
-        public readonly string _midiPath;
+        private FeedbackLogic _feedbackLogic;
+        private readonly string _midiPath;
         private readonly int _octaves = 8;
         private const int _whiteKeyCount = 7;
         private DateTime _startTime;
@@ -40,6 +41,10 @@ namespace BeetHovenWPF
         private bool _isPaused = false;
 
         public PianoWindow(string midiPath, MidiFile midiFile)
+        
+        public event Action<string> VirtualNotePressed;
+
+        public PianoWindow(string midiPath)
         {
             InitializeComponent();
             uitlezenLogic = new UitlezenMidiLogica();
@@ -97,7 +102,7 @@ namespace BeetHovenWPF
             // Verwijder de oude midicontroller wanneer de pianowindow sluit (dit is nodig)
             _inputHandler.Dispose();
             StopAndDisposePlayback();
-
+            
             // Stop de timer
             if (_timer != null)
             {
@@ -218,6 +223,7 @@ namespace BeetHovenWPF
             {
                 string note = key.Tag?.ToString();
                 LastPressedNoteTextBox.Text = note;
+                _feedbackLogic.HandleNotePressed(note);
             }
         }
 
@@ -236,6 +242,7 @@ namespace BeetHovenWPF
                 try
                 {
 
+
                     elapsedTime = (DateTime.Now - _startTime).TotalSeconds;
                     if (elapsedTime > 4 && muziekafspelen)
                     {
@@ -243,6 +250,10 @@ namespace BeetHovenWPF
                         await Task.Run(() => _playback.Start());
                     }
                     var notesToPlay = uitlezenLogic.HaalNotenOp(elapsedTime);
+
+                    //Aanmaken feedbacklogic en data meegeven.
+                    _feedbackLogic = new FeedbackLogic(notesToPlay, elapsedTime, _midiPath );
+
                     foreach (var note in notesToPlay)
                     {
                         StartAnimationForNote(note.NoteName.ToString(), note.Length, note.Octave);
@@ -262,6 +273,18 @@ namespace BeetHovenWPF
 
         private void StartAnimationForNote(string note, long length, double octave)
         {
+            Rectangle fallingNote;
+            double animationDuration = 5 * (120 / uitlezenLogic.BerekenBpm());
+            //Debug.WriteLine($"Duur: {animationDuration}");
+
+            // Bereken de werkelijke duur van de noot in seconden
+            double actualduration = (duration / uitlezenLogic.GetTicksPerBeat()) * (60 / uitlezenLogic.BerekenBpm());
+
+            //Geef animatie gegeves mee aan feedbacklogic
+            _feedbackLogic.AnimationDuration = animationDuration;
+            _feedbackLogic.AcutalDuration = actualduration;
+
+            // Zoek de rechthoek die overeenkomt met de noot
             var targetKey = PianoCanvas.Children
                 .OfType<Rectangle>()
                 .FirstOrDefault(r => r.Tag?.ToString() == $"PianoNote:{note}{octave}");

@@ -14,22 +14,14 @@ namespace BeetHovenWPF
             _midiFile = midiFile;
         }
 
-        private void RestartClick(object sender, RoutedEventArgs e)
-        {
-            // Navigate to the PianoWindow or restart logic
-            var pianoWindow = new PianoWindow(null, _midiFile);
-            pianoWindow.Show();
-            Window.GetWindow(this)?.Close(); // Close the parent window hosting the Page
-        }
-
-        private void StopClick(object sender, RoutedEventArgs e)
-        {
-            Application.Current.Shutdown(); // Stop the application
-        }
-
         private void ExitClick(object sender, RoutedEventArgs e)
         {
-            Window.GetWindow(this)?.Close(); // Close the parent window hosting the Page
+            Window.GetWindow(this)?.Close();
+        }
+
+        private void ScoresClick(object sender, RoutedEventArgs e)
+        {
+            
         }
     }
 }

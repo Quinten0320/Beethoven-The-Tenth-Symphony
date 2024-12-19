@@ -15,7 +15,6 @@
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
         <!-- Title: Song Finished -->
@@ -24,19 +23,14 @@
                    Grid.Row="0" Grid.ColumnSpan="3" />
 
         <!-- Buttons -->
-        <Button Content="Replay" Width="200" Height="50"
+        <Button Content="Exit" Width="200" Height="50"
                 Grid.Row="1" Grid.Column="0"
                 HorizontalAlignment="Center" VerticalAlignment="Top"
-                Click="RestartClick" />
-
-        <Button Content="Stop" Width="200" Height="50"
-                Grid.Row="1" Grid.Column="1"
-                HorizontalAlignment="Center" VerticalAlignment="Top"
-                Click="StopClick" />
+                Click="ExitClick" />
 
         <Button Content="Scores" Width="200" Height="50"
-                Grid.Row="1" Grid.Column="2"
+                Grid.Row="1" Grid.Column="1"
                 HorizontalAlignment="Center" VerticalAlignment="Top"
-                Click="ExitClick" />
+                Click="ScoresClick" />
     </Grid>
 </Page>

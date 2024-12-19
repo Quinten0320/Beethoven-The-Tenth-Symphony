@@ -132,7 +132,6 @@ namespace BeetHovenWPF
         private void PianoWindow_Loaded(object sender, RoutedEventArgs e)
         {
             GeneratePiano();
-            _playback.Finished += OnPlaybackFinished;
 
             if (_midiPath != null)
             {

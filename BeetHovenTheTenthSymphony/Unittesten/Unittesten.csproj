@@ -20,6 +20,7 @@
   <ItemGroup>
     <ProjectReference Include="..\BeethovenBusiness\BeethovenBusiness.csproj" />
     <ProjectReference Include="..\BeethovenDataAccesLayer\BeethovenDataAccesLayer.csproj" />
+    <ProjectReference Include="..\BeetHovenWPF\BeetHovenWPF.csproj" />
   </ItemGroup>
 
   <ItemGroup>

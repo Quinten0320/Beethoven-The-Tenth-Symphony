@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using BeethovenBusiness;
-using BeethovenDataAccesLayer;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Interaction;
 using Melanchall.DryWetMidi.Multimedia;
@@ -17,14 +16,13 @@ namespace BeetHovenWPF
         private readonly MidiService _midiService;
         private ObservableCollection<MidiFileInfo> _midiFileInfos;
         private string _currentFilter = "Default";
+
         public MidiList()
         {
             InitializeComponent();
-            DataBaseHelper.InitializeDatabase();
 
             _midiService = new MidiService();
             _midiFileInfos = new ObservableCollection<MidiFileInfo>();
-            _midiService.AddMissingMidiFilesToDatabase();
             fillList();
         }
 
@@ -46,12 +44,12 @@ namespace BeetHovenWPF
 
                 try
                 {
-                    MidiFile midiFile = _midiService.LoadMidiFile(selectedMidiName);// niet nodig maar kan handig zijn misschien
+                    MidiFile midiFile = _midiService.GetMidiFile(selectedMidiName);// niet nodig maar kan handig zijn misschien
 
                     string folderPath = _midiService.getFolderPath();
                     string completePath = folderPath + "\\" + selectedMidiName + ".mid";
 
-                    PianoWindow pianowindow = new PianoWindow(completePath, midiFile);
+                    PianoWindow pianowindow = new PianoWindow(completePath);
                     pianowindow.ShowDialog();
                 }
                 catch (Exception ex)
@@ -134,10 +132,10 @@ namespace BeetHovenWPF
 
         public ObservableCollection<MidiFileInfo> CalculateDifficulty()
         {
-            List<string> midiNames = _midiService.LoadMidiNames();
-            List<double> bpm = _midiService.LoadMidiBPM();
-            List<double> duration = _midiService.LoadSongDuration();
-            List<int> totalNotes = _midiService.LoadTotalNotes();
+            List<string> midiNames = _midiService.GetMidiFileNames();
+            List<double> bpm = _midiService.GetMidiBPM();
+            List<double> duration = _midiService.GetSongtime();
+            List<int> totalNotes = _midiService.GetTotalNotes();
 
             var midiFileInfos = bpm.Select((b, i) =>
             {
@@ -150,34 +148,15 @@ namespace BeetHovenWPF
                     _ => "Hard"
                 };
 
-                bool isFavourite = _midiService.IsSongFavourite(midiNames[i]);
-
                 return new MidiFileInfo
                 {
                     Name = midiNames[i],
                     Difficulty = difficulty,
-                    Favourite = isFavourite,
+
                 };
             });
 
             return new ObservableCollection<MidiFileInfo>(midiFileInfos);
-        }
-
-        private void FavouriteFucntion(object sender, DataGridCellEditEndingEventArgs e)
-        {
-            if (e.Column is DataGridCheckBoxColumn && e.EditingElement is CheckBox checkBox)
-            {
-                MidiFileInfo selectedMidiInfo = e.Row.Item as MidiFileInfo;
-
-                if (selectedMidiInfo != null)
-                {
-                    bool isFavourite = checkBox.IsChecked ?? false;
-
-                    selectedMidiInfo.Favourite = isFavourite;
-
-                    _midiService.AddFavouriteHelper(selectedMidiInfo.Name);
-                }
-            }
         }
 
         private void DetectMidiInputButton_Click(object sender, RoutedEventArgs e)
@@ -205,25 +184,6 @@ namespace BeetHovenWPF
                 MessageBox.Show($"An unexpected error occurred: {ex.Message}","Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
-        private void DeleteButton_Click(object sender, RoutedEventArgs e)
-        {
-            var button = sender as Button;
-            if (button != null && button.Tag != null)
-            {
-                string songName = button.Tag.ToString();
 
-                var result = MessageBox.Show($"Are you sure you want to delete '{songName}'?",
-                                             "Confirm Deletion", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-
-                if (result == MessageBoxResult.Yes)
-                {
-                    MidiService midiService = new MidiService();
-                    midiService.DeleteSong(songName); 
-
-                    MidiFileList.ItemsSource = midiService.LoadMidiNames();
-                    fillList();
-                }
-            }
-        }
     }
 }

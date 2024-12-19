@@ -210,7 +210,7 @@ namespace BeetHovenWPF
 
 
                     //Aanmaken feedbacklogic en data meegeven.
-                    _feedbackLogic = new FeedbackLogic(notesToPlay, elapsedTime, _midiPath);
+                    _feedbackLogic = new FeedbackLogic(notesToPlay, elapsedTime, _midiPath );
 
                     foreach (var note in notesToPlay)
                     {

@@ -47,7 +47,6 @@ namespace BeethovenBusiness
         //TODO private maken
         public void HandleNotePressed(string note)
         {
-            //double currentTime = _elapsedTime;
             double currentTime = _elapsedTime + _timer.Elapsed.TotalSeconds;
 
             foreach (Melanchall.DryWetMidi.Interaction.Note noteToCheck in _notes)
@@ -70,11 +69,13 @@ namespace BeethovenBusiness
             // Bereken het moment waarop de noot de doelzone bereikt
             double noteStartTime = noteToCheck.TimeAs<MetricTimeSpan>(TempoMap.Default).TotalMicroseconds / 1_000_000.0;
             double noteEndTime = noteStartTime + noteToCheck.LengthAs<MetricTimeSpan>(TempoMap.Default).TotalMicroseconds / 1_000_000.0;
+            //double estimatedEnd = (_elapsedTime + AnimationDuration) - noteStartTime;
 
             // Bereken de afwijking
-            double difference = pressTime - noteStartTime;
+            //double difference = pressTime - noteStartTime;
+            double difference = pressTime - noteEndTime;
 
-            Debug.WriteLine($"{noteStartTime}, {pressTime}, {noteToCheck.LengthAs<MetricTimeSpan>(TempoMap.Default).TotalMicroseconds / 1_000_000.0}");
+            Debug.WriteLine($"{noteStartTime}, {pressTime}, {noteToCheck.LengthAs<MetricTimeSpan>(TempoMap.Default).TotalMicroseconds}");
 
             // Controleer of de timing binnen een acceptabele marge valt
             //const double tolerance = 0.15; // 150 ms tolerantie

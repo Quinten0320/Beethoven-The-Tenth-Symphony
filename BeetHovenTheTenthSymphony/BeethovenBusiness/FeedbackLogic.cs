@@ -74,6 +74,8 @@ namespace BeethovenBusiness
             // Bereken de afwijking
             double difference = pressTime - noteStartTime;
 
+            Debug.WriteLine($"{noteStartTime}, {pressTime}, {noteToCheck.LengthAs<MetricTimeSpan>(TempoMap.Default).TotalMicroseconds / 1_000_000.0}");
+
             // Controleer of de timing binnen een acceptabele marge valt
             //const double tolerance = 0.15; // 150 ms tolerantie
             const double tolerance = 0.5; // 150 ms tolerantie

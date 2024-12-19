@@ -71,10 +71,6 @@ namespace BeetHovenWPF
 
         private void PianoWindow_Closing(object sender, CancelEventArgs e)
         {
-            // Verwijder de oude midicontroller wanneer de pianowindow sluit (dit is nodig)
-            // TODO: weer uitcommenten zodra klaar met deze branch
-            //_inputHandler.Dispose();
-
             // Stop de timer
             if (_timer != null)
             {

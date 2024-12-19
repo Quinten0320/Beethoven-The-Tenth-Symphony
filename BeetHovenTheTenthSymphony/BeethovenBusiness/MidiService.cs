@@ -1,40 +1,24 @@
 ﻿using BeethovenDataAccesLayer;
 using Melanchall.DryWetMidi.Core;
-using Melanchall.DryWetMidi.Interaction;
 using System.Collections.Generic;
-using System.Security.Policy;
 
 namespace BeethovenBusiness
 {
-    public class MidiService : IData
+    public class MidiService
     {
-        private readonly Data _data = new Data();
+        private readonly Data _data;
 
-        public List<string> LoadMidiNames()
+        public MidiService()
+        {
+            _data = new Data();
+        }
+
+        public List<string> GetMidiFileNames()
         {
             return _data.LoadMidiNames();
         }
-        public void AddFavouriteHelper(string songId)
-        {
-            int songName = GetSongIdByName(songId);
 
-            AddFavourite(songName);
-        }
-        public void AddFavourite(int songId)
-        {
-            _data.AddFavourite(songId);
-        }
-        public bool IsSongFavourite(string songName)
-        {
-            return _data.IsSongFavourite(songName);
-        }
-
-        public int GetSongIdByName(string songName)
-        {
-            return _data.GetSongIdByName(songName);
-        }
-
-        public MidiFile LoadMidiFile(string name)
+        public MidiFile GetMidiFile(string name)
         {
             return _data.LoadMidiFile(name);
         }
@@ -42,22 +26,6 @@ namespace BeethovenBusiness
         public void UploadMidiFile(string selectedFile)
         {
             _data.UploadMidiFile(selectedFile);
-
-            string fileName = Path.GetFileNameWithoutExtension(selectedFile);
-            string folderPath = _data.getFolderPath();
-            string fullPath = Path.Combine(folderPath, Path.GetFileName(selectedFile));
-            MidiFile midiFile = _data.LoadMidiFile(fileName);
-
-            var duration = midiFile.GetDuration<MetricTimeSpan>();
-            double durationInSeconds = duration.TotalMicroseconds / 1_000_000.0;
-            double secondsDecimals = Math.Round(durationInSeconds, 2);
-
-            AddSong(fileName, secondsDecimals, fullPath);
-        }
-
-        public void AddSong(string fileName, double duration, string fullPath)
-        {
-            _data.AddSong(fileName, duration, fullPath);
         }
 
         public string getFolderPath()
@@ -65,37 +33,19 @@ namespace BeethovenBusiness
             return _data.getFolderPath();
         }
 
-        public List<double> LoadMidiBPM()
+        public List<double> GetMidiBPM()
         {
             return _data.LoadMidiBPM();
         }
 
-        public List<double> LoadSongDuration()
+        public List<double> GetSongtime()
         {
             return _data.LoadSongDuration();
         }
 
-        public List<int> LoadTotalNotes()
+        public List<int> GetTotalNotes()
         {
             return _data.LoadTotalNotes();
         }
-        public void AddMissingMidiFilesToDatabase()
-        {
-            _data.AddMissingMidiFilesToDatabase();
-        }
-        public void DeleteSong(string songName)
-        {
-            int songId = GetSongIdByName(songName);
-
-            _data.DeleteSong(songId);
-
-            string folderPath = getFolderPath();
-            string filePath = Path.Combine(folderPath, songName + ".mid");
-            if (File.Exists(filePath))
-            {
-                File.Delete(filePath);
-            }
-        }
-
     }
 }

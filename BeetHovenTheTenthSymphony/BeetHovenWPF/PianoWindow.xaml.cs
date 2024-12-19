@@ -1,6 +1,4 @@
-using System;
-using System.Linq;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -10,10 +8,6 @@ using System.Windows.Threading;
 using BeethovenBusiness;
 using System.Diagnostics;
 using System.ComponentModel;
-using Microsoft.VisualBasic;
-using Melanchall.DryWetMidi.Core;
-using Melanchall.DryWetMidi.Multimedia;
-using Melanchall.DryWetMidi.Interaction;
 
 namespace BeetHovenWPF
 {
@@ -21,7 +15,7 @@ namespace BeetHovenWPF
     {
         private List<Rectangle> Blackkeys = new List<Rectangle>();
         private readonly PianoInputHandler _inputHandler;
-        private double Fallpercentage;
+
         private readonly UitlezenMidiLogica uitlezenLogic;
         private FeedbackLogic _feedbackLogic;
         private readonly string _midiPath;
@@ -29,19 +23,7 @@ namespace BeetHovenWPF
         private const int _whiteKeyCount = 7;
         private DateTime _startTime;
         private DispatcherTimer _timer;
-        private bool allesopgevraagd = true;
-        private readonly MidiFile _currentMidi;
-        private OutputDevice _outputDevice;
-        private Playback _playback;
-        double elapsedTime;
-        bool muziekafspelen = true;
-        private List<Storyboard> activeAnimations = new List<Storyboard>();
-        private DateTime _pauseStartTime;
-        private TimeSpan _totalPauseDuration = TimeSpan.Zero;
-        private bool _isPaused = false;
 
-        public PianoWindow(string midiPath, MidiFile midiFile)
-        
         public event Action<string> VirtualNotePressed;
 
         public PianoWindow(string midiPath)
@@ -56,18 +38,8 @@ namespace BeetHovenWPF
 
             _inputHandler = PianoInputHandlerService.Instance;
 
-            _currentMidi = midiFile;
-            _outputDevice = OutputDevice.GetByName("Microsoft GS Wavetable Synth");
-            _playback = midiFile.GetPlayback(_outputDevice);
-            
-
             _inputHandler.NotePressed -= OnMidiNotePressed; //veiligheid, niet perse nodig
             _inputHandler.NotePressed += OnMidiNotePressed;
-            this.KeyDown += PianoWindowPauze;
-
-            this.WindowState = WindowState.Maximized; // Set window to fullscreen
-            this.WindowStyle = WindowStyle.None;     // Remove the title bar and borders
-            this.ResizeMode = ResizeMode.NoResize;  // Prevent resizing to enforce fullscreen
 
             UpdateMidiStatus();
         }
@@ -97,12 +69,8 @@ namespace BeetHovenWPF
             Dispatcher.Invoke(() => LastPressedNoteTextBox.Text = note);
         }
 
-        public void PianoWindow_Closing(object sender, CancelEventArgs e)
+        private void PianoWindow_Closing(object sender, CancelEventArgs e)
         {
-            // Verwijder de oude midicontroller wanneer de pianowindow sluit (dit is nodig)
-            _inputHandler.Dispose();
-            StopAndDisposePlayback();
-            
             // Stop de timer
             if (_timer != null)
             {
@@ -120,10 +88,13 @@ namespace BeetHovenWPF
                 try
                 {
                     uitlezenLogic.LaadMidiBestand(_midiPath);
+                    double bpm = uitlezenLogic.BerekenBpm();
+
                     _startTime = DateTime.Now;
+
                     _timer = new DispatcherTimer
                     {
-                        Interval = TimeSpan.FromSeconds(1.0 / 1000) 
+                        Interval = TimeSpan.FromSeconds(1.0 / 120) // 120 FPS
                     };
                     _timer.Tick += Timer_Tick;
                     _timer.Start();
@@ -227,29 +198,16 @@ namespace BeetHovenWPF
             }
         }
 
-        private async void Timer_Tick(object sender, EventArgs e)
+        private void Timer_Tick(object sender, EventArgs e)
         {
-            if (_isPaused)
-            {
-                Debug.WriteLine("Timer is paused");
-                // Timer is actief, maar logica wordt niet uitgevoerd als de applicatie is gepauzeerd.
-                return;
-            }
-
             bool isWindowOpen = Application.Current.Windows.OfType<PianoWindow>().Any(window => window.IsVisible);
             if (isWindowOpen)
             {
                 try
                 {
-
-
-                    elapsedTime = (DateTime.Now - _startTime).TotalSeconds;
-                    if (elapsedTime > 4 && muziekafspelen)
-                    {
-                        muziekafspelen = false;
-                        await Task.Run(() => _playback.Start());
-                    }
+                    double elapsedTime = (DateTime.Now - _startTime).TotalSeconds;
                     var notesToPlay = uitlezenLogic.HaalNotenOp(elapsedTime);
+
 
                     //Aanmaken feedbacklogic en data meegeven.
                     _feedbackLogic = new FeedbackLogic(notesToPlay, elapsedTime, _midiPath );
@@ -263,15 +221,13 @@ namespace BeetHovenWPF
                 {
                     MessageBox.Show($"Fout in timer: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
-            }
-            else
+            } else
             {
-                Debug.WriteLine("Window is dicht");
                 _timer.Stop();
             }
         }
 
-        private void StartAnimationForNote(string note, long length, double octave)
+        private void StartAnimationForNote(string note, double duration, int octave)
         {
             Rectangle fallingNote;
             double animationDuration = 5 * (120 / uitlezenLogic.BerekenBpm());
@@ -288,160 +244,62 @@ namespace BeetHovenWPF
             var targetKey = PianoCanvas.Children
                 .OfType<Rectangle>()
                 .FirstOrDefault(r => r.Tag?.ToString() == $"PianoNote:{note}{octave}");
+
             if (targetKey == null)
             {
-                Debug.WriteLine($"Note {note}{octave} not found");
+                Debug.WriteLine($"Noot {note}{octave} niet gevonden");
                 return;
+            } // Als de noot niet wordt gevonden, stop de methode
+
+            // Bereken de breedte en positie van de doeltoets
+            double keyWidth = targetKey.Width;
+            double keyLeft = Canvas.GetLeft(targetKey);
+
+            // Bereken de hoogte van de vallende noot op basis van de duur en de hoogte van het canvas
+            double noteHeight = (actualduration / animationDuration) * PianoCanvas.ActualHeight;
+
+            // Creëer de rechthoek voor de vallende noot
+            if (Blackkeys.Contains(targetKey))
+            {
+                fallingNote = new Rectangle
+                {
+                    Width = keyWidth,  // De breedte van de vallende noot is een derde van de breedte van de doeltoets
+                    Height = noteHeight,
+                    Fill = Brushes.Black,
+                    Stroke = Brushes.Red,
+                };
+            }
+            else
+            {
+                fallingNote = new Rectangle
+                {
+                    Width = keyWidth,  // De breedte van de vallende noot is een derde van de breedte van de doeltoets
+                    Height = noteHeight,
+                    Fill = Brushes.Blue,
+                    Stroke = Brushes.Red,
+
+                };
             }
 
-            double animationDuration = 10;
-
-            MetricTimeSpan noteInSeconds = TimeConverter.ConvertTo<MetricTimeSpan>(length, uitlezenLogic.tempoMap);
-            double noteHeight = (noteInSeconds.TotalSeconds / animationDuration) * 2000 * 2;
-            Debug.WriteLine($"NoteHeight: {noteHeight}");
-
-            Rectangle fallingNote = new Rectangle
-            {
-                Width = targetKey.Width,
-                Height = noteHeight,
-                Fill = Blackkeys.Contains(targetKey) ? Brushes.Black : Brushes.Blue,
-                Stroke = Brushes.Red
-            };
-
-            double left = Canvas.GetLeft(targetKey);
-            double bottom = 2000;
-            Canvas.SetLeft(fallingNote, left);
-            Canvas.SetBottom(fallingNote, bottom);
+            // Plaats de vallende noot boven de doeltoets
+            Canvas.SetLeft(fallingNote, keyLeft);
+            Canvas.SetTop(fallingNote, 0);
             PianoCanvas.Children.Add(fallingNote);
 
-            LinearGradientBrush opacityMask = new LinearGradientBrush
-            {
-                StartPoint = new Point(0, 0),
-                EndPoint = new Point(0, 1)
-            };
-            opacityMask.GradientStops.Add(new GradientStop(Colors.Black, 0.0));
-            opacityMask.GradientStops.Add(new GradientStop(Colors.Black, 0.5));
-            opacityMask.GradientStops.Add(new GradientStop(Colors.Transparent, 0.5));
-            opacityMask.GradientStops.Add(new GradientStop(Colors.Transparent, 1.0));
-            fallingNote.OpacityMask = opacityMask;
-
+            // Creëer de animatie om de vallende noot van boven naar beneden te bewegen
             DoubleAnimation fallAnimation = new DoubleAnimation
             {
-                From = 2000,
-                To = -2000,
-                Duration = new Duration(TimeSpan.FromSeconds(animationDuration)),
+                From = 0,
+                To = PianoCanvas.ActualHeight,
+                Duration = new Duration(TimeSpan.FromSeconds(animationDuration)),  // De animatieduur is altijd 5 seconden
                 FillBehavior = FillBehavior.Stop
             };
 
-            var storyboard = new Storyboard();
-            Storyboard.SetTarget(fallAnimation, fallingNote);
-            Storyboard.SetTargetProperty(fallAnimation, new PropertyPath("(Canvas.Bottom)"));
-            storyboard.Children.Add(fallAnimation);
+            // Verwijder de vallende noot van het canvas zodra de animatie is voltooid
+            fallAnimation.Completed += (s, e) => PianoCanvas.Children.Remove(fallingNote);
 
-            // Asynchrone taak om de noot na 10 seconden te verwijderen
-            _ = RemoveNoteAfterDelay(fallingNote, 10);
-
-            storyboard.Completed += (s, e) =>
-            {
-                activeAnimations.Remove(storyboard);
-            };
-
-            activeAnimations.Add(storyboard);
-            storyboard.Begin();
-        }
-
-        private async Task RemoveNoteAfterDelay(Rectangle note, int delayInSeconds)
-        {
-            await Task.Delay(delayInSeconds * 1000); // Wacht 10 seconden
-            Dispatcher.Invoke(() =>
-            {
-                if (PianoCanvas.Children.Contains(note))
-                {
-                    PianoCanvas.Children.Remove(note);
-                }
-            });
-        }
-
-        private void PianoWindowPauze(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.Escape)
-            {
-                e.Handled = true;
-                TogglePause();
-            }
-        }
-        public void TogglePause()
-        {
-            _isPaused = !_isPaused;
-
-            if (_isPaused)
-            {
-                //stop de timer en registreer de start van de pauze
-                _timer?.Stop();
-                _pauseStartTime = DateTime.Now;
-               
-                _playback.Stop();
-
-                //pauzeer animaties
-                foreach (var storyboard in activeAnimations)
-                {
-                    storyboard.Pause();
-                }
-
-                ShowPauseMenu(true);
-            }
-            else
-            {
-                //bereken de totale pauzeduur en pas deze toe op de starttijd
-                _totalPauseDuration += DateTime.Now - _pauseStartTime;
-                _startTime = _startTime.Add(_totalPauseDuration);
-
-                //TimeSpan tijd = 1;
-                //_playback.MoveToTime();
-                _playback.Start();
-
-                //reset de pauzeduur
-                _totalPauseDuration = TimeSpan.Zero;
-
-                //start de timer opnieuw en hervat animaties
-                _timer?.Start();
-                foreach (var storyboard in activeAnimations)
-                {
-                    storyboard.Resume();
-                }
-
-                ShowPauseMenu(false);
-            }
-        }
-
-        public void ShowPauseMenu(bool show)
-        {
-            if (show)
-            {
-                PauseFrame.Visibility = Visibility.Visible; //toon de Frame
-                PauseFrame.Navigate(new PauzeMenu(_currentMidi));       //navigeer naar PauzeMenu
-            }
-            else
-            {
-                PauseFrame.Content = null;                 //leeg de Frame
-                PauseFrame.Visibility = Visibility.Collapsed; //verberg de Frame
-            }
-        }
-
-        public void StopAndDisposePlayback()
-        {
-            if (_playback != null)
-            {
-                _playback.Stop(); // Stop playback
-                _playback.Dispose(); // Dispose playback instance
-                _playback = null; // Clear the reference
-            }
-
-            if (_outputDevice != null)
-            {
-                _outputDevice.Dispose(); // Dispose output device
-                _outputDevice = null; // Clear the reference
-            }
+            // Start de animatie
+            fallingNote.BeginAnimation(Canvas.TopProperty, fallAnimation);
         }
     }
 }

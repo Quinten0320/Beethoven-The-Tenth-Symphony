@@ -24,6 +24,8 @@ namespace BeetHovenWPF
         private DateTime _startTime;
         private DispatcherTimer _timer;
 
+        public event Action<string> VirtualNotePressed;
+
         public PianoWindow(string midiPath)
         {
             InitializeComponent();
@@ -196,6 +198,7 @@ namespace BeetHovenWPF
             {
                 string note = key.Tag?.ToString();
                 LastPressedNoteTextBox.Text = note;
+                _feedbackLogic.HandleNotePressed(note);
             }
         }
 

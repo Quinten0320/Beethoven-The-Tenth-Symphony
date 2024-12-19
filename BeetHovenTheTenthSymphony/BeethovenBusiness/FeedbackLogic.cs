@@ -44,9 +44,11 @@ namespace BeethovenBusiness
             _inputHandler.NotePressed += HandleNotePressed;
         }
 
-        private void HandleNotePressed(string note)
+        //TODO private maken
+        public void HandleNotePressed(string note)
         {
-            double currentTime = _elapsedTime;
+            //double currentTime = _elapsedTime;
+            double currentTime = _elapsedTime + _timer.Elapsed.TotalSeconds;
 
             foreach (Melanchall.DryWetMidi.Interaction.Note noteToCheck in _notes)
             {

@@ -12,6 +12,8 @@ namespace BeethovenBusiness
         public double fallPercentage = 0;
         public double animationDurationUitlezenMidiLogica = 0;
         private IEnumerable<Melanchall.DryWetMidi.Interaction.Note> notes;
+        private IEnumerable<Melanchall.DryWetMidi.Interaction.Note> notes2;
+
         public TempoMap tempoMap;
         MidiFile midiFile;
 
@@ -41,6 +43,7 @@ namespace BeethovenBusiness
                     .SelectMany(track => track.GetNotes())
                     .OrderBy(n => n.Time)
                     .ToList();
+                notes2 = notes;
             }
             catch (Exception ex)
             {
@@ -75,7 +78,7 @@ namespace BeethovenBusiness
                 double noteTimeInSeconds = metricTime.TotalSeconds;
 
                 //als noot nu afgespeeld moet worden
-                if ((elapsedTime - (animationDurationUitlezenMidiLogica * fallPercentage)) >= noteTimeInSeconds) //DIT MOET NOG AANGEPAST WORDEN NAAR + EN MET EEN TIMER
+                if (elapsedTime >= noteTimeInSeconds) //DIT MOET NOG AANGEPAST WORDEN NAAR + EN MET EEN TIMER
                 {
                     notesToPlay.Add(note);
                     notesToRemove.Add(note);
@@ -84,6 +87,34 @@ namespace BeethovenBusiness
 
             // verwijder afgespeelde noten
             notes = notes.Where(n => !notesToRemove.Contains(n)).ToList();
+
+            return notesToPlay;
+        }
+        public List<Melanchall.DryWetMidi.Interaction.Note> HaalNotenOpFeedback(double elapsedTime)
+        {
+            if (notes2 == null || tempoMap == null)
+                throw new InvalidOperationException("Noten of TempoMap zijn niet geïnitialiseerd. Laad eerst een MIDI-bestand.");
+
+            List<Note> notesToPlay = new List<Melanchall.DryWetMidi.Interaction.Note>();
+            List<Note> notesToRemove = new List<Melanchall.DryWetMidi.Interaction.Note>();
+
+            foreach (var note in notes2.ToList())
+            {
+                //bereken elke noot welke tijd afgespeeld moet worden
+                long noteTimeInTicks = note.Time;
+                MetricTimeSpan metricTime = TimeConverter.ConvertTo<MetricTimeSpan>(noteTimeInTicks, tempoMap);
+                double noteTimeInSeconds = metricTime.TotalSeconds;
+
+                //als noot nu afgespeeld moet worden
+                if (elapsedTime - 4 >= noteTimeInSeconds) //DIT MOET NOG AANGEPAST WORDEN NAAR + EN MET EEN TIMER
+                {
+                    notesToPlay.Add(note);
+                    notesToRemove.Add(note);
+                }
+            }
+
+            // verwijder afgespeelde noten
+            notes2 = notes2.Where(n => !notesToRemove.Contains(n)).ToList();
 
             return notesToPlay;
         }

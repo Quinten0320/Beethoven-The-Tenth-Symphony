@@ -45,17 +45,22 @@ namespace BeethovenBusiness
         public void HandleNotePressed(string note)
         {
             double currentTime = _elapsedTime;
+            List<Melanchall.DryWetMidi.Interaction.Note> notesToRemove = new List<Melanchall.DryWetMidi.Interaction.Note>();
 
             foreach (Melanchall.DryWetMidi.Interaction.Note noteToCheck in _notes)
             {
-                if (_processedNotes.Contains(noteToCheck)) continue;
-
                 string noteName = noteToCheck.NoteName.ToString() + noteToCheck.Octave.ToString();
                 if (noteName == note)
                 {
-                    _processedNotes.Add(noteToCheck);
                     CheckNoteTiming(noteToCheck, currentTime);
+                    notesToRemove.Add(noteToCheck);
+                    break;
                 }
+            }
+
+            foreach (Melanchall.DryWetMidi.Interaction.Note noteToRemove in notesToRemove)
+            {
+                _notes.Remove(noteToRemove);
             }
         }
 
@@ -75,8 +80,9 @@ namespace BeethovenBusiness
             MetricTimeSpan metricTime = TimeConverter.ConvertTo<MetricTimeSpan>(noteTimeInTicks, _uitlezenMidiLogica.tempoMap);
             double noteTimeInSeconds = metricTime.TotalSeconds;
 
+            pressTime -= 4.5;
             // Bereken de afwijking
-            double difference = pressTime - noteTimeInSeconds - 4;
+            double difference = pressTime - noteTimeInSeconds;
             
 
             //Debug.WriteLine($"{noteTimeInSeconds}, {pressTime}, {noteToCheck.LengthAs<MetricTimeSpan>(TempoMap.Default).TotalMicroseconds}");

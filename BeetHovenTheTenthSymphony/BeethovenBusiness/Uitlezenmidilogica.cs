@@ -106,7 +106,7 @@ namespace BeethovenBusiness
                 double noteTimeInSeconds = metricTime.TotalSeconds;
 
                 //als noot nu afgespeeld moet worden
-                if (elapsedTime - 4 >= noteTimeInSeconds) //DIT MOET NOG AANGEPAST WORDEN NAAR + EN MET EEN TIMER
+                if (elapsedTime >= noteTimeInSeconds) //DIT MOET NOG AANGEPAST WORDEN NAAR + EN MET EEN TIMER
                 {
                     notesToPlay.Add(note);
                     notesToRemove.Add(note);

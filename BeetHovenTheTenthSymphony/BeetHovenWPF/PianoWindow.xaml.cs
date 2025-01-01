@@ -38,6 +38,7 @@ namespace BeetHovenWPF
         private DateTime _pauseStartTime;
         private TimeSpan _totalPauseDuration = TimeSpan.Zero;
         private bool _isPaused = false;
+        private FeedbackLogic _feedbacklogic;
 
         public PianoWindow(string midiPath, MidiFile midiFile)
         {
@@ -50,6 +51,7 @@ namespace BeetHovenWPF
             Closing += PianoWindow_Closing; // Koppel het Closing-evenement
 
             _inputHandler = PianoInputHandlerService.Instance;
+            _feedbacklogic = new FeedbackLogic(uitlezenLogic);
 
             _currentMidi = midiFile;
             _outputDevice = OutputDevice.GetByName("Microsoft GS Wavetable Synth");
@@ -225,7 +227,6 @@ namespace BeetHovenWPF
         {
             if (_isPaused)
             {
-                Debug.WriteLine("Timer is paused");
                 // Timer is actief, maar logica wordt niet uitgevoerd als de applicatie is gepauzeerd.
                 return;
             }
@@ -242,10 +243,12 @@ namespace BeetHovenWPF
                         muziekafspelen = false;
                         await Task.Run(() => _playback.Start());
                     }
+                    var feedbacknotestoplay = uitlezenLogic.HaalNotenOpFeedback(elapsedTime);
                     var notesToPlay = uitlezenLogic.HaalNotenOp(elapsedTime);
+                    _feedbacklogic.updateNotestoplay(feedbacknotestoplay, elapsedTime);
                     foreach (var note in notesToPlay)
                     {
-                        StartAnimationForNote(note.NoteName.ToString(), note.Length, note.Octave);
+                        StartAnimationForNote(note.NoteName.ToString(), note.Length, note.Octave);  
                     }
                 }
                 catch (Exception ex)
@@ -275,7 +278,6 @@ namespace BeetHovenWPF
 
             MetricTimeSpan noteInSeconds = TimeConverter.ConvertTo<MetricTimeSpan>(length, uitlezenLogic.tempoMap);
             double noteHeight = (noteInSeconds.TotalSeconds / animationDuration) * 2000 * 2;
-            Debug.WriteLine($"NoteHeight: {noteHeight}");
 
             Rectangle fallingNote = new Rectangle
             {

@@ -60,6 +60,11 @@ namespace BeetHovenWPF
 
             _inputHandler.NotePressed -= OnMidiNotePressed; //veiligheid, niet perse nodig
             _inputHandler.NotePressed += OnMidiNotePressed;
+
+            _inputHandler.NoteReleased -= OnMidiNoteReleased;
+            _inputHandler.NoteReleased += OnMidiNoteReleased;
+
+
             this.KeyDown += PianoWindowPauze;
 
             this.WindowState = WindowState.Maximized; // Set window to fullscreen
@@ -90,8 +95,48 @@ namespace BeetHovenWPF
 
         private void OnMidiNotePressed(string note)
         {
-            //update textbox met laatste not input
-            Dispatcher.Invoke(() => LastPressedNoteTextBox.Text = note);
+            Dispatcher.Invoke(() =>
+            {
+                LastPressedNoteTextBox.Text = note;
+
+                var targetKey = PianoCanvas.Children
+                    .OfType<Rectangle>()
+                    .FirstOrDefault(r => r.Tag?.ToString() == $"PianoNote:{note}");
+
+                if (targetKey != null)
+                {
+                    targetKey.Fill = Brushes.Yellow;
+                }
+            });
+        }
+
+        private void OnMidiNoteReleased(string note)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                var targetKey = PianoCanvas.Children
+                    .OfType<Rectangle>()
+                    .FirstOrDefault(r => r.Tag?.ToString() == $"PianoNote:{note}");
+
+                if (targetKey != null)
+                {
+                    targetKey.Fill = Blackkeys.Contains(targetKey) ? Brushes.Black : Brushes.White;
+                }
+            });
+        }
+
+
+        private void HighlightKey(string note, bool isPressed)
+        {
+            var targetKey = PianoCanvas.Children
+                .OfType<Rectangle>()
+                .FirstOrDefault(r => r.Tag?.ToString() == $"PianoNote:{note}");
+
+            if (targetKey != null)
+            {
+                targetKey.Fill = isPressed ? Brushes.Yellow :
+                    (Blackkeys.Contains(targetKey) ? Brushes.Black : Brushes.White);
+            }
         }
 
         public void PianoWindow_Closing(object sender, CancelEventArgs e)

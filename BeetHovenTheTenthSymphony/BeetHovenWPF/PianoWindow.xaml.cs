@@ -66,6 +66,7 @@ namespace BeetHovenWPF
 
 
             this.KeyDown += PianoWindowPauze;
+            _playback.Finished += OnPlaybackFinished;
 
             this.WindowState = WindowState.Maximized; // Set window to fullscreen
             this.WindowStyle = WindowStyle.None;     // Remove the title bar and borders
@@ -311,7 +312,7 @@ namespace BeetHovenWPF
         private void StartAnimationForNote(string note, long length, double octave)
         {
             var targetKey = PianoCanvas.Children
-                .OfType<Rectangle>()
+                .OfType<Rectangle>() 
                 .FirstOrDefault(r => r.Tag?.ToString() == $"PianoNote:{note}{octave}");
             if (targetKey == null)
             {
@@ -394,6 +395,7 @@ namespace BeetHovenWPF
                 TogglePause();
             }
         }
+
         public void TogglePause()
         {
             _isPaused = !_isPaused;
@@ -451,6 +453,37 @@ namespace BeetHovenWPF
                 PauseFrame.Visibility = Visibility.Collapsed; //verberg de Frame
             }
         }
+
+        private async void OnPlaybackFinished(object sender, EventArgs e)
+        {
+            _timer?.Stop();
+            _playback.Stop();
+
+            await Task.Delay(3000); // Wait for 3 seconds
+
+            Dispatcher.Invoke(() =>
+            {
+                // Close the current PianoWindow
+                this.Close();
+
+                // Show the End Menu in a new window
+                var window = new Window
+                {
+                    Title = "End Menu",
+                    Content = new EndMenu(_currentMidi),
+                    WindowStyle = WindowStyle.None,
+                    ResizeMode = ResizeMode.NoResize,
+                    Width = ActualWidth,
+                    Height = ActualHeight,
+                    Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromArgb(200, 0, 0, 0)),
+                    WindowStartupLocation = WindowStartupLocation.CenterScreen
+                };
+
+                window.ShowDialog();
+            });
+        }
+
+
 
         public void StopAndDisposePlayback()
         {

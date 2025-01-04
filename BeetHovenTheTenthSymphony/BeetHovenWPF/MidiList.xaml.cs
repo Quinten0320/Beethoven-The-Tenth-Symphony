@@ -17,6 +17,7 @@ namespace BeetHovenWPF
         private readonly MidiService _midiService;
         private ObservableCollection<MidiFileInfo> _midiFileInfos;
         private string _currentFilter = "Default";
+        string selectedMidiName;
         public MidiList()
         {
             InitializeComponent();
@@ -42,7 +43,7 @@ namespace BeetHovenWPF
         {
             if (MidiFileList.SelectedItem is MidiFileInfo selectedMidiInfo)
             {
-                string selectedMidiName = selectedMidiInfo.Name;
+                selectedMidiName = selectedMidiInfo.Name;
 
                 try
                 {
@@ -51,7 +52,7 @@ namespace BeetHovenWPF
                     string folderPath = _midiService.getFolderPath();
                     string completePath = folderPath + "\\" + selectedMidiName + ".mid";
 
-                    PianoWindow pianowindow = new PianoWindow(completePath, midiFile);
+                    PianoWindow pianowindow = new PianoWindow(completePath, midiFile, selectedMidiName);
                     pianowindow.ShowDialog();
                 }
                 catch (Exception ex)

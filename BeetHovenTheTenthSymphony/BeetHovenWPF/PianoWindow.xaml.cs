@@ -15,6 +15,7 @@ using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Multimedia;
 using Melanchall.DryWetMidi.Interaction;
 using BeethovenDataAccesLayer;
+using System.Data.SQLite;
 
 namespace BeetHovenWPF
 {
@@ -36,7 +37,7 @@ namespace BeetHovenWPF
         private DateTime _startTime;
         private DispatcherTimer _timer;
         private readonly Data _data;
-        private string _selectedMidiName;
+        public string _selectedMidiName;
         private Slider slider;
         private TextBlock sliderValue;
         private bool allesopgevraagd = true;
@@ -51,9 +52,11 @@ namespace BeetHovenWPF
         private const int MaxSegments = 5;
         private List<Rectangle> checkpointMarkers = new List<Rectangle>();
         private Dictionary<Checkpoint, DispatcherTimer> _checkpointTimers = new Dictionary<Checkpoint, DispatcherTimer>();
-
         private bool checkpointEnded = false;
         private bool checkpointIsProcessed = false;
+        private static string connectionString = @"Data Source=..\..\..\..\..\BeethovenDataAccesLayer\BeethovenDataBase.db;Version=3";
+
+
 
         //bool patatje = true;
         //bool patatje2 = true;
@@ -64,7 +67,7 @@ namespace BeetHovenWPF
         private TimeSpan _totalPauseDuration = TimeSpan.Zero;
         private bool _isPaused = false;
 
-        public PianoWindow(string midiPath, MidiFile midiFile)
+        public PianoWindow(string midiPath, MidiFile midiFile, string MidiName)
         {
             InitializeComponent();
             uitlezenLogic = new UitlezenMidiLogica();
@@ -77,7 +80,7 @@ namespace BeetHovenWPF
             Closing += PianoWindow_Closing; // Koppel het Closing-evenement
 
             _inputHandler = PianoInputHandlerService.Instance;
-
+            _selectedMidiName = MidiName;
             _currentMidi = midiFile;
             _outputDevice = OutputDevice.GetByName("Microsoft GS Wavetable Synth");
             _playback = midiFile.GetPlayback(_outputDevice);
@@ -91,6 +94,7 @@ namespace BeetHovenWPF
             this.WindowStyle = WindowStyle.None;     // Remove the title bar and borders
             this.ResizeMode = ResizeMode.NoResize;  // Prevent resizing to enforce fullscreen
 
+            
             UpdateMidiStatus();
         }
 
@@ -145,6 +149,8 @@ namespace BeetHovenWPF
         private void PianoWindow_Loaded(object sender, RoutedEventArgs e)
         {
             GeneratePiano();
+            GenerateSlider();
+            slider.SizeChanged += Slider_SizeChanged;
 
             if (_midiPath != null)
             {
@@ -164,8 +170,16 @@ namespace BeetHovenWPF
                     MessageBox.Show($"Fout bij initialisatie: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
+            
         }
-
+        private void Slider_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (slider.ActualWidth > 0)
+            {
+                slider.SizeChanged -= Slider_SizeChanged; // Verwijder de eventhandler
+                DrawAllMarkers();
+            }
+        }
         private void PianoWindow_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             GeneratePiano(); //Herteken de piano bij venstergrootte-aanpassing
@@ -182,8 +196,7 @@ namespace BeetHovenWPF
         {
             List<string> Nameslist = _data.LoadMidiNames();
             List<double> DurationsList = _data.LoadSongDuration();
-
-
+            
             //int voor het goede nummer in de lijst
             int i = Nameslist.FindIndex(d => d.ToString().Contains(_selectedMidiName));
             if (i == -1)
@@ -214,7 +227,7 @@ namespace BeetHovenWPF
 
 
             string totalSeconds = string.Empty;
-
+            
             double DurationSonginSec = SelectedSongDuration() % 60;
             double DurationSonginMin = 0;
 
@@ -381,18 +394,24 @@ namespace BeetHovenWPF
                 {
 
                     elapsedTime = (DateTime.Now - _startTime).TotalSeconds;
+                    
                     // Ensure slider reflects elapsed time
                     double songDuration = SelectedSongDuration();
-                    if (elapsedTime >= songDuration)
+                      
+                    if (elapsedTime - 4 >= songDuration)
                     {
                         UpdateSlider(songDuration);
                         _timer.Stop();
                         checkpointEnded = true;
                         return;
                     }
+                    else if (elapsedTime <= 4)
+                    {
+                        UpdateSlider(0);
+                    }
                     else
                     {
-                        UpdateSlider(elapsedTime);
+                        UpdateSlider(elapsedTime - 4);
                     }
                     if (elapsedTime > 4 && muziekafspelen)
                     {
@@ -428,30 +447,27 @@ namespace BeetHovenWPF
                 return;
             }
 
-            // Calculate the fall height and animation duration
             double animationDuration = 10;
-            
+
             MetricTimeSpan noteInSeconds = TimeConverter.ConvertTo<MetricTimeSpan>(length, uitlezenLogic.tempoMap);
             double noteHeight = (noteInSeconds.TotalSeconds / animationDuration) * 2000 * 2;
-            Debug.WriteLine($"NoteHeight: {noteHeight}");
+            //Debug.WriteLine($"NoteHeight: {noteHeight}");
 
-            // Create the falling rectangle
             Rectangle fallingNote = new Rectangle
             {
                 Width = targetKey.Width,
                 Height = noteHeight,
+                Tag = "FallingNote",
                 Fill = Blackkeys.Contains(targetKey) ? Brushes.Black : Brushes.Blue,
                 Stroke = Brushes.Red
             };
 
-            // Set the position of the falling note
             double left = Canvas.GetLeft(targetKey);
             double bottom = 2000;
             Canvas.SetLeft(fallingNote, left);
             Canvas.SetBottom(fallingNote, bottom);
             PianoCanvas.Children.Add(fallingNote);
 
-            // Apply the OpacityMask to make the bottom of the note invisible and the top visible
             LinearGradientBrush opacityMask = new LinearGradientBrush
             {
                 StartPoint = new Point(0, 0),
@@ -463,7 +479,6 @@ namespace BeetHovenWPF
             opacityMask.GradientStops.Add(new GradientStop(Colors.Transparent, 1.0));
             fallingNote.OpacityMask = opacityMask;
 
-            // Add the animation
             DoubleAnimation fallAnimation = new DoubleAnimation
             {
                 From = 2000,
@@ -471,14 +486,34 @@ namespace BeetHovenWPF
                 Duration = new Duration(TimeSpan.FromSeconds(animationDuration)),
                 FillBehavior = FillBehavior.Stop
             };
+
             var storyboard = new Storyboard();
             Storyboard.SetTarget(fallAnimation, fallingNote);
             Storyboard.SetTargetProperty(fallAnimation, new PropertyPath("(Canvas.Bottom)"));
             storyboard.Children.Add(fallAnimation);
-            storyboard.Completed += (s, e) => PianoCanvas.Children.Remove(fallingNote);
+
+            // Asynchrone taak om de noot na 10 seconden te verwijderen
+            _ = RemoveNoteAfterDelay(fallingNote, 10);
+
+            storyboard.Completed += (s, e) =>
+            {
+                activeAnimations.Remove(storyboard);
+            };
 
             activeAnimations.Add(storyboard);
             storyboard.Begin();
+        }
+
+        private async Task RemoveNoteAfterDelay(Rectangle note, int delayInSeconds)
+        {
+            await Task.Delay(delayInSeconds * 1000); // Wacht 10 seconden
+            Dispatcher.Invoke(() =>
+            {
+                if (PianoCanvas.Children.Contains(note))
+                {
+                    PianoCanvas.Children.Remove(note);
+                }
+            });
         }
 
         private void PianoWindowPauze(object sender, KeyEventArgs e)
@@ -564,22 +599,24 @@ namespace BeetHovenWPF
         }
         private void AddCheckpoint(double timestamp, string name)
         {
-            if (_checkpoints.Count >= MaxSegments)
+            int songID = GetSongID(_selectedMidiName);
+            List<Checkpoint> CheckpointsForSong = LoadCheckpoints(songID);
+            if (CheckpointsForSong.Count >= MaxSegments)
             {
                 MessageBox.Show("Maximum aantal segmenten bereikt!");
                 return;
             }
-
-
-            Checkpoint newCheckpoint = new Checkpoint { TimeStamp = timestamp, Name = name };
+            if(timestamp < 4)
+            {
+                MessageBox.Show("Je kan pas een checkpoint plaatsen na 4 seconden!");
+                return;
+            }
+            var newCheckpoint = new Checkpoint { TimeStamp = timestamp, Name = name };
             _checkpoints.Add(newCheckpoint);
-
-
-            //_data.SaveSegment(newCheckpoint);
-
-
+           
             DrawSegmentMarker(timestamp);
-
+            
+            SaveCheckpoint(songID, newCheckpoint);   
         }
         private void RemoveSegment(Checkpoint checkpoint)
         {
@@ -592,46 +629,77 @@ namespace BeetHovenWPF
                 timer.Stop();
                 _checkpointTimers.Remove(checkpoint);
             }
+            int songID = GetSongID(_selectedMidiName);
+
+            DeleteCheckpoint(songID, checkpoint);
 
             RemoveSegmentMarker(checkpoint);
             Debug.WriteLine($"Removed checkpoint: {checkpoint.Name}, Timestamp: {checkpoint.TimeStamp}s");
         }
 
 
-
-
-
-        private void StartSongAtSegment(Checkpoint checkpoint)
+        private async Task StartPlaybackWithDelayAsync(Playback playback, TimeSpan delay)
         {
+            await Task.Delay(delay); // Wacht de opgegeven tijd
+            playback.Start();
+            
+        }
+
+
+        private async void StartSongAtSegment(Checkpoint checkpoint)
+        {
+
             // Cancel all previous timers and animations
             CancelAllTimersAndAnimations();
-            _startTime = DateTime.Now - TimeSpan.FromSeconds(checkpoint.TimeStamp);
-            // Display countdown in a TextBlock
-            //CountdownTextBlock.Visibility = Visibility.Visible;
-            UpdateSlider(checkpoint.TimeStamp);
-
-            //for (int i = 3; i > 0; i--)
-            //{
-            //    CountdownTextBlock.Text = i.ToString();
-            //    await Task.Delay(1000); // Wait 1 second between each number
-            //}
-
-            //CountdownTextBlock.Visibility = Visibility.Hidden;
 
 
+            _startTime = DateTime.Now - TimeSpan.FromSeconds(checkpoint.TimeStamp - 4);
 
-            // Start a fresh timer
-            _timer = new DispatcherTimer
+            UpdateSlider(checkpoint.TimeStamp - 4);
+
+            try
             {
-                Interval = TimeSpan.FromSeconds(1.0 / 120) // 120 FPS
-            };
-            _timer.Tick += Timer_Tick;
-            _timer.Start();
+                double timeInSeconds = checkpoint.TimeStamp - 4;
+                
+                
+                int hours = (int)(timeInSeconds / 3600); // 1 hour = 3600 seconds
+                timeInSeconds %= 3600;
+
+                int minutes = (int)(timeInSeconds / 60); // 1 minute = 60 seconds
+                timeInSeconds %= 60;
+
+                int seconds = (int)timeInSeconds;
+                int milliseconds = (int)((timeInSeconds - seconds) * 1000);
+                // Zet de tijd in seconden om naar MetricTimeSpan
+                MetricTimeSpan metricTimeSpan = new MetricTimeSpan(hours, minutes, seconds, milliseconds);
+                Debug.WriteLine($"{metricTimeSpan.TotalMinutes}:{metricTimeSpan.TotalSeconds}:{metricTimeSpan.TotalMilliseconds}");
+                
+                _playback.Start();
+                _playback.MoveToTime(metricTimeSpan);
+
+                // Start a fresh timer
+                _timer = new DispatcherTimer
+                {
+                    Interval = TimeSpan.FromSeconds(1.0 / 120) // 120 FPS
+                };
+                _timer.Tick += Timer_Tick;
+                _timer.Start();
+                Debug.WriteLine("Timer started");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Fout bij het starten vanaf checkpoint: {ex.Message}",
+                    "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+
+            
+
+            _startTime = DateTime.Now - TimeSpan.FromSeconds(checkpoint.TimeStamp);
 
             // Start animations for notes from this checkpoint
             ShowNotesFromCheckpoint(checkpoint);
 
-            Debug.WriteLine($"Started song at checkpoint: {checkpoint.Name}, Timestamp: {checkpoint.TimeStamp}s after countdown.");
+            
         }
         private void CancelAllTimersAndAnimations()
         {
@@ -689,9 +757,11 @@ namespace BeetHovenWPF
             {
                 Margin = new Thickness(10)
             };
+            int songID = GetSongID(_selectedMidiName);
+            List<Checkpoint> CheckpointsForSong = LoadCheckpoints(songID);
 
             // Voeg alle checkpoints toe aan de ListBox
-            foreach (var checkpoint in _checkpoints)
+            foreach (var checkpoint in CheckpointsForSong)
             {
                 // Maak een horizontale StackPanel
                 var stackPanel = new StackPanel
@@ -729,6 +799,17 @@ namespace BeetHovenWPF
                     RemoveSegment(checkpoint);
                     checkpointsListBox.Items.Refresh();
                 };
+                //var changeName = new TextBlock
+                //{
+                //    Text = "Change Name"
+                //    Foreground = new SolidColorBrush(Colors.Blue),
+                //    Cursor = Cursors.Hand,
+                //    VerticalAlignment = VerticalAlignment.Center
+                //};
+                //changeName.MouseLeftButtonUp += (sender, e) =>
+                //{
+
+                //}
 
                 // Voeg beide items toe aan de StackPanel
                 stackPanel.Children.Add(listItem);
@@ -756,8 +837,9 @@ namespace BeetHovenWPF
         private void DrawSegmentMarker(double timestamp)
         {
             double position = (timestamp / SelectedSongDuration()) * slider.ActualWidth;
-
-
+            Debug.WriteLine($"slider width: {slider.ActualWidth}");
+            Debug.WriteLine($"Duration: {SelectedSongDuration()}");
+            Debug.WriteLine($"Timestamp: {timestamp}");
             if (position >= 0 && position <= MarkerCanvas.ActualWidth)
             {
                 // Maak de marker (bijvoorbeeld een rechthoek)
@@ -783,6 +865,15 @@ namespace BeetHovenWPF
             }
 
         }
+        private void DrawAllMarkers()
+        {
+            int songID = GetSongID(_selectedMidiName);
+            List<Checkpoint> CheckpointsForSong = LoadCheckpoints(songID);
+            foreach (Checkpoint checkpoint in CheckpointsForSong)
+            {
+                DrawSegmentMarker(checkpoint.TimeStamp);
+            }
+        }
         private void AddCheckpointButton_Click(object sender, RoutedEventArgs e)
         {
             double timestamp = slider.Value;
@@ -790,7 +881,9 @@ namespace BeetHovenWPF
 
             //Debug.WriteLine(slider.Value);
             // Haal de naam op van de checkpoint (bijvoorbeeld uit een TextBox)
-            string name = "Checkpoint " + (_checkpoints.Count + 1);  // Genereer een naam voor het checkpoint
+            int songID = GetSongID(_selectedMidiName);
+            List<Checkpoint> CheckpointsForSong = LoadCheckpoints(songID);
+            string name = "Checkpoint " + (CheckpointsForSong.Count + 1);  // Genereer een naam voor het checkpoint
 
             // Voeg het checkpoint toe aan de lijst
             AddCheckpoint(timestamp, name);
@@ -822,80 +915,82 @@ namespace BeetHovenWPF
             }
         }
 
-        private void StartCheckpointTimer(Checkpoint checkpoint)
+        public void SaveCheckpoint(int songID, Checkpoint checkpoint)
         {
-            if (_timer != null && _timer.IsEnabled)
+            // Bewaar de segmenten in de database, bijvoorbeeld in een SQL-tabel
+            using (var connection = new SQLiteConnection(connectionString))
             {
-                _timer.Stop();
-                checkpointIsProcessed = false; // Stop de timer eerst voordat je deze opnieuw start
+                connection.Open();
+                var command = new SQLiteCommand("INSERT INTO Checkpoint (songID, Timestamp, Name) VALUES (@songID, @Timestamp, @Name)", connection);
+                
+                command.Parameters.AddWithValue("@songID", songID);
+                command.Parameters.AddWithValue("@Timestamp", checkpoint.TimeStamp);
+                command.Parameters.AddWithValue("@Name", checkpoint.Name); 
+                
+                command.ExecuteNonQuery();
             }
-            // Maak een nieuwe timer
-            _timer = new DispatcherTimer
-            {
-                Interval = TimeSpan.FromSeconds(1.0 / 120) // 120 FPS
-            };
-
-            // Starttijd instellen
-            DateTime checkpointStartTime = DateTime.Now + TimeSpan.FromSeconds(checkpoint.TimeStamp);
-
-            _timer.Tick += Timer_Tick;
-            _timer.Start();
-
-            _startTime = DateTime.Now;
-            // Voeg de timer toe aan de lijst en start deze
-
         }
-        private void StopCheckpointTimers()
+        public void DeleteCheckpoint(int songID, Checkpoint checkpoint)
         {
-            checkpointIsProcessed = false;
-            foreach (var timer in _checkpointTimers.Values)
+            // Verwijder het segment uit de database
+            using (var connection = new SQLiteConnection(connectionString))
             {
-                timer.Stop();
-                Debug.WriteLine("Stopped checkpoint timer.");
+                connection.Open();
+                var command = new SQLiteCommand(
+            "DELETE FROM Checkpoint WHERE songID = @songID AND Timestamp = @Timestamp",
+            connection
+        );
+
+                command.Parameters.AddWithValue("@songID", songID);
+                command.Parameters.AddWithValue("@Timestamp", checkpoint.TimeStamp);
+                command.ExecuteNonQuery();
             }
-            _checkpointTimers.Clear();
         }
-        private void StartAnimationFromCheckpoint(Checkpoint checkpoint)
+        public int GetSongID(string songName)
         {
-
-            if (checkpointEnded)
+            using (var connection = new SQLiteConnection(connectionString))
             {
+                connection.Open();
+                var command = new SQLiteCommand("SELECT ID FROM Song WHERE Title = @songName", connection);
+                command.Parameters.AddWithValue("@songName", songName);
 
-                StartSongAtSegment(checkpoint);
+                var result = command.ExecuteScalar();
+                if (result != null && int.TryParse(result.ToString(), out int songID))
+                {
+                    return songID;
+                }
+            }
+            throw new Exception($"Nummer met naam '{songName}' niet gevonden in de database.");
+        }
+        public List<Checkpoint> LoadCheckpoints(int songID)
+        {
+            var checkpoints = new List<Checkpoint>();
+
+            using (var connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+                var command = new SQLiteCommand(
+                    "SELECT Timestamp, Name FROM Checkpoint WHERE songID = @songID",
+                    connection
+                );
+
+                command.Parameters.AddWithValue("@songID", songID);
+
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        var checkpoint = new Checkpoint
+                        {
+                            TimeStamp = Convert.ToDouble(reader["Timestamp"]),
+                            Name = reader["Name"]?.ToString()
+                        };
+                        checkpoints.Add(checkpoint);
+                    }
+                }
             }
 
-            // Logica om de animatie vanaf het checkpoint te starten
-            //Debug.WriteLine($"Animatie gestart vanaf checkpoint: {checkpoint.Name} op {checkpoint.TimeStamp} seconden.");
-            ShowNotesFromCheckpoint(checkpoint);
+            return checkpoints;
         }
-        //public void SaveSegment(Checkpoint checkpoint)
-        //{
-        //    // Bewaar de segmenten in de database, bijvoorbeeld in een SQL-tabel
-        //    using (var connection = new SqlConnection(connectionString))
-        //    {
-        //        connection.Open();
-        //        var command = new SqlCommand("INSERT INTO Segments (Timestamp, Name) VALUES (@Timestamp, @Name)", connection);
-        //        command.Parameters.AddWithValue("@Timestamp", checkpoint.TimeStamp);
-        //        command.Parameters.AddWithValue("@Name", checkpoint.Name);
-        //        command.ExecuteNonQuery();
-        //    }
-        //}
-        //public void DeleteSegment(Checkpoint checkpoint)
-        //{
-        //    // Verwijder het segment uit de database
-        //    using (var connection = new SqlConnection(connectionString))
-        //    {
-        //        connection.Open();
-        //        var command = new SqlCommand("DELETE FROM Segments WHERE Timestamp = @Timestamp", connection);
-        //        command.Parameters.AddWithValue("@Timestamp", checkpoint.TimeStamp);
-        //        command.ExecuteNonQuery();
-        //    }
-        //}
-        //private void SaveCheckpointToDatabase(double timestamp)
-        //{
-        //    // Voeg de timestamp van het segment toe aan de database
-        //    // Dit kan worden uitgebreid om de tijd te verwerken en op te slaan in een segmentenlijst of database
-        //    _data.SaveCheckpoint(timestamp);
-        //}
     }
 }

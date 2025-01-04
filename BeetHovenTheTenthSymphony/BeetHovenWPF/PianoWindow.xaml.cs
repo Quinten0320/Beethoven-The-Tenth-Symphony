@@ -39,6 +39,7 @@ namespace BeetHovenWPF
         private TimeSpan _totalPauseDuration = TimeSpan.Zero;
         private bool _isPaused = false;
         private FeedbackLogic _feedbacklogic;
+        private Score _score;
 
         public PianoWindow(string midiPath, MidiFile midiFile)
         {
@@ -56,7 +57,15 @@ namespace BeetHovenWPF
             _currentMidi = midiFile;
             _outputDevice = OutputDevice.GetByName("Microsoft GS Wavetable Synth");
             _playback = midiFile.GetPlayback(_outputDevice);
-            
+            _playback.Stopped += (sender, args) =>
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    HandlePlaybackStopped();
+                });
+            };
+
+
 
             _inputHandler.NotePressed -= OnMidiNotePressed; //veiligheid, niet perse nodig
             _inputHandler.NotePressed += OnMidiNotePressed;
@@ -67,6 +76,16 @@ namespace BeetHovenWPF
             this.ResizeMode = ResizeMode.NoResize;  // Prevent resizing to enforce fullscreen
 
             UpdateMidiStatus();
+
+            _feedbacklogic = new FeedbackLogic(uitlezenLogic);
+
+            // Simuleer de score voor testdoeleinden
+            _feedbacklogic.StartScoreSimulation();
+
+            // Maak de ScorePage en laad deze in het Frame
+            _score = new Score();
+            ScoreFrame.Content = _score;
+            _feedbacklogic.ScoreUpdated += OnScoreUpdated;
         }
 
         private void UpdateMidiStatus()
@@ -96,17 +115,28 @@ namespace BeetHovenWPF
 
         public void PianoWindow_Closing(object sender, CancelEventArgs e)
         {
-            // Verwijder de oude midicontroller wanneer de pianowindow sluit (dit is nodig)
+            if (_playback != null && _playback.IsRunning)
+            {
+                _playback.Stop();
+                HandlePlaybackStopped();
+            }
+
+            // Andere cleanup-logica
             _inputHandler.Dispose();
             StopAndDisposePlayback();
 
-            // Stop de timer
             if (_timer != null)
             {
                 _timer.Stop();
                 _timer.Tick -= Timer_Tick;
             }
+
+            if (_feedbacklogic != null)
+            {
+                _feedbacklogic.ScoreUpdated -= OnScoreUpdated;
+            }
         }
+
 
         private void PianoWindow_Loaded(object sender, RoutedEventArgs e)
         {
@@ -422,5 +452,48 @@ namespace BeetHovenWPF
                 _outputDevice = null; // Clear the reference
             }
         }
+        private void OnScoreUpdated(double score)
+        {
+            //Bijwerken van de ScorePage
+            Dispatcher.Invoke(() =>
+            {
+                _score.UpdateScore(score);
+            });
+        }
+
+        private void HandlePlaybackStopped()
+        {
+            try
+            {
+                if (uitlezenLogic == null || uitlezenLogic.tempoMap == null)
+                {
+                    Debug.WriteLine("MIDI-logica of TempoMap is niet beschikbaar.");
+                    return;
+                }
+
+                // Haal de titel van het nummer op
+                string songTitle = System.IO.Path.GetFileNameWithoutExtension(_midiPath) ?? "Onbekend Lied";
+
+                // Bereken de duur van het nummer
+                double songDuration = _currentMidi.GetTrackChunks().Sum(chunk => chunk.GetDuration<MetricTimeSpan>(uitlezenLogic.tempoMap).TotalSeconds);
+
+                // Haal het bestandspad op
+                string filePath = _midiPath;
+
+                // Sla de gegevens op via FeedbackLogic
+                _feedbacklogic.OnSongFinished(songTitle, songDuration, filePath);
+
+                //Debug uitvoer
+                Debug.WriteLine($"Playback gestopt. Titel: {songTitle}, Duur: {songDuration} seconden, Bestand: {filePath}");
+
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Fout in HandlePlaybackStopped: {ex.Message}");
+            }
+        }
+
+
+
     }
 }

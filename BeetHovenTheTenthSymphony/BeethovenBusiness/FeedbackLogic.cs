@@ -18,6 +18,13 @@ namespace BeethovenBusiness
         private Stopwatch _timer;
         private UitlezenMidiLogica _uitlezenMidiLogica;
 
+        private int _correctNotes = 0;
+        private int _earlyNotes = 0;
+        private int _lateNotes = 0;
+        private int _totalNotes = 0;
+        private double _score = 0.0;
+
+
         public double AnimationDuration
         {
             get { return _animationDuration; }
@@ -30,6 +37,7 @@ namespace BeethovenBusiness
             set { _actualDuration = value; }
         }
 
+        public object UitlezenMidiLogica { get; set; }
 
         public FeedbackLogic(
             UitlezenMidiLogica uitlezenMidiLogica
@@ -81,28 +89,84 @@ namespace BeethovenBusiness
             double noteTimeInSeconds = metricTime.TotalSeconds;
 
             pressTime -= 4.5;
-            // Bereken de afwijking
+
             double difference = pressTime - noteTimeInSeconds;
-            
 
-            //Debug.WriteLine($"{noteTimeInSeconds}, {pressTime}, {noteToCheck.LengthAs<MetricTimeSpan>(TempoMap.Default).TotalMicroseconds}");
+            const double tolerance = 0.5; // 500 ms tolerantie
+            _totalNotes++;
 
-            // Controleer of de timing binnen een acceptabele marge valt
-            //const double tolerance = 0.15; // 150 ms tolerantie
-            const double tolerance = 0.5; // 150 ms tolerantie
             if (difference >= -tolerance && difference <= tolerance)
             {
-                Debug.WriteLine("Timing correct! Afwijking: " + difference + " seconden." + " seconden:" + noteTimeInSeconds + " presstime:" + pressTime);
+                _correctNotes++;
+                _score += 100 - (Math.Abs(difference) / tolerance) * 100; // Hoe dichterbij, hoe meer punten
+                Debug.WriteLine("Timing correct! Afwijking: " + difference + " seconden.");
             }
             else if (pressTime < noteTimeInSeconds)
             {
-                Debug.WriteLine("Te vroeg! Afwijking: " + difference + " seconden." + " seconden:" + noteTimeInSeconds + " presstime:" + pressTime);
+                _earlyNotes++;
+                Debug.WriteLine("Te vroeg! Afwijking: " + difference + " seconden.");
             }
             else
             {
-                Debug.WriteLine("Te laat! Afwijking: " + difference + " seconden." + " seconden:" + noteTimeInSeconds + " presstime:" + pressTime);
+                _lateNotes++;
+                Debug.WriteLine("Te laat! Afwijking: " + difference + " seconden.");
+            }
+
+            NotifyScoreUpdated(); // Update de score na elke noot
+        }
+
+        public double GetScore()
+        {
+            return _score < 0 ? 0 : _score; // Zorg dat de score niet negatief wordt
+        }
+
+        public string GetPerformanceSummary()
+        {
+            return $"Correct: {_correctNotes}, Early: {_earlyNotes}, Late: {_lateNotes}, Total: {_totalNotes}, Score: {GetScore():F2}";
+        }
+
+        public event Action<double> ScoreUpdated; // Event om score-updates te versturen
+
+        private void NotifyScoreUpdated()
+        {
+            
+            ScoreUpdated?.Invoke(_score);
+        }
+
+        public void StartScoreSimulation()
+        {
+            // Timer die elke seconde de score verhoogt
+            var timer = new System.Timers.Timer(1000); // 1000 ms = 1 seconde
+            timer.Elapsed += (sender, e) =>
+            {
+                _score += 10; // Verhoog de score met 10 punten
+                _totalNotes++; // Verhoog het totaal aantal noten
+                NotifyScoreUpdated(); // Update de UI
+            };
+            timer.Start();
+        }
+
+        public void SaveScoreToDatabase(string songTitle, double songDuration, string filePath)
+        {
+            try
+            {
+                int finalScore = (int)GetScore(); // Haal de finale score op
+                Data.SaveScore(songTitle, songDuration, filePath, finalScore);
+                Debug.WriteLine("Score succesvol opgeslagen in de database.");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Fout bij het opslaan van de score: {ex.Message}");
             }
         }
+
+        public void OnSongFinished(string songTitle, double songDuration, string filePath)
+        {
+            Debug.WriteLine($"Lied afgelopen: {songTitle}, Duur: {songDuration}, Bestand: {filePath}");
+            SaveScoreToDatabase(songTitle, songDuration, filePath);
+        }
+
+
 
     }
 }

@@ -40,5 +40,11 @@
                VerticalAlignment="Stretch"
                NavigationUIVisibility="Hidden"
                Visibility="Collapsed" />
+        <Frame x:Name="ScoreFrame"
+               HorizontalAlignment="Right"
+               VerticalAlignment="Top"
+               Width="300"
+               Height="25"
+               Margin="5" />
     </Grid>
 </Window>

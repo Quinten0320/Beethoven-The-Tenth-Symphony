@@ -40,6 +40,7 @@ namespace BeetHovenWPF
         private bool _isPaused = false;
         private FeedbackLogic _feedbacklogic;
         private Score _score;
+        private double finalScore;
 
         public PianoWindow(string midiPath, MidiFile midiFile)
         {
@@ -57,13 +58,7 @@ namespace BeetHovenWPF
             _currentMidi = midiFile;
             _outputDevice = OutputDevice.GetByName("Microsoft GS Wavetable Synth");
             _playback = midiFile.GetPlayback(_outputDevice);
-            _playback.Stopped += (sender, args) =>
-            {
-                Dispatcher.Invoke(() =>
-                {
-                    HandlePlaybackStopped();
-                });
-            };
+            
 
 
 
@@ -119,7 +114,6 @@ namespace BeetHovenWPF
             if (_playback != null && _playback.IsRunning)
             {
                 _playback.Stop();
-                HandlePlaybackStopped();
             }
 
             // Andere cleanup-logica
@@ -443,6 +437,7 @@ namespace BeetHovenWPF
         {
             _timer?.Stop();
             _playback.Stop();
+            HandlePlaybackStopped();
 
             await Task.Delay(3000); // Wait for 3 seconds
 
@@ -455,7 +450,7 @@ namespace BeetHovenWPF
                 var window = new Window
                 {
                     Title = "End Menu",
-                    Content = new EndMenu(_currentMidi),
+                    Content = new EndMenu(_currentMidi, finalScore),
                     WindowStyle = WindowStyle.None,
                     ResizeMode = ResizeMode.NoResize,
                     Width = ActualWidth,
@@ -504,6 +499,7 @@ namespace BeetHovenWPF
                     return;
                 }
 
+                finalScore = _feedbacklogic.GetScore();
                 // Haal de titel van het nummer op
                 string songTitle = System.IO.Path.GetFileNameWithoutExtension(_midiPath) ?? "Onbekend Lied";
 

@@ -5,32 +5,30 @@
     Title="End Menu">
 
     <Grid Background="Black" Opacity="0.9">
-        <!-- Define rows and columns for layout -->
+        <!-- Define rows for layout -->
         <Grid.RowDefinitions>
-            <RowDefinition Height="*" />
-            <!-- For Title -->
-            <RowDefinition Height="*" />
-            <!-- For Buttons -->
+            <RowDefinition Height="2*" /> <!-- For Title -->
+            <RowDefinition Height="*" />   <!-- For Score -->
+            <RowDefinition Height="*" />   <!-- For Exit Button -->
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <!-- Title: Song Finished -->
+        <!-- Title -->
         <TextBlock Text="SONG FINISHED!" Foreground="White" FontSize="50" 
                    HorizontalAlignment="Center" VerticalAlignment="Center"
-                   Grid.Row="0" Grid.ColumnSpan="3" />
+                   Grid.Row="0" />
 
-        <!-- Buttons -->
+        <!-- Score -->
+        <TextBlock x:Name="ScoreTextBlock" Text="Score: 0" Foreground="White" FontSize="40" 
+                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                   Grid.Row="1" />
+
+        <!-- Exit Button -->
         <Button Content="Exit" Width="200" Height="50"
-                Grid.Row="1" Grid.Column="0"
-                HorizontalAlignment="Center" VerticalAlignment="Top"
+                Grid.Row="2"
+                HorizontalAlignment="Center" VerticalAlignment="Center"
                 Click="ExitClick" />
-
-        <Button Content="Scores" Width="200" Height="50"
-                Grid.Row="1" Grid.Column="1"
-                HorizontalAlignment="Center" VerticalAlignment="Top"
-                Click="ScoresClick" />
     </Grid>
 </Page>

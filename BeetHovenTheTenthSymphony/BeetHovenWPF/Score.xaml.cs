@@ -25,7 +25,7 @@ namespace BeetHovenWPF
 
         public void UpdateScore(double score)
         {
-            ScoreTextBlock.Text = $"Score: {score:F2}";
+            ScoreTextBlock.Text = $"Score: {Math.Round(score)}";
         }
     }
 }

@@ -14,37 +14,77 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <!-- MIDI Status -->
-        <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="10">
-            <Label Content="Last pressed key:" VerticalAlignment="Center" />
+        <!-- MIDI Status en Slider -->
+        <Grid Grid.Row="0" Margin="10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <Label Content="Last pressed key:" VerticalAlignment="Center" Grid.Column="0" />
             <TextBox x:Name="LastPressedNoteTextBox" 
-             TextWrapping="Wrap" Text="" Width="100" 
-             IsReadOnly="True" Margin="10,0,0,0" />
-            <Label Content="MIDI Status:" VerticalAlignment="Center" Margin="20,0,0,0" />
-            <TextBox x:Name="MidiStatusTextBox" 
-             TextWrapping="Wrap" Text="" Width="150" 
-             IsReadOnly="True" Margin="10,0,0,0" />
-        </StackPanel>
+                     TextWrapping="Wrap" Text="" Width="100" 
+                     IsReadOnly="True" Margin="10,0,0,0" Grid.Column="1" />
+
+            <StackPanel Orientation="Horizontal" Grid.Column="2" >
+                <Label Content="MIDI Status:" VerticalAlignment="Center" Margin="0,0,10,0" />
+                <TextBox x:Name="MidiStatusTextBox" 
+                 TextWrapping="Wrap" Text="" Width="150" 
+                 IsReadOnly="True" />
+            </StackPanel>
+            <Canvas Name="MarkerCanvas" Grid.Row="0" Grid.Column="3" Width="200" Height="20" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,0,0,0">
+                <!-- Markers worden hier geplaatst -->
+            </Canvas>
+
+            <StackPanel x:Name="MidiSliderContainer" Orientation="Horizontal" Margin="10,0,0,0" Grid.Row="0" Grid.Column="3" RenderTransformOrigin="0.498,0.475">
+                <Slider x:Name="MidiSlider"
+                Minimum="0"
+                Maximum="100"
+                Value="50"
+                Orientation="Horizontal"
+                Width="200"
+                VerticalAlignment="Center" />
+                <TextBlock x:Name="SliderValueTextBlock"
+                   VerticalAlignment="Center"
+                   Margin="10,0,0,0"
+                   FontSize="16"
+                   Text="Duur: 0:00" Width="117" />
+
+
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Grid.Column="3" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="10">
+                <Button Content="Add Checkpoint" Click="AddCheckpointButton_Click" Margin="10,0,0,0" VerticalAlignment="Center" />
+                <Button Content="Play Checkpoints" Click="PlaySegmentsButton_Click" VerticalAlignment="Center" />
+            </StackPanel>
+        </Grid>
 
         <!-- Piano Area -->
         <Canvas Name="PianoCanvas" 
                 Background="White" 
                 Grid.Row="1" 
                 HorizontalAlignment="Stretch"
-                VerticalAlignment="Stretch"/>
 
-        <!-- Frame voor het PauzeMenu -->
-        <Frame x:Name="PauseFrame"
+                VerticalAlignment="Stretch">
+
+            <!-- Frame voor het PauzeMenu -->
+            <Frame x:Name="PauseFrame"
                Grid.RowSpan="2"
                HorizontalAlignment="Stretch"
                VerticalAlignment="Stretch"
                NavigationUIVisibility="Hidden"
                Visibility="Collapsed" />
-        <Frame x:Name="ScoreFrame"
-               HorizontalAlignment="Right"
-               VerticalAlignment="Top"
-               Width="300"
-               Height="25"
-               Margin="5" />
+
+
+            <TextBlock x:Name="CountdownTextBlock" 
+           FontSize="30" 
+           FontWeight="Bold" 
+           HorizontalAlignment="Left" 
+           VerticalAlignment="Center" Height="260" Width="579" Canvas.Left="535" Canvas.Top="212" 
+           Visibility="Hidden"/>
+        </Canvas>
+
     </Grid>
+
 </Window>

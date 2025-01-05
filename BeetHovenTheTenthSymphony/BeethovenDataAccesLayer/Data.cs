@@ -92,7 +92,7 @@ namespace BeethovenDataAccesLayer
 
             return songDurations;
         }
-
+        
         public List<int> LoadTotalNotes()
         {
             SearchFolder();

@@ -20,6 +20,7 @@ namespace BeetHovenWPF
     public partial class PauzeMenu : Page
     {
         private readonly MidiFile _midiFile;
+        
         public PauzeMenu(MidiFile midiFile)
         {
             InitializeComponent();
@@ -65,12 +66,12 @@ namespace BeetHovenWPF
                 pianoWindow.StopAndDisposePlayback();
                 //sla het pad van het huidige MIDI-bestand op
                 string midiPath = pianoWindow._midiPath;
-
+                string selectedMidiName = pianoWindow._selectedMidiName;
                 //sluit het huidige venster
                 pianoWindow.Close();
-
+                
                 //maak een nieuw exemplaar van PianoWindow
-                var newPianoWindow = new PianoWindow(midiPath, _midiFile);
+                var newPianoWindow = new PianoWindow(midiPath, _midiFile, selectedMidiName);
                 newPianoWindow.Show();
             }
         }

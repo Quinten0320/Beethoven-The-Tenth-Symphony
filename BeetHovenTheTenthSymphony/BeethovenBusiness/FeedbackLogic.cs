@@ -86,7 +86,7 @@ namespace BeethovenBusiness
             pressTime -= 4.5;
             // Bereken de afwijking
             double difference = pressTime - noteTimeInSeconds;
-            string feedback;
+            string feedback = string.Empty;
             
 
             //Debug.WriteLine($"{noteTimeInSeconds}, {pressTime}, {noteToCheck.LengthAs<MetricTimeSpan>(TempoMap.Default).TotalMicroseconds}");

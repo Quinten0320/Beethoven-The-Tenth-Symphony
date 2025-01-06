@@ -75,9 +75,9 @@ namespace BeetHovenWPF
             _currentMidi = midiFile;
             _outputDevice = OutputDevice.GetByName("Microsoft GS Wavetable Synth");
             _playback = midiFile.GetPlayback(_outputDevice);
-            
 
 
+            _feedbacklogic.NewFeedback += UpdateKeyFeedback;
 
             _inputHandler.NotePressed -= OnMidiNotePressed; //veiligheid, niet perse nodig
             _inputHandler.NotePressed += OnMidiNotePressed;
@@ -89,7 +89,6 @@ namespace BeetHovenWPF
             this.KeyDown += PianoWindowPauze;
             _playback.Finished += OnPlaybackFinished;
 
-            _feedbacklogic.NewFeedback += UpdateKeyFeedback;
 
             this.WindowState = WindowState.Maximized; // Set window to fullscreen
             this.WindowStyle = WindowStyle.None;     // Remove the title bar and borders
@@ -97,7 +96,7 @@ namespace BeetHovenWPF
 
             UpdateMidiStatus();
 
-            _feedbacklogic = new FeedbackLogic(uitlezenLogic);
+            //_feedbacklogic = new FeedbackLogic(uitlezenLogic);
 
             // Simuleer de score voor testdoeleinden
             _feedbacklogic.StartScoreSimulation();

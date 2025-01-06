@@ -94,7 +94,7 @@ namespace BeethovenBusiness
 
             double difference = pressTime - noteTimeInSeconds;
 
-            string feedback;
+            string feedback = string.Empty;
 
 
             const double tolerance = 0.5; // 500 ms tolerantie
@@ -119,9 +119,8 @@ namespace BeethovenBusiness
                 Debug.WriteLine("Te laat! Afwijking: " + difference + " seconden.");
                 feedback = "Te laat!";
             }
-
+            NewFeedback?.Invoke(feedback);
             NotifyScoreUpdated(); // Update de score na elke noot
-            NewFeedback.Invoke(feedback);
         }
 
         public double GetScore()

@@ -9,7 +9,7 @@ namespace BeethovenBusiness
     public class FeedbackLogic
     {
         private readonly PianoInputHandler _inputHandler;
-        private List<Melanchall.DryWetMidi.Interaction.Note> ?_notes;
+        private List<Melanchall.DryWetMidi.Interaction.Note>? _notes;
         private HashSet<Melanchall.DryWetMidi.Interaction.Note> _processedNotes = new();
         public double _elapsedTime;
         private string _midiFilePath;
@@ -98,7 +98,7 @@ namespace BeethovenBusiness
             if (difference >= -tolerance && difference <= tolerance)
             {
                 _correctNotes++;
-                _score += 100 - (Math.Abs(difference) / tolerance) * 100; // Hoe dichterbij, hoe meer punten
+                _score += 100; // Verhoog de score met 100 punten bij een correcte noot
                 Debug.WriteLine("Timing correct! Afwijking: " + difference + " seconden.");
             }
             else if (pressTime < noteTimeInSeconds)
@@ -129,7 +129,7 @@ namespace BeethovenBusiness
 
         private void NotifyScoreUpdated()
         {
-            
+
             ScoreUpdated?.Invoke(_score);
         }
 
@@ -139,8 +139,6 @@ namespace BeethovenBusiness
             var timer = new System.Timers.Timer(1000); // 1000 ms = 1 seconde
             timer.Elapsed += (sender, e) =>
             {
-                _score += 10; // Verhoog de score met 10 punten
-                _totalNotes++; // Verhoog het totaal aantal noten
                 NotifyScoreUpdated(); // Update de UI
             };
             timer.Start();

@@ -41,6 +41,7 @@ namespace BeetHovenWPF
         private FeedbackLogic _feedbacklogic;
         private Score _score;
         private double finalScore;
+        private bool _startedPlayback = false;
 
         public PianoWindow(string midiPath, MidiFile midiFile)
         {
@@ -162,7 +163,6 @@ namespace BeetHovenWPF
             }
 
             // Andere cleanup-logica
-            _inputHandler.Dispose();
             StopAndDisposePlayback();
 
             if (_timer != null)
@@ -307,7 +307,7 @@ namespace BeetHovenWPF
                 try
                 {
 
-                    elapsedTime = (DateTime.Now - _startTime).TotalSeconds;
+                    elapsedTime = ((DateTime.Now - _startTime) + _totalPauseDuration).TotalSeconds;
                     if (elapsedTime > 4 && muziekafspelen)
                     {
                         muziekafspelen = false;
@@ -401,11 +401,25 @@ namespace BeetHovenWPF
 
         private async Task RemoveNoteAfterDelay(Rectangle note, int delayInSeconds)
         {
-            await Task.Delay(delayInSeconds * 1000); // Wacht 10 seconden
+            int elapsedSeconds = 0;
+            while (elapsedSeconds < delayInSeconds)
+            {
+                if (!_isPaused)
+                {
+                    await Task.Delay(1000); // Wacht 1 seconde
+                    elapsedSeconds++;
+                }
+                else
+                {
+                    await Task.Delay(100); // Wacht korter als de applicatie gepauzeerd is
+                }
+            }
+
             Dispatcher.Invoke(() =>
             {
                 if (PianoCanvas.Children.Contains(note))
                 {
+                    Debug.WriteLineIf(PianoCanvas.Children.Contains(note), "Removing note");
                     PianoCanvas.Children.Remove(note);
                 }
             });
@@ -448,7 +462,10 @@ namespace BeetHovenWPF
 
                 //TimeSpan tijd = 1;
                 //_playback.MoveToTime();
-                _playback.Start();
+                if (!muziekafspelen)
+                {
+                    _playback.Start();
+                }
 
                 //reset de pauzeduur
                 _totalPauseDuration = TimeSpan.Zero;

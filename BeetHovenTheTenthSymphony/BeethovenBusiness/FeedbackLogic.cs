@@ -66,6 +66,10 @@ namespace BeethovenBusiness
                     notesToRemove.Add(noteToCheck);
                     break;
                 }
+                else
+                {
+                    NewFeedback.Invoke("Verkeerde toets...");
+                }
             }
 
             foreach (Melanchall.DryWetMidi.Interaction.Note noteToRemove in notesToRemove)

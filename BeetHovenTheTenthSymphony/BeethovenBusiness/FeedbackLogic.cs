@@ -55,7 +55,7 @@ namespace BeethovenBusiness
         //TODO private maken
         public void HandleNotePressed(string note)
         {
-            double currentTime = _elapsedTime;
+            double currentTime = _elapsedTime - _extraTime;
             List<Melanchall.DryWetMidi.Interaction.Note> notesToRemove = new List<Melanchall.DryWetMidi.Interaction.Note>();
 
             foreach (Melanchall.DryWetMidi.Interaction.Note noteToCheck in _notes)
@@ -92,7 +92,6 @@ namespace BeethovenBusiness
         private void CheckNoteTiming(Melanchall.DryWetMidi.Interaction.Note noteToCheck, double pressTime)
         {
             long noteTimeInTicks = noteToCheck.Time;
-
             MetricTimeSpan metricTime = TimeConverter.ConvertTo<MetricTimeSpan>(noteTimeInTicks, _uitlezenMidiLogica.tempoMap);
             double noteTimeInSeconds = metricTime.TotalSeconds;
 
@@ -112,6 +111,7 @@ namespace BeethovenBusiness
                 _correctNotes++;
                 _score += scoreIncrement;
                 Debug.WriteLine($"Timing correct! Afwijking: {difference:F3} seconden. Score +{scoreIncrement:F2}");
+                feedback = "Correct!";
             }
             else if (pressTime < noteTimeInSeconds)
             {
@@ -178,8 +178,6 @@ namespace BeethovenBusiness
             Debug.WriteLine($"Lied afgelopen: {songTitle}, Duur: {songDuration}, Bestand: {filePath}");
             SaveScoreToDatabase(songTitle, songDuration, filePath);
         }
-
-
 
     }
 }

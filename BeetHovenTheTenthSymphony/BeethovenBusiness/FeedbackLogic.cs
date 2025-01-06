@@ -19,8 +19,8 @@ namespace BeethovenBusiness
         private Stopwatch _timer;
         private UitlezenMidiLogica _uitlezenMidiLogica;
 
-        public event Action<string> NewFeedback;
-      
+        public event Action<string> NewFeedback = delegate { };
+          
         private int _correctNotes = 0;
         private int _earlyNotes = 0;
         private int _lateNotes = 0;
@@ -121,7 +121,7 @@ namespace BeethovenBusiness
             }
 
             NotifyScoreUpdated(); // Update de score na elke noot
-            NewFeedback?.Invoke(feedback);
+            NewFeedback.Invoke(feedback);
         }
 
         public double GetScore()

@@ -28,6 +28,8 @@ namespace BeethovenBusiness
         private double _score = 0.0;
         private double _extraTime = 0;
 
+        private readonly Data _data = new Data();
+
         public double AnimationDuration
         {
             get { return _animationDuration; }
@@ -164,7 +166,7 @@ namespace BeethovenBusiness
             try
             {
                 int finalScore = (int)GetScore(); // Haal de finale score op
-                Data.SaveScore(songTitle, songDuration, filePath, finalScore);
+                _data.SaveScore(songTitle, finalScore);
                 Debug.WriteLine("Score succesvol opgeslagen in de database.");
             }
             catch (Exception ex)
@@ -178,8 +180,6 @@ namespace BeethovenBusiness
             Debug.WriteLine($"Lied afgelopen: {songTitle}, Duur: {songDuration}, Bestand: {filePath}");
             SaveScoreToDatabase(songTitle, songDuration, filePath);
         }
-
-
 
     }
 }

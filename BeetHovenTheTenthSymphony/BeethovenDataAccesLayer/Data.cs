@@ -9,6 +9,7 @@ using System.Data.SQLite;
 using System.Diagnostics;
 
 using System.IO;
+using System.Security.Policy;
 
 namespace BeethovenDataAccesLayer
 {
@@ -22,7 +23,7 @@ namespace BeethovenDataAccesLayer
             {
                 if (!Directory.Exists(_folderPath))
                 {
-                    Directory.CreateDirectory(_folderPath);                    
+                    Directory.CreateDirectory(_folderPath);
                 }
             }
             catch (Exception ex)
@@ -42,7 +43,7 @@ namespace BeethovenDataAccesLayer
             var files = Directory.GetFiles(_folderPath, "*.mid");
             List<string> names = new List<string>();
 
-            foreach (string file in files) 
+            foreach (string file in files)
             {
                 string fileName = Path.GetFileNameWithoutExtension(file);
 
@@ -60,15 +61,15 @@ namespace BeethovenDataAccesLayer
 
             foreach (string midiFilePath in midiFilePaths)
             {
-                    MidiFile midiFile = MidiFile.Read(midiFilePath);
-                    var tempoMap = midiFile.GetTempoMap();
+                MidiFile midiFile = MidiFile.Read(midiFilePath);
+                var tempoMap = midiFile.GetTempoMap();
 
-                    var tempo = tempoMap.GetTempoAtTime((MidiTimeSpan)0);
+                var tempo = tempoMap.GetTempoAtTime((MidiTimeSpan)0);
 
-                    double microsecondsPerQuarterNote = tempo.MicrosecondsPerQuarterNote;
-                    double bpm = 60_000_000.0 / microsecondsPerQuarterNote;
+                double microsecondsPerQuarterNote = tempo.MicrosecondsPerQuarterNote;
+                double bpm = 60_000_000.0 / microsecondsPerQuarterNote;
 
-                    midiBPMs.Add((int)Math.Round(bpm));               
+                midiBPMs.Add((int)Math.Round(bpm));
             }
             return midiBPMs;
         }
@@ -82,12 +83,12 @@ namespace BeethovenDataAccesLayer
 
             foreach (string midiFilePath in midiFilePaths)
             {
-                    MidiFile midiFile = MidiFile.Read(midiFilePath);
-                    var duration = midiFile.GetDuration<MetricTimeSpan>();
+                MidiFile midiFile = MidiFile.Read(midiFilePath);
+                var duration = midiFile.GetDuration<MetricTimeSpan>();
 
-                    double durationInSeconds = duration.TotalMicroseconds / 1_000_000.0;
+                double durationInSeconds = duration.TotalMicroseconds / 1_000_000.0;
 
-                    songDurations.Add((int)Math.Round(durationInSeconds));                
+                songDurations.Add((int)Math.Round(durationInSeconds));
             }
 
             return songDurations;
@@ -102,11 +103,11 @@ namespace BeethovenDataAccesLayer
 
             foreach (string midiFilePath in midiFilePaths)
             {
-                    MidiFile midiFile = MidiFile.Read(midiFilePath);
-                    var notes = midiFile.GetNotes().OrderBy(n => n.Time).ToList();
+                MidiFile midiFile = MidiFile.Read(midiFilePath);
+                var notes = midiFile.GetNotes().OrderBy(n => n.Time).ToList();
 
-                    int totalNotes = notes.Count(); 
-                    totalNotesList.Add(totalNotes);
+                int totalNotes = notes.Count();
+                totalNotesList.Add(totalNotes);
             }
 
             return totalNotesList;
@@ -331,55 +332,65 @@ namespace BeethovenDataAccesLayer
             }
         }
 
-        public static void SaveScore(string songTitle, double songDuration, string filePath, int score)
+        public void SaveScore(string songTitle, int score)
         {
+            // Get the SongID from the Song table based on the songTitle
+            int songID = GetSongIdByName(songTitle);
+            Debug.WriteLine(songID);
+            string scoreQuery = "INSERT INTO Score (SongID, Score) VALUES (@SongID, @Score);";
+
+            if (songID == 0)
+            {
+                Debug.WriteLine($"Song with title '{songTitle}' not found.");
+                return;
+            }
+
+            // Assuming you have a valid SQLite connection (dbConnection)
+            using (var dbConnection = new SQLiteConnection(_connectionString))
+            {
+                dbConnection.Open();
+
+                using (var cmd = new SQLiteCommand(scoreQuery, dbConnection)) // Use scoreQuery here
+                {
+                    cmd.Parameters.AddWithValue("@SongID", songID);
+                    cmd.Parameters.AddWithValue("@Score", score);
+
+                    cmd.ExecuteNonQuery();
+                }
+
+                Debug.WriteLine("Score successfully saved in the database.");
+            }
+        }
+
+        public List<int> GetTopScores(int songID)
+        {
+            var topScores = new List<int>();
+            string query = @"
+            SELECT Score
+            FROM Score
+            WHERE SongID = @SongID
+            ORDER BY Score DESC
+            LIMIT 3";
+
             using (var connection = new SQLiteConnection(_connectionString))
             {
                 connection.Open();
 
-                using (var transaction = connection.BeginTransaction())
+                using (var command = new SQLiteCommand(query, connection))
                 {
-                    try
+                    command.Parameters.AddWithValue("@SongID", songID);
+
+                    using (var reader = command.ExecuteReader())
                     {
-                        string insertScoreQuery = @"
-                    INSERT INTO Score (Score)
-                    VALUES (@Score);
-                    SELECT last_insert_rowid();";
-
-                        long scoreId;
-                        using (var command = new SQLiteCommand(insertScoreQuery, connection, transaction))
+                        while (reader.Read())
                         {
-                            command.Parameters.AddWithValue("@Score", score);
-                            scoreId = (long)command.ExecuteScalar();
+                            topScores.Add(reader.GetInt32(0)); // Get the score column
                         }
-
-                        string insertSongQuery = @"
-                    INSERT INTO Song (Title, Duration, FilePath, Checkpoint, ScoreID)
-                    VALUES (@Title, @Duration, @FilePath, @Checkpoint, @ScoreID);";
-
-                        using (var command = new SQLiteCommand(insertSongQuery, connection, transaction))
-                        {
-                            command.Parameters.AddWithValue("@Title", songTitle);
-                            command.Parameters.AddWithValue("@Duration", songDuration);
-                            command.Parameters.AddWithValue("@FilePath", filePath);
-                            command.Parameters.AddWithValue("@Checkpoint", DBNull.Value);
-                            command.Parameters.AddWithValue("@ScoreID", scoreId);
-                            command.ExecuteNonQuery();
-                        }
-
-                        transaction.Commit();
-                        Debug.WriteLine("Score en lied opgeslagen in de database.");
-                    }
-                    catch (Exception ex)
-                    {
-                        transaction.Rollback();
-                        Debug.WriteLine($"Fout bij opslaan in database: {ex.Message}");
-                        throw;
                     }
                 }
             }
+
+            return topScores;
         }
-
-
     }
 }

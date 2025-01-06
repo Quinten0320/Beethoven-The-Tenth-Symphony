@@ -94,7 +94,7 @@ namespace BeethovenBusiness
 
             double difference = pressTime - noteTimeInSeconds;
 
-            string feedback;
+            string feedback = string.Empty;
 
 
             const double tolerance = 0.5; // 500 ms tolerantie
@@ -121,7 +121,7 @@ namespace BeethovenBusiness
             }
 
             NotifyScoreUpdated(); // Update de score na elke noot
-            NewFeedback.Invoke(feedback);
+            NewFeedback?.Invoke(feedback);
         }
 
         public double GetScore()

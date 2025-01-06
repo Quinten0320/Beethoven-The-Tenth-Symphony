@@ -331,5 +331,55 @@ namespace BeethovenDataAccesLayer
             }
         }
 
+        public static void SaveScore(string songTitle, double songDuration, string filePath, int score)
+        {
+            using (var connection = new SQLiteConnection(_connectionString))
+            {
+                connection.Open();
+
+                using (var transaction = connection.BeginTransaction())
+                {
+                    try
+                    {
+                        string insertScoreQuery = @"
+                    INSERT INTO Score (Score)
+                    VALUES (@Score);
+                    SELECT last_insert_rowid();";
+
+                        long scoreId;
+                        using (var command = new SQLiteCommand(insertScoreQuery, connection, transaction))
+                        {
+                            command.Parameters.AddWithValue("@Score", score);
+                            scoreId = (long)command.ExecuteScalar();
+                        }
+
+                        string insertSongQuery = @"
+                    INSERT INTO Song (Title, Duration, FilePath, Checkpoint, ScoreID)
+                    VALUES (@Title, @Duration, @FilePath, @Checkpoint, @ScoreID);";
+
+                        using (var command = new SQLiteCommand(insertSongQuery, connection, transaction))
+                        {
+                            command.Parameters.AddWithValue("@Title", songTitle);
+                            command.Parameters.AddWithValue("@Duration", songDuration);
+                            command.Parameters.AddWithValue("@FilePath", filePath);
+                            command.Parameters.AddWithValue("@Checkpoint", DBNull.Value);
+                            command.Parameters.AddWithValue("@ScoreID", scoreId);
+                            command.ExecuteNonQuery();
+                        }
+
+                        transaction.Commit();
+                        Debug.WriteLine("Score en lied opgeslagen in de database.");
+                    }
+                    catch (Exception ex)
+                    {
+                        transaction.Rollback();
+                        Debug.WriteLine($"Fout bij opslaan in database: {ex.Message}");
+                        throw;
+                    }
+                }
+            }
+        }
+
+
     }
 }

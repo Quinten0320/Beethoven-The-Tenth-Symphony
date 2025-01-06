@@ -64,7 +64,7 @@ namespace BeethovenBusiness
 
         private string ConvertNoteToNameAndOctave(int noteNumber)
         {
-            string[] noteNames = { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
+            string[] noteNames = { "C", "CSharp", "D", "DSharp", "E", "F", "FSharp", "G", "GSharp", "A", "ASharp", "B" };
 
             string noteName = noteNames[noteNumber % 12];
             int octave = (noteNumber / 12) - 1;

@@ -11,7 +11,7 @@ namespace BeethovenBusiness
         private readonly PianoInputHandler _inputHandler;
         private List<Melanchall.DryWetMidi.Interaction.Note>? _notes;
         private HashSet<Melanchall.DryWetMidi.Interaction.Note> _processedNotes = new();
-        public double _elapsedTime;
+        public double _elapsedTime = 0;
         private string _midiFilePath;
         private double _animationDuration = 4;
         private double _actualDuration;
@@ -23,6 +23,7 @@ namespace BeethovenBusiness
         private int _lateNotes = 0;
         private int _totalNotes = 0;
         private double _score = 0.0;
+        private double _extraTime = 0;
 
 
         public double AnimationDuration
@@ -72,9 +73,10 @@ namespace BeethovenBusiness
             }
         }
 
-        public void updateNotestoplay(List<Melanchall.DryWetMidi.Interaction.Note> notes, double elapsedtime)
+        public void updateNotestoplay(List<Melanchall.DryWetMidi.Interaction.Note> notes, double elapsedtime, double extratime)
         {
             _elapsedTime = elapsedtime;
+            _extraTime = extratime;
             foreach (Melanchall.DryWetMidi.Interaction.Note note in notes)
             {
                 _notes.Add(note);
@@ -95,23 +97,23 @@ namespace BeethovenBusiness
             const double tolerance = 0.5; // 500 ms tolerantie
             _totalNotes++;
 
-            if (difference >= -tolerance && difference <= tolerance)
+            if (Math.Abs(difference) <= tolerance)
             {
+                double scoreIncrement = 100 * (1 - Math.Abs(difference) / tolerance); // Hoe dichterbij, hoe meer punten
                 _correctNotes++;
-                _score += 100; // Verhoog de score met 100 punten bij een correcte noot
-                Debug.WriteLine("Timing correct! Afwijking: " + difference + " seconden.");
+                _score += scoreIncrement;
+                Debug.WriteLine($"Timing correct! Afwijking: {difference:F3} seconden. Score +{scoreIncrement:F2}");
             }
             else if (pressTime < noteTimeInSeconds)
             {
                 _earlyNotes++;
-                Debug.WriteLine("Te vroeg! Afwijking: " + difference + " seconden.");
+                Debug.WriteLine($"Te vroeg! Afwijking: {difference:F3} seconden.");
             }
             else
             {
                 _lateNotes++;
-                Debug.WriteLine("Te laat! Afwijking: " + difference + " seconden.");
+                Debug.WriteLine($"Te laat! Afwijking: {difference:F3} seconden.");
             }
-
             NotifyScoreUpdated(); // Update de score na elke noot
         }
 

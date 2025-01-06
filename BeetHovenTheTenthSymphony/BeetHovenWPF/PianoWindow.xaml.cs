@@ -307,15 +307,15 @@ namespace BeetHovenWPF
                 try
                 {
 
-                    elapsedTime = ((DateTime.Now - _startTime) + _totalPauseDuration).TotalSeconds;
+                    elapsedTime = ((DateTime.Now - _startTime)).TotalSeconds;
                     if (elapsedTime > 4 && muziekafspelen)
                     {
                         muziekafspelen = false;
                         await Task.Run(() => _playback.Start());
                     }
-                    var feedbacknotestoplay = uitlezenLogic.HaalNotenOpFeedback(elapsedTime);
-                    var notesToPlay = uitlezenLogic.HaalNotenOp(elapsedTime);
-                    _feedbacklogic.updateNotestoplay(feedbacknotestoplay, elapsedTime);
+                    var feedbacknotestoplay = uitlezenLogic.HaalNotenOp(elapsedTime);
+                    var notesToPlay  = uitlezenLogic.HaalNotenOp(elapsedTime);
+                    _feedbacklogic.updateNotestoplay(feedbacknotestoplay, elapsedTime, _totalPauseDuration.TotalSeconds);
                     foreach (var note in notesToPlay)
                     {
                         StartAnimationForNote(note.NoteName.ToString(), note.Length, note.Octave);  

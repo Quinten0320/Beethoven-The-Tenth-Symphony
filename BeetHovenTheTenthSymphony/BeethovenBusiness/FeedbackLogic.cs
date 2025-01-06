@@ -6,6 +6,7 @@ using Melanchall.DryWetMidi.MusicTheory;
 
 namespace BeethovenBusiness
 {
+
     public class FeedbackLogic
     {
         private readonly PianoInputHandler _inputHandler;
@@ -17,6 +18,8 @@ namespace BeethovenBusiness
         private double _actualDuration;
         private Stopwatch _timer;
         private UitlezenMidiLogica _uitlezenMidiLogica;
+
+        public event Action<string> NewFeedback;
 
         public double AnimationDuration
         {
@@ -83,6 +86,7 @@ namespace BeethovenBusiness
             pressTime -= 4.5;
             // Bereken de afwijking
             double difference = pressTime - noteTimeInSeconds;
+            string feedback;
             
 
             //Debug.WriteLine($"{noteTimeInSeconds}, {pressTime}, {noteToCheck.LengthAs<MetricTimeSpan>(TempoMap.Default).TotalMicroseconds}");
@@ -93,15 +97,19 @@ namespace BeethovenBusiness
             if (difference >= -tolerance && difference <= tolerance)
             {
                 Debug.WriteLine("Timing correct! Afwijking: " + difference + " seconden." + " seconden:" + noteTimeInSeconds + " presstime:" + pressTime);
+                feedback = "Timing correct!";
             }
             else if (pressTime < noteTimeInSeconds)
             {
                 Debug.WriteLine("Te vroeg! Afwijking: " + difference + " seconden." + " seconden:" + noteTimeInSeconds + " presstime:" + pressTime);
+                feedback = "Te vroeg!";
             }
             else
             {
                 Debug.WriteLine("Te laat! Afwijking: " + difference + " seconden." + " seconden:" + noteTimeInSeconds + " presstime:" + pressTime);
+                feedback = "Te laat!";
             }
+            NewFeedback.Invoke(feedback);
         }
 
     }

@@ -24,6 +24,10 @@
             <TextBox x:Name="MidiStatusTextBox" 
              TextWrapping="Wrap" Text="" Width="150" 
              IsReadOnly="True" Margin="10,0,0,0" />
+            <Label Content="Feedback" VerticalAlignment="Center" Margin="20,0,0,0" />
+            <TextBox x:Name="FeedbackTextBox" 
+             TextWrapping="Wrap" Text="" Width="150" 
+             IsReadOnly="True" Margin="10,0,0,0" />
         </StackPanel>
 
         <!-- Piano Area -->

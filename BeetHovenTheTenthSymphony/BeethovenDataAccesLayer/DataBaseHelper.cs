@@ -38,6 +38,14 @@ namespace BeethovenDataAccesLayer
                             ID INTEGER PRIMARY KEY AUTOINCREMENT,
                             Score INT NOT NULL
                         );";
+                    string createCheckpointTableQuery = @"
+                        CREATE TABLE IF NOT EXISTS Checkpoint (
+                            songID INTEGER NOT NULL,
+                            Timestamp REAL NOT NULL,
+                            Name TEXT,
+                            PRIMARY KEY (songID, Timestamp),
+                            FOREIGN KEY (songID) REFERENCES Song(songID)
+                        )";
 
                     string createSongTableQuery = @"
                         CREATE TABLE IF NOT EXISTS Song (
@@ -45,7 +53,6 @@ namespace BeethovenDataAccesLayer
                             Title TEXT NOT NULL,
                             Duration DOUBLE NOT NULL,
                             FilePath VARCHAR NOT NULL,
-                            Checkpoint INT,
                             ScoreID INT,
                             FOREIGN KEY (ScoreID) REFERENCES Score(ID)
                         );";
@@ -60,6 +67,9 @@ namespace BeethovenDataAccesLayer
                     using (var command = new SQLiteCommand(connection))
                     {
                         command.CommandText = createScoreTableQuery;
+                        command.ExecuteNonQuery();
+
+                        command.CommandText = createCheckpointTableQuery;
                         command.ExecuteNonQuery();
 
                         command.CommandText = createSongTableQuery;

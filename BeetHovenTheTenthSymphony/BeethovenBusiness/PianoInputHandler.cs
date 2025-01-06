@@ -11,6 +11,8 @@ namespace BeethovenBusiness
         private InputDevice _midiDevice;
 
         public event Action<string> NotePressed;
+        public event Action<string> NoteReleased;
+
 
         public PianoInputHandler()
         {
@@ -43,10 +45,20 @@ namespace BeethovenBusiness
 
         private void OnMidiEventReceived(object sender, MidiEventReceivedEventArgs e)
         {
+
             if (e.Event is NoteOnEvent noteOnEvent)
             {
                 string note = ConvertNoteToNameAndOctave(noteOnEvent.NoteNumber);
-                NotePressed?.Invoke(note);
+
+                if (noteOnEvent.Velocity > 1)
+                {
+                    Debug.WriteLine($"Event received: {e.Event}");
+                    NotePressed?.Invoke(note);
+                } else
+                {
+                    Debug.WriteLine($"Note off: {noteOnEvent.NoteNumber}");
+                    NoteReleased?.Invoke(note);
+                }
             }
         }
 

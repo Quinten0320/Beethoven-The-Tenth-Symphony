@@ -33,6 +33,10 @@
                 <TextBox x:Name="MidiStatusTextBox" 
                  TextWrapping="Wrap" Text="" Width="150" 
                  IsReadOnly="True" />
+                 <Label Content="Feedback" VerticalAlignment="Center" Margin="20,0,0,0" />
+                <TextBox x:Name="FeedbackTextBox" 
+                 TextWrapping="Wrap" Text="" Width="150" 
+                 IsReadOnly="True" Margin="10,0,0,0" />
             </StackPanel>
             <Canvas Name="MarkerCanvas" Grid.Row="0" Grid.Column="3" Width="200" Height="20" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,0,0,0">
                 <!-- Markers worden hier geplaatst -->

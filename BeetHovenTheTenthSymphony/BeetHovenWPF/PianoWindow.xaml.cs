@@ -89,6 +89,8 @@ namespace BeetHovenWPF
             this.KeyDown += PianoWindowPauze;
             _playback.Finished += OnPlaybackFinished;
 
+            _feedbacklogic.NewFeedback += UpdateKeyFeedback;
+
             this.WindowState = WindowState.Maximized; // Set window to fullscreen
             this.WindowStyle = WindowStyle.None;     // Remove the title bar and borders
             this.ResizeMode = ResizeMode.NoResize;  // Prevent resizing to enforce fullscreen
@@ -130,6 +132,11 @@ namespace BeetHovenWPF
             {
                 MidiStatusTextBox.Text = $"Error: {ex.Message}";
             }
+        }
+
+        private void UpdateKeyFeedback(string feedback)
+        {
+            Dispatcher.Invoke(() => FeedbackTextBox.Text = feedback);
         }
 
         private void OnMidiNotePressed(string note)

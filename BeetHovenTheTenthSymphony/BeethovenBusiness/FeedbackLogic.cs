@@ -6,6 +6,7 @@ using Melanchall.DryWetMidi.MusicTheory;
 
 namespace BeethovenBusiness
 {
+
     public class FeedbackLogic
     {
         private readonly PianoInputHandler _inputHandler;
@@ -18,13 +19,14 @@ namespace BeethovenBusiness
         private Stopwatch _timer;
         private UitlezenMidiLogica _uitlezenMidiLogica;
 
+        public event Action<string> NewFeedback = delegate { };
+          
         private int _correctNotes = 0;
         private int _earlyNotes = 0;
         private int _lateNotes = 0;
         private int _totalNotes = 0;
         private double _score = 0.0;
         private double _extraTime = 0;
-
 
         public double AnimationDuration
         {
@@ -65,6 +67,10 @@ namespace BeethovenBusiness
                     notesToRemove.Add(noteToCheck);
                     break;
                 }
+                else
+                {
+                    NewFeedback.Invoke("Verkeerde toets...");
+                }
             }
 
             foreach (Melanchall.DryWetMidi.Interaction.Note noteToRemove in notesToRemove)
@@ -94,6 +100,9 @@ namespace BeethovenBusiness
 
             double difference = pressTime - noteTimeInSeconds;
 
+            string feedback = string.Empty;
+
+
             const double tolerance = 0.5; // 500 ms tolerantie
             _totalNotes++;
 
@@ -107,13 +116,17 @@ namespace BeethovenBusiness
             else if (pressTime < noteTimeInSeconds)
             {
                 _earlyNotes++;
-                Debug.WriteLine($"Te vroeg! Afwijking: {difference:F3} seconden.");
+                Debug.WriteLine("Te vroeg! Afwijking: " + difference + " seconden.");
+                feedback = "Te vroeg!";
             }
             else
             {
                 _lateNotes++;
-                Debug.WriteLine($"Te laat! Afwijking: {difference:F3} seconden.");
+
+                Debug.WriteLine("Te laat! Afwijking: " + difference + " seconden.");
+                feedback = "Te laat!";
             }
+            NewFeedback?.Invoke(feedback);
             NotifyScoreUpdated(); // Update de score na elke noot
         }
 

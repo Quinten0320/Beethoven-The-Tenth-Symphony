@@ -66,6 +66,10 @@ namespace BeethovenBusiness
                     notesToRemove.Add(noteToCheck);
                     break;
                 }
+                else
+                {
+                    NewFeedback.Invoke("Verkeerde toets...");
+                }
             }
 
             foreach (Melanchall.DryWetMidi.Interaction.Note noteToRemove in notesToRemove)
@@ -119,9 +123,8 @@ namespace BeethovenBusiness
                 Debug.WriteLine("Te laat! Afwijking: " + difference + " seconden.");
                 feedback = "Te laat!";
             }
-
+            NewFeedback?.Invoke(feedback);
             NotifyScoreUpdated(); // Update de score na elke noot
-            NewFeedback.Invoke(feedback);
         }
 
         public double GetScore()

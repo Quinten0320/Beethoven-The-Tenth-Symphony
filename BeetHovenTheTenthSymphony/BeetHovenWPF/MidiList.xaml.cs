@@ -26,6 +26,8 @@ namespace BeetHovenWPF
             _midiFileInfos = new ObservableCollection<MidiFileInfo>();
             _midiService.AddMissingMidiFilesToDatabase();
             fillList();
+
+            this.WindowState = WindowState.Maximized;
         }
 
         public void fillList()
@@ -192,13 +194,10 @@ namespace BeetHovenWPF
                 MessageBox.Show("MIDI input detection and initialization successful.",
                                 "Success", MessageBoxButton.OK, MessageBoxImage.Information);
             }
+
             catch (InvalidOperationException ex)
             {
-                MessageBox.Show($"No MIDI device detected. Please connect a device and try again.\n\nDetails: {ex.Message}","No MIDI Device Detected", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-            catch (MidiDeviceException ex)
-            {
-                MessageBox.Show($"Error: The MIDI device is already in use. Please close other programs using the device and try again.\n\nDetails: {ex.Message}","MIDI Device In Use", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Midi Device unavailable or already in use.\n\nDetails: {ex.Message}","Midi device unavailable", MessageBoxButton.OK, MessageBoxImage.Error);
             }
             catch (Exception ex)
             {

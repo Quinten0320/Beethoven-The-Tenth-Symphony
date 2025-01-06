@@ -59,9 +59,6 @@ namespace BeetHovenWPF
             _outputDevice = OutputDevice.GetByName("Microsoft GS Wavetable Synth");
             _playback = midiFile.GetPlayback(_outputDevice);
             
-
-
-
             _inputHandler.NotePressed -= OnMidiNotePressed; //veiligheid, niet perse nodig
             _inputHandler.NotePressed += OnMidiNotePressed;
 
@@ -140,7 +137,6 @@ namespace BeetHovenWPF
             });
         }
 
-
         private void HighlightKey(string note, bool isPressed)
         {
             var targetKey = PianoCanvas.Children
@@ -176,7 +172,6 @@ namespace BeetHovenWPF
                 _feedbacklogic.ScoreUpdated -= OnScoreUpdated;
             }
         }
-
 
         private void PianoWindow_Loaded(object sender, RoutedEventArgs e)
         {
@@ -508,8 +503,6 @@ namespace BeetHovenWPF
             });
         }
 
-
-
         public void StopAndDisposePlayback()
         {
             if (_playback != null)
@@ -525,6 +518,7 @@ namespace BeetHovenWPF
                 _outputDevice = null; // Clear the reference
             }
         }
+
         private void OnScoreUpdated(double score)
         {
             //Bijwerken van de ScorePage
@@ -566,8 +560,5 @@ namespace BeetHovenWPF
                 Debug.WriteLine($"Fout in HandlePlaybackStopped: {ex.Message}");
             }
         }
-
-
-
     }
 }

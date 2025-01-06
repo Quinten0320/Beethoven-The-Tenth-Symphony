@@ -36,8 +36,11 @@ namespace BeethovenDataAccesLayer
                     string createScoreTableQuery = @"
                         CREATE TABLE IF NOT EXISTS Score (
                             ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                            Score INT NOT NULL
+                            SongID INTEGER NOT NULL,
+                            Score INT NOT NULL,
+                            FOREIGN KEY(SongID) REFERENCES Song(ID)
                         );";
+
                     string createCheckpointTableQuery = @"
                         CREATE TABLE IF NOT EXISTS Checkpoint (
                             songID INTEGER NOT NULL,
@@ -52,9 +55,7 @@ namespace BeethovenDataAccesLayer
                             ID INTEGER PRIMARY KEY AUTOINCREMENT,
                             Title TEXT NOT NULL,
                             Duration DOUBLE NOT NULL,
-                            FilePath VARCHAR NOT NULL,
-                            ScoreID INT,
-                            FOREIGN KEY (ScoreID) REFERENCES Score(ID)
+                            FilePath VARCHAR NOT NULL
                         );";
 
                     string createFavouritesTableQuery = @"

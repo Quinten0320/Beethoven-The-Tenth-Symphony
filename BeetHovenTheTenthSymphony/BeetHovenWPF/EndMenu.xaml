@@ -9,6 +9,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="2*" /> <!-- For Title -->
             <RowDefinition Height="*" />   <!-- For Score -->
+            <RowDefinition Height="*" />
             <RowDefinition Height="*" />   <!-- For Exit Button -->
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
@@ -21,13 +22,17 @@
                    Grid.Row="0" />
 
         <!-- Score -->
-        <TextBlock x:Name="ScoreTextBlock" Text="Score: 0" Foreground="White" FontSize="40" 
+        <TextBlock x:Name="ScoreTextBlock" Text="Current score: 0" Foreground="White" FontSize="40" 
                    HorizontalAlignment="Center" VerticalAlignment="Center"
                    Grid.Row="1" />
+        <!-- Top Scores -->
+<TextBlock x:Name="TopScoresTextBlock" Text="Top 3 Scores:" Foreground="White" FontSize="30" 
+           HorizontalAlignment="Center" VerticalAlignment="Center"
+           Grid.Row="2" Margin="0,20,0,0" />
 
         <!-- Exit Button -->
         <Button Content="Exit" Width="200" Height="50"
-                Grid.Row="2"
+                Grid.Row="3"
                 HorizontalAlignment="Center" VerticalAlignment="Center"
                 Click="ExitClick" />
     </Grid>

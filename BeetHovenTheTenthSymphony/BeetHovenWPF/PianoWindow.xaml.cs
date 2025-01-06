@@ -738,12 +738,13 @@ namespace BeetHovenWPF
             {
                 // Close the current PianoWindow
                 this.Close();
-
+                List<int> topScores = _data.GetTopScores(GetSongID(_selectedMidiName));
+                
                 // Show the End Menu in a new window
                 var window = new Window
                 {
                     Title = "End Menu",
-                    Content = new EndMenu(_currentMidi, finalScore),
+                    Content = new EndMenu(_currentMidi, finalScore, topScores),
                     WindowStyle = WindowStyle.None,
                     ResizeMode = ResizeMode.NoResize,
                     Width = ActualWidth,

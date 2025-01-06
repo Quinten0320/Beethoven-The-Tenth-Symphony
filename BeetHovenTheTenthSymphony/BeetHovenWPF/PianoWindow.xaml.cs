@@ -56,6 +56,7 @@ namespace BeetHovenWPF
         private FeedbackLogic _feedbacklogic;
         private Score _score;
         private double finalScore;
+        private bool _startedPlayback = false;
 
         public PianoWindow(string midiPath, MidiFile midiFile, string MidiName)
         {
@@ -192,7 +193,6 @@ namespace BeetHovenWPF
             }
 
             // Andere cleanup-logica
-            _inputHandler.Dispose();
             StopAndDisposePlayback();
 
             if (_timer != null)
@@ -451,7 +451,6 @@ namespace BeetHovenWPF
             {
                 try
                 {
-
                     elapsedTime = (DateTime.Now - _startTime).TotalSeconds;
                     // Ensure slider reflects elapsed time
                     double songDuration = SelectedSongDuration();
@@ -476,9 +475,9 @@ namespace BeetHovenWPF
                         muziekafspelen = false;
                         await Task.Run(() => _playback.Start());
                     }
-                    var feedbacknotestoplay = uitlezenLogic.HaalNotenOpFeedback(elapsedTime);
-                    var notesToPlay = uitlezenLogic.HaalNotenOp(elapsedTime);
-                    _feedbacklogic.updateNotestoplay(feedbacknotestoplay, elapsedTime);
+                    var feedbacknotestoplay = uitlezenLogic.HaalNotenOp(elapsedTime);
+                    var notesToPlay  = uitlezenLogic.HaalNotenOp(elapsedTime);
+                    _feedbacklogic.updateNotestoplay(feedbacknotestoplay, elapsedTime, _totalPauseDuration.TotalSeconds);
                     foreach (var note in notesToPlay)
                     {
                         StartAnimationForNote(note.NoteName.ToString(), note.Length, note.Octave);  
@@ -635,8 +634,19 @@ namespace BeetHovenWPF
 
         private async Task RemoveNoteAfterDelay(Rectangle note, double delayInSeconds)
         {
-            int delayInMilliseconds = (int)(delayInSeconds * 1000); // Converteer seconden naar milliseconden
-            await Task.Delay(delayInMilliseconds); // Wacht de opgegeven tijd
+            int elapsedSeconds = 0;
+            while (elapsedSeconds < delayInSeconds)
+            {
+                if (!_isPaused)
+                {
+                    await Task.Delay(1000); // Wacht 1 seconde
+                    elapsedSeconds++;
+                }
+                else
+                {
+                    await Task.Delay(100); // Wacht korter als de applicatie gepauzeerd is
+                }
+            }
             Dispatcher.Invoke(() =>
             {
                 if (PianoCanvas.Children.Contains(note))
@@ -683,7 +693,10 @@ namespace BeetHovenWPF
 
                 //TimeSpan tijd = 1;
                 //_playback.MoveToTime();
-                _playback.Start();
+                if (!muziekafspelen)
+                {
+                    _playback.Start();
+                }
 
                 //reset de pauzeduur
                 _totalPauseDuration = TimeSpan.Zero;

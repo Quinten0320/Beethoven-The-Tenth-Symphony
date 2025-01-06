@@ -12,7 +12,7 @@ namespace BeethovenBusiness
         public double fallPercentage = 0;
         public double animationDurationUitlezenMidiLogica = 0;
         private IEnumerable<Melanchall.DryWetMidi.Interaction.Note> notes;
-        private IEnumerable<Melanchall.DryWetMidi.Interaction.Note> notes2;
+        bool tweeKeerOphalen = false;
 
         public TempoMap tempoMap;
         MidiFile midiFile;
@@ -43,24 +43,12 @@ namespace BeethovenBusiness
                     .SelectMany(track => track.GetNotes())
                     .OrderBy(n => n.Time)
                     .ToList();
-                notes2 = notes;
             }
             catch (Exception ex)
             {
                 throw new InvalidOperationException($"Fout bij het laden van MIDI-bestand: {ex.Message}", ex);
             }
         }
-
-        public double BerekenBpm()
-        {
-            if (tempoMap == null)
-                throw new InvalidOperationException("TempoMap is niet geïnitialiseerd. Laad eerst een MIDI-bestand.");
-
-            Tempo tempo = tempoMap.GetTempoAtTime((MidiTimeSpan)0);
-            double microsecondsPerQuarterNote = tempo.MicrosecondsPerQuarterNote;
-            return 60000000.0 / microsecondsPerQuarterNote;
-        }
-
 
         public List<Melanchall.DryWetMidi.Interaction.Note> HaalNotenOp(double elapsedTime)
         {
@@ -85,43 +73,18 @@ namespace BeethovenBusiness
                 }
             }
 
-            // verwijder afgespeelde noten
-            notes = notes.Where(n => !notesToRemove.Contains(n)).ToList();
-
-            return notesToPlay;
-        }
-        public List<Melanchall.DryWetMidi.Interaction.Note> HaalNotenOpFeedback(double elapsedTime)
-        {
-            if (notes2 == null || tempoMap == null)
-                throw new InvalidOperationException("Noten of TempoMap zijn niet geïnitialiseerd. Laad eerst een MIDI-bestand.");
-
-            List<Note> notesToPlay = new List<Melanchall.DryWetMidi.Interaction.Note>();
-            List<Note> notesToRemove = new List<Melanchall.DryWetMidi.Interaction.Note>();
-
-            foreach (var note in notes2.ToList())
+            if (tweeKeerOphalen)
             {
-                //bereken elke noot welke tijd afgespeeld moet worden
-                long noteTimeInTicks = note.Time;
-                MetricTimeSpan metricTime = TimeConverter.ConvertTo<MetricTimeSpan>(noteTimeInTicks, tempoMap);
-                double noteTimeInSeconds = metricTime.TotalSeconds;
-
-                //als noot nu afgespeeld moet worden
-                if (elapsedTime >= noteTimeInSeconds) //DIT MOET NOG AANGEPAST WORDEN NAAR + EN MET EEN TIMER
-                {
-                    notesToPlay.Add(note);
-                    notesToRemove.Add(note);
-                }
+                notes = notes.Where(n => !notesToRemove.Contains(n)).ToList();
+                tweeKeerOphalen = false;
             }
-
+            else
+            {
+                tweeKeerOphalen = true;
+            }
             // verwijder afgespeelde noten
-            notes2 = notes2.Where(n => !notesToRemove.Contains(n)).ToList();
 
             return notesToPlay;
-        }
-        public double GetTicksPerBeat()
-        {
-            var timeDivision = midiFile.TimeDivision as TicksPerQuarterNoteTimeDivision;
-            return timeDivision.TicksPerQuarterNote;
         }
 }
 }

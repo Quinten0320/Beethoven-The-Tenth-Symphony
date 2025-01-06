@@ -22,7 +22,7 @@ namespace BeetHovenWPF
         {
             InitializeComponent();
             DataBaseHelper.InitializeDatabase();
-
+            this.WindowState = WindowState.Maximized;
             _midiService = new MidiService();
             _midiFileInfos = new ObservableCollection<MidiFileInfo>();
             _midiService.AddMissingMidiFilesToDatabase();

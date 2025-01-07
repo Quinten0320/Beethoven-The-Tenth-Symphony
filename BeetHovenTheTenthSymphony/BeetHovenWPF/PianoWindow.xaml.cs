@@ -57,6 +57,9 @@ namespace BeetHovenWPF
         private Score _score;
         private double finalScore;
         private bool _startedPlayback = false;
+        private double _selectedSongDuration;
+        int songID;
+        List<Checkpoint> CheckpointsForSong ;
 
         public PianoWindow(string midiPath, MidiFile midiFile, string MidiName)
         {
@@ -220,6 +223,9 @@ namespace BeetHovenWPF
                 {
                     uitlezenLogic.LaadMidiBestand(_midiPath);
                     _startTime = DateTime.Now;
+                    _selectedSongDuration = SelectedSongDuration();
+                    songID = GetSongID(_selectedMidiName);
+                    CheckpointsForSong = LoadCheckpoints(songID);
                     _timer = new DispatcherTimer
                     {
                         Interval = TimeSpan.FromSeconds(1.0 / 1000) 
@@ -289,12 +295,12 @@ namespace BeetHovenWPF
 
             string totalSeconds = string.Empty;
 
-            double DurationSonginSec = SelectedSongDuration() % 60;
+            double DurationSonginSec = _selectedSongDuration % 60;
             double DurationSonginMin = 0;
 
-            if (SelectedSongDuration() > 60)
+            if (_selectedSongDuration > 60)
             {
-                DurationSonginMin = RoundBasedOnFirstDecimal(SelectedSongDuration() / 60);
+                DurationSonginMin = RoundBasedOnFirstDecimal(_selectedSongDuration / 60);
             }
 
 
@@ -305,7 +311,7 @@ namespace BeetHovenWPF
             slider = new Slider()
             {
                 Minimum = 0,
-                Maximum = SelectedSongDuration(),
+                Maximum = _selectedSongDuration,
                 Value = 0,
                 Orientation = Orientation.Horizontal,
                 Width = 200,
@@ -453,7 +459,7 @@ namespace BeetHovenWPF
                 {
                     elapsedTime = (DateTime.Now - _startTime).TotalSeconds;
                     // Ensure slider reflects elapsed time
-                    double songDuration = SelectedSongDuration();
+                    double songDuration = _selectedSongDuration;
 
                     if (elapsedTime - 4 >= songDuration)
                     {
@@ -818,8 +824,7 @@ namespace BeetHovenWPF
 
         private void AddCheckpoint(double timestamp, string name)
         {
-            int songID = GetSongID(_selectedMidiName);
-            List<Checkpoint> CheckpointsForSong = LoadCheckpoints(songID);
+            
             if (CheckpointsForSong.Count >= MaxSegments)
             {
                 MessageBox.Show("Maximum aantal segmenten bereikt!");
@@ -958,7 +963,7 @@ namespace BeetHovenWPF
                 double relativeStartTime = (note.Time / 1000.0) - playbackOffset; // Deel Time door 1000 als het in ticks is
                 if (relativeStartTime >= 0)
                 {
-                    StartAnimationForNoteAtTime(note.NoteName.ToString(), note.Length, note.Octave, relativeStartTime);
+                    StartAnimationForNote(note.NoteName.ToString(), note.Length, note.Octave);
                 }
             }
 
@@ -1060,9 +1065,9 @@ namespace BeetHovenWPF
 
         private void DrawSegmentMarker(double timestamp)
         {
-            double position = (timestamp / SelectedSongDuration()) * slider.ActualWidth;
+            double position = (timestamp / _selectedSongDuration) * slider.ActualWidth;
             Debug.WriteLine($"slider width: {slider.ActualWidth}");
-            Debug.WriteLine($"Duration: {SelectedSongDuration()}");
+            Debug.WriteLine($"Duration: {_selectedSongDuration}");
             Debug.WriteLine($"Timestamp: {timestamp}");
             if (position >= 0 && position <= MarkerCanvas.ActualWidth)
             {
@@ -1122,7 +1127,7 @@ namespace BeetHovenWPF
 
         private void RemoveSegmentMarker(Checkpoint checkpoint)
         {
-            double calculatedPosition = (checkpoint.TimeStamp / SelectedSongDuration()) * slider.ActualWidth;
+            double calculatedPosition = (checkpoint.TimeStamp / _selectedSongDuration) * slider.ActualWidth;
 
             var marker = checkpointMarkers.FirstOrDefault(m =>
                 Math.Abs(Canvas.GetLeft(m) - calculatedPosition) < 2);
@@ -1188,6 +1193,7 @@ namespace BeetHovenWPF
         }
         public List<Checkpoint> LoadCheckpoints(int songID)
         {
+            
             var checkpoints = new List<Checkpoint>();
 
             using (var connection = new SQLiteConnection(connectionString))

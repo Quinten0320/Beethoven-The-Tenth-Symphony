@@ -55,25 +55,36 @@ namespace BeethovenBusiness
             if (notes == null || tempoMap == null)
                 throw new InvalidOperationException("Noten of TempoMap zijn niet geïnitialiseerd. Laad eerst een MIDI-bestand.");
 
-            var notesToPlay = new List<Melanchall.DryWetMidi.Interaction.Note>();
+            List<Note> notesToPlay = new List<Melanchall.DryWetMidi.Interaction.Note>();
+            List<Note> notesToRemove = new List<Melanchall.DryWetMidi.Interaction.Note>();
 
             foreach (var note in notes)
             {
                 // Calculate note start time in seconds
-                var noteTimeInTicks = note.Time;
-                var metricTime = TimeConverter.ConvertTo<MetricTimeSpan>(noteTimeInTicks, tempoMap);
+                long noteTimeInTicks = note.Time;
+                MetricTimeSpan metricTime = TimeConverter.ConvertTo<MetricTimeSpan>(noteTimeInTicks, tempoMap);
                 double noteTimeInSeconds = metricTime.TotalSeconds;
 
 
                 // Check if the note should be played (allowing a small threshold for precision)
-                if (elapsedTime >= noteTimeInSeconds && elapsedTime <= noteTimeInSeconds + 0.05)
-
+                if (elapsedTime >= noteTimeInSeconds)
                 {
+                    notesToRemove.Add(note);
                     notesToPlay.Add(note);
                 }
             }
 
-            
+            if (tweeKeerOphalen)
+            {
+                notes = notes.Where(n => !notesToRemove.Contains(n)).ToList();
+                tweeKeerOphalen = false;
+            }
+            else
+            {
+                tweeKeerOphalen = true;
+            }
+
+
             // verwijder afgespeelde noten
 
             return notesToPlay;

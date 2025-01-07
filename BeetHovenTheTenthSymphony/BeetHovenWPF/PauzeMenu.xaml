@@ -3,7 +3,8 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     x:Class="BeetHovenWPF.PauzeMenu"
     Title="PauzeMenu">
-    <Grid Background="Black" Opacity="0.8">
+    
+    <Grid Background="Black" Opacity="0.9">
         <!-- Definieer rijen en kolommen voor layout -->
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />

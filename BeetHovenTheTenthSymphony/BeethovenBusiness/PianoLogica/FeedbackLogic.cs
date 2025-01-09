@@ -1,10 +1,11 @@
 ﻿using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Interaction;
 using System.Diagnostics;
-using BeethovenDataAccesLayer;
 using Melanchall.DryWetMidi.MusicTheory;
+using BeethovenBusiness.MidiFileLogica;
+using BeethovenDataAccesLayer.DataBaseAcces;
 
-namespace BeethovenBusiness
+namespace BeethovenBusiness.PianoLogica
 {
 
     public class FeedbackLogic
@@ -20,7 +21,7 @@ namespace BeethovenBusiness
         private UitlezenMidiLogica _uitlezenMidiLogica;
 
         public event Action<string> NewFeedback = delegate { };
-          
+
         private int _correctNotes = 0;
         private int _earlyNotes = 0;
         private int _lateNotes = 0;

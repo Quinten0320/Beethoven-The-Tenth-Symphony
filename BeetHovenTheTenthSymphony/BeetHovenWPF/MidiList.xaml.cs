@@ -2,7 +2,9 @@
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
-using BeethovenBusiness;
+using BeethovenBusiness.MidiFileLogica;
+using BeethovenBusiness.PianoLogica;
+using BeethovenDataAccesLayer.DataBaseAcces;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Interaction;
 using Melanchall.DryWetMidi.Multimedia;
@@ -20,10 +22,11 @@ namespace BeetHovenWPF
         public MidiList()
         {
             InitializeComponent();
+            DataBaseHelper.InitializeDatabase();
             this.WindowState = WindowState.Maximized;
             _midiService = new MidiService();
             _midiFileInfos = new ObservableCollection<MidiFileInfo>();
-            _midiService.InitializeDatabaseAndSync();
+            _midiService.AddMissingMidiFilesToDatabase();
             fillList();
         }
 
@@ -65,6 +68,7 @@ namespace BeetHovenWPF
             }
         }
 
+
         private void UploadButton_Click(object sender, RoutedEventArgs e)
         {
             OpenFileDialog dialog = new OpenFileDialog();
@@ -98,14 +102,67 @@ namespace BeetHovenWPF
                 ApplyFilter();
             }
         }
-        public void ApplyFilter()
+        private void ApplyFilter()
         {
-            MidiFileList.ItemsSource = _midiService.ApplyFilter(_midiFileInfos.ToList(), _currentFilter);
+            if (_currentFilter == "Default")
+            {
+                MidiFileList.ItemsSource = _midiFileInfos;
+            }
+            else if (new[] { "Easy", "Medium", "Hard" }.Contains(_currentFilter))
+            {
+                MidiFileList.ItemsSource = _midiFileInfos
+                    .Where(file => file.Difficulty == _currentFilter)
+                    .ToList();
+            }
+            else if (_currentFilter == "A-Z")
+            {
+                MidiFileList.ItemsSource = _midiFileInfos
+                    .OrderBy(file => file.Name)
+                    .ToList();
+            }
+            else if (_currentFilter == "Z-A")
+            {
+                MidiFileList.ItemsSource = _midiFileInfos
+                    .OrderByDescending(file => file.Name)
+                    .ToList();
+            }
+            else if (_currentFilter == "Favourites")
+            {
+                MidiFileList.ItemsSource = _midiFileInfos
+                    .Where(file => file.Favourite == true)
+                    .ToList();
+            }
         }
 
         public ObservableCollection<MidiFileInfo> CalculateDifficulty()
         {
-            return new ObservableCollection<MidiFileInfo>(_midiService.CalculateDifficulty());
+            List<string> midiNames = _midiService.LoadMidiNames();
+            List<double> bpm = _midiService.LoadMidiBPM();
+            List<double> duration = _midiService.LoadSongDuration();
+            List<int> totalNotes = _midiService.LoadTotalNotes();
+
+            var midiFileInfos = bpm.Select((b, i) =>
+            {
+                double difficultyValue = (Math.Pow(b, 2) / 10000) * (totalNotes[i] / duration[i]);
+
+                string difficulty = difficultyValue switch
+                {
+                    <= 5 => "Easy",
+                    <= 15 => "Medium",
+                    _ => "Hard"
+                };
+
+                bool isFavourite = _midiService.IsSongFavourite(midiNames[i]);
+
+                return new MidiFileInfo
+                {
+                    Name = midiNames[i],
+                    Difficulty = difficulty,
+                    Favourite = isFavourite,
+                };
+            });
+
+            return new ObservableCollection<MidiFileInfo>(midiFileInfos);
         }
 
         private void FavouriteFucntion(object sender, DataGridCellEditEndingEventArgs e)
@@ -162,9 +219,10 @@ namespace BeetHovenWPF
 
                 if (result == MessageBoxResult.Yes)
                 {
-                    _midiService.DeleteSong(songName); 
+                    MidiService midiService = new MidiService();
+                    midiService.DeleteSong(songName); 
 
-                    MidiFileList.ItemsSource = _midiService.LoadMidiNames();
+                    MidiFileList.ItemsSource = midiService.LoadMidiNames();
                     fillList();
                 }
             }

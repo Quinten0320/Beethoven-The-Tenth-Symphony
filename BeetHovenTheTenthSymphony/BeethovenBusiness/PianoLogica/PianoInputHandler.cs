@@ -4,7 +4,7 @@ using System;
 using System.Linq;
 using System.Diagnostics;
 
-namespace BeethovenBusiness
+namespace BeethovenBusiness.PianoLogica
 {
     public class PianoInputHandler
     {
@@ -37,7 +37,7 @@ namespace BeethovenBusiness
                 _midiDevice.EventReceived += OnMidiEventReceived;
                 _midiDevice.StartEventsListening();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 throw new InvalidOperationException("No MIDI input devices found.");
             }
@@ -54,7 +54,8 @@ namespace BeethovenBusiness
                 {
                     Debug.WriteLine($"Event received: {e.Event}");
                     NotePressed?.Invoke(note);
-                } else
+                }
+                else
                 {
                     Debug.WriteLine($"Note off: {noteOnEvent.NoteNumber}");
                     NoteReleased?.Invoke(note);
@@ -67,7 +68,7 @@ namespace BeethovenBusiness
             string[] noteNames = { "C", "CSharp", "D", "DSharp", "E", "F", "FSharp", "G", "GSharp", "A", "ASharp", "B" };
 
             string noteName = noteNames[noteNumber % 12];
-            int octave = (noteNumber / 12) - 1;
+            int octave = noteNumber / 12 - 1;
 
             return $"{noteName}{octave}";
         }

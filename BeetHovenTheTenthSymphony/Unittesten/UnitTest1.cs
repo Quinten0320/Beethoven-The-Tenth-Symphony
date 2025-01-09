@@ -1,4 +1,4 @@
-using BeethovenBusiness;
+using BeethovenBusiness.MidiFileLogica;
 
 namespace Unittesten
 {
@@ -17,5 +17,7 @@ namespace Unittesten
             List<Melanchall.DryWetMidi.Interaction.Note> notes = uitlezenMidiLogica.HaalNotenOp(0);
             Assert.AreEqual(1, notes.Count);
         }
+        
+        
     }
 }

@@ -11,7 +11,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Security.Policy;
 
-namespace BeethovenDataAccesLayer
+namespace BeethovenDataAccesLayer.DataBaseAcces
 {
     public class Data
     {

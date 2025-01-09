@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BeethovenBusiness
+namespace BeethovenBusiness.MidiFileLogica
 {
     public class MidiFileInfo : INotifyPropertyChanged
     {
@@ -30,7 +30,7 @@ namespace BeethovenBusiness
 
         protected virtual void OnPropertyChanged(string propertyName)
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));         
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

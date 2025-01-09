@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -7,16 +5,16 @@ using System.Windows.Media;
 using System.Windows.Shapes;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
-using BeethovenBusiness;
 using System.Diagnostics;
 using System.ComponentModel;
-using Microsoft.VisualBasic;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Multimedia;
 using Melanchall.DryWetMidi.Interaction;
-using BeethovenDataAccesLayer;
 using System.Data.SQLite;
-using System.Security.Permissions;
+using BeethovenBusiness.Checkpoints;
+using BeethovenBusiness.PianoLogica;
+using BeethovenBusiness.MidiFileLogica;
+using BeethovenDataAccesLayer.DataBaseAcces;
 
 namespace BeetHovenWPF
 {
@@ -24,7 +22,6 @@ namespace BeetHovenWPF
     {
         private List<Rectangle> Blackkeys = new List<Rectangle>();
         private readonly PianoInputHandler _inputHandler;
-        private double Fallpercentage;
         private readonly UitlezenMidiLogica uitlezenLogic;
         public readonly string _midiPath;
         private readonly int _octaves = 8;
@@ -35,19 +32,15 @@ namespace BeetHovenWPF
         public string _selectedMidiName;
         private Slider slider;
         private TextBlock sliderValue;
-        private bool allesopgevraagd = true;
         private readonly MidiFile _currentMidi;
         private OutputDevice _outputDevice;
         private Playback _playback;
-        long getmaxlength;
-        long getgemiddeldelengte;
         double elapsedTime;
         bool muziekafspelen = true;
         private List<Checkpoint> _checkpoints = new List<Checkpoint>();
         private const int MaxSegments = 5;
         private List<Rectangle> checkpointMarkers = new List<Rectangle>();
         private Dictionary<Checkpoint, DispatcherTimer> _checkpointTimers = new Dictionary<Checkpoint, DispatcherTimer>();
-        private bool checkpointEnded = false;
         private static string connectionString = @"Data Source=..\..\..\..\..\BeethovenDataAccesLayer\BeethovenDataBase.db;Version=3";
         private List<Storyboard> activeAnimations = new List<Storyboard>();
         private DateTime _pauseStartTime;
@@ -60,8 +53,8 @@ namespace BeetHovenWPF
         private double _selectedSongDuration;
         int songID;
         List<Checkpoint> CheckpointsForSong;
-        private DateTime CheckpointStarttime;
-        private bool checkpointStarted = false;
+        private PlaybackService _playbackService;
+
 
         public PianoWindow(string midiPath, MidiFile midiFile, string MidiName)
         {
@@ -79,9 +72,8 @@ namespace BeetHovenWPF
             _feedbacklogic = new FeedbackLogic(uitlezenLogic);
 
             _currentMidi = midiFile;
-            _outputDevice = OutputDevice.GetByName("Microsoft GS Wavetable Synth");
-            _playback = midiFile.GetPlayback(_outputDevice);
-
+            _playbackService = new PlaybackService(midiFile);
+            _playbackService.Finished += OnPlaybackFinished;
 
             _feedbacklogic.NewFeedback += UpdateKeyFeedback;
 
@@ -91,18 +83,13 @@ namespace BeetHovenWPF
             _inputHandler.NoteReleased -= OnMidiNoteReleased;
             _inputHandler.NoteReleased += OnMidiNoteReleased;
 
-
             this.KeyDown += PianoWindowPauze;
-            _playback.Finished += OnPlaybackFinished;
-
 
             this.WindowState = WindowState.Maximized; // Set window to fullscreen
             this.WindowStyle = WindowStyle.None;     // Remove the title bar and borders
             this.ResizeMode = ResizeMode.NoResize;  // Prevent resizing to enforce fullscreen
 
             UpdateMidiStatus();
-
-            //_feedbacklogic = new FeedbackLogic(uitlezenLogic);
 
             // Simuleer de score voor testdoeleinden
             _feedbacklogic.StartScoreSimulation();
@@ -112,14 +99,7 @@ namespace BeetHovenWPF
             ScoreFrame.Content = _score;
             _feedbacklogic.ScoreUpdated += OnScoreUpdated;
         }
-        private double BerekenFallPercentage(Rectangle targetKey, double maxNoteHeight)
-        {
-            double totalDistance = PianoCanvas.ActualHeight + maxNoteHeight * 0.5;
-            double distanceToBottom = PianoCanvas.ActualHeight - targetKey.Height - targetKey.Height * 0.5;
-            double fallPercentage = distanceToBottom / totalDistance;
-            Debug.WriteLine($"Fallpercentage: {fallPercentage}");
-            return fallPercentage;
-        }
+
         private void UpdateMidiStatus()
         {
             try
@@ -160,7 +140,7 @@ namespace BeetHovenWPF
                 }
             });
         }
-
+        
         private void OnMidiNoteReleased(string note)
         {
             Dispatcher.Invoke(() =>
@@ -175,8 +155,7 @@ namespace BeetHovenWPF
                 }
             });
         }
-
-
+        
         private void HighlightKey(string note, bool isPressed)
         {
             var targetKey = PianoCanvas.Children
@@ -189,16 +168,16 @@ namespace BeetHovenWPF
                     (Blackkeys.Contains(targetKey) ? Brushes.Black : Brushes.White);
             }
         }
-
+        
         public void PianoWindow_Closing(object sender, CancelEventArgs e)
         {
-            if (_playback != null && _playback.IsRunning)
+            if (_playbackService.IsRunning)
             {
-                _playback.Stop();
+                _playbackService.Stop();
             }
 
             // Andere cleanup-logica
-            StopAndDisposePlayback();
+            _playbackService.Dispose();
 
             if (_timer != null)
             {
@@ -211,8 +190,7 @@ namespace BeetHovenWPF
                 _feedbacklogic.ScoreUpdated -= OnScoreUpdated;
             }
         }
-
-
+        
         private void PianoWindow_Loaded(object sender, RoutedEventArgs e)
         {
             GeneratePiano();
@@ -242,12 +220,13 @@ namespace BeetHovenWPF
                 }
             }
         }
-
+        
         private void PianoWindow_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             GeneratePiano();
             GenerateSlider(); //Herteken de piano bij venstergrootte-aanpassing
         }
+        
         private void Slider_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             if (slider.ActualWidth > 0)
@@ -256,6 +235,7 @@ namespace BeetHovenWPF
                 DrawAllMarkers();
             }
         }
+        
         private void UpdateSlider(double value)
         {
             int minutes = (int)value / 60;
@@ -263,6 +243,7 @@ namespace BeetHovenWPF
             slider.Value = value;
             sliderValue.Text = $"Duur: {minutes}:{seconds:00}";
         }
+        
         private double SelectedSongDuration()
         {
             List<string> Nameslist = _data.LoadMidiNames();
@@ -275,6 +256,7 @@ namespace BeetHovenWPF
             double SelectedDuration = DurationsList[i];
             return SelectedDuration;
         }
+        
         double RoundBasedOnFirstDecimal(double value)
         {
             // Haal de eerste decimaal op
@@ -292,6 +274,7 @@ namespace BeetHovenWPF
                 return Math.Floor(value);
             }
         }
+        
         private void GenerateSlider()
         {
 
@@ -360,7 +343,7 @@ namespace BeetHovenWPF
             MidiSliderContainer.Children.Add(slider);
             MidiSliderContainer.Children.Add(sliderValue);
         }
-
+        
         private void GeneratePiano()
         {
             // Remove existing piano keys
@@ -461,8 +444,7 @@ namespace BeetHovenWPF
                 try
                 {
                     elapsedTime = (DateTime.Now - _startTime).TotalSeconds;
-                    
-                    //Debug.WriteLine($"elapsed time: {elapsedTime}");
+
                     if (elapsedTime - 4 >= _selectedSongDuration)
                     {
                         UpdateSlider(_selectedSongDuration);
@@ -480,26 +462,20 @@ namespace BeetHovenWPF
                     if (elapsedTime > 4 && muziekafspelen)
                     {
                         muziekafspelen = false;
-                        await Task.Run(() => _playback.Start());
+                        await Task.Run(() => _playbackService.Start());
                     }
 
                     var feedbacknotestoplay = uitlezenLogic.HaalNotenOp(elapsedTime);
                     var notesToPlay = uitlezenLogic.HaalNotenOp(elapsedTime);
-                    //Debug.WriteLine($"aantal noten opgehaald: {notesToPlay.Count}");
                     _feedbacklogic.updateNotestoplay(feedbacknotestoplay, elapsedTime, _totalPauseDuration.TotalSeconds);
                     foreach (var note in notesToPlay)
-                    { 
+                    {
                         StartAnimationForNote(note.NoteName.ToString(), note.Length, note.Octave);
                     }
-                    
+
                     if (elapsedTime >= _selectedSongDuration)
                     {
                         _timer.Stop();
-                    }
-
-                    if (!_timer.IsEnabled)
-                    {
-                        //Debug.WriteLine($"timer runt niet meer: {_timer.Tag}");
                     }
 
                 }
@@ -510,7 +486,6 @@ namespace BeetHovenWPF
             }
             else
             {
-                //Debug.WriteLine("Window is dicht");
                 _timer.Stop();
             }
         }
@@ -531,7 +506,7 @@ namespace BeetHovenWPF
             MetricTimeSpan noteInSeconds = TimeConverter.ConvertTo<MetricTimeSpan>(length, uitlezenLogic.tempoMap);
             double noteHeight = (noteInSeconds.TotalSeconds / animationDuration) * 2000 * 2;
 
-            Rectangle fallingNote = new Rectangle
+            Rectangle fallingNote = new()
             {
                 Width = targetKey.Width,
                 Height = noteHeight,
@@ -582,7 +557,6 @@ namespace BeetHovenWPF
             storyboard.Begin();
         }
 
-
         private async Task RemoveNoteAfterDelay(Rectangle note, double delayInSeconds)
         {
             int elapsedSeconds = 0;
@@ -625,8 +599,8 @@ namespace BeetHovenWPF
                 //stop de timer en registreer de start van de pauze
                 _timer?.Stop();
                 _pauseStartTime = DateTime.Now;
-               
-                _playback.Stop();
+
+                _playbackService.Stop();
 
                 //pauzeer animaties
                 foreach (var storyboard in activeAnimations)
@@ -642,11 +616,9 @@ namespace BeetHovenWPF
                 _totalPauseDuration += DateTime.Now - _pauseStartTime;
                 _startTime = _startTime.Add(_totalPauseDuration);
 
-                //TimeSpan tijd = 1;
-                //_playback.MoveToTime();
                 if (!muziekafspelen)
                 {
-                    _playback.Start();
+                    _playbackService.Start();
                 }
 
                 //reset de pauzeduur
@@ -680,7 +652,7 @@ namespace BeetHovenWPF
         private async void OnPlaybackFinished(object sender, EventArgs e)
         {
             _timer?.Stop();
-            _playback.Stop();
+            _playbackService.Stop();
             HandlePlaybackStopped();
 
             await Task.Delay(3000); // Wait for 3 seconds
@@ -690,7 +662,7 @@ namespace BeetHovenWPF
                 // Close the current PianoWindow
                 this.Close();
                 List<int> topScores = _data.GetTopScores(GetSongID(_selectedMidiName));
-                
+
                 // Show the End Menu in a new window
                 var window = new Window
                 {
@@ -708,23 +680,12 @@ namespace BeetHovenWPF
             });
         }
 
-
-
         public void StopAndDisposePlayback()
         {
-            if (_playback != null)
-            {
-                _playback.Stop(); // Stop playback
-                _playback.Dispose(); // Dispose playback instance
-                _playback = null; // Clear the reference
-            }
-
-            if (_outputDevice != null)
-            {
-                _outputDevice.Dispose(); // Dispose output device
-                _outputDevice = null; // Clear the reference
-            }
+            _playbackService.Stop();
+            _playbackService.Dispose();
         }
+
         private void OnScoreUpdated(double score)
         {
             //Bijwerken van de ScorePage
@@ -787,6 +748,7 @@ namespace BeetHovenWPF
 
             SaveCheckpoint(songID, newCheckpoint);
         }
+        
         private void RemoveSegment(Checkpoint checkpoint)
         {
             // Remove checkpoint and cancel its associated timer or animations if active
@@ -806,7 +768,6 @@ namespace BeetHovenWPF
             Debug.WriteLine($"Removed checkpoint: {checkpoint.Name}, Timestamp: {checkpoint.TimeStamp}s");
         }
 
-
         private async Task StartPlaybackWithDelayAsync(Playback playback, TimeSpan delay)
         {
             await Task.Delay(delay); // Wacht de opgegeven tijd
@@ -814,20 +775,16 @@ namespace BeetHovenWPF
 
         }
 
-
         private async void StartSongAtSegment(Checkpoint checkpoint)
         {
-
             // Cancel all previous timers and animations
             CancelAllTimersAndAnimations();
-
 
             UpdateSlider(checkpoint.TimeStamp - 4);
 
             try
             {
                 double timeInSeconds = checkpoint.TimeStamp - 4;
-
 
                 int hours = (int)(timeInSeconds / 3600); // 1 hour = 3600 seconds
                 timeInSeconds %= 3600;
@@ -839,10 +796,9 @@ namespace BeetHovenWPF
                 int milliseconds = (int)((timeInSeconds - seconds) * 1000);
                 // Zet de tijd in seconden om naar MetricTimeSpan
                 MetricTimeSpan metricTimeSpan = new MetricTimeSpan(hours, minutes, seconds, milliseconds);
-                //Debug.WriteLine($"{metricTimeSpan.TotalMinutes}:{metricTimeSpan.TotalSeconds}:{metricTimeSpan.TotalMilliseconds}");
 
-                _playback.Start();
-                _playback.MoveToTime(metricTimeSpan);
+                _playbackService.Start();
+                _playbackService.MoveToTime(metricTimeSpan);
 
                 // Start a fresh timer
                 _timer = new DispatcherTimer
@@ -852,21 +808,14 @@ namespace BeetHovenWPF
                 };
                 _timer.Tick += Timer_Tick;
                 _timer.Start();
-
-                //Debug.WriteLine($"Deze timer runt: {_timer.Tag}");
-                //Debug.WriteLine("Timer started");
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Fout bij het starten vanaf checkpoint: {ex.Message}",
                     "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
-
-
-            // Start animations for notes from this checkpoint
-
-            //ShowNotesFromCheckpoint(checkpoint);
         }
+        
         private void CancelAllTimersAndAnimations()
         {
             // Stop the master timer
@@ -889,30 +838,6 @@ namespace BeetHovenWPF
             //Debug.WriteLine("Canceled all timers and animations.");
         }
 
-
-        //private void ShowNotesFromCheckpoint(Checkpoint checkpoint)
-        //{
-            
-        //    double startTime = checkpoint.TimeStamp;
-
-        //    double currentElapsedTime = (DateTime.Now - _startTime).TotalSeconds;
-
-        //    var notesToPlay = uitlezenLogic.HaalNotenOpCheckpoint(startTime);
-        //    Debug.WriteLine(startTime);
-        //    Debug.WriteLine($"aantal opgehaalde noten: {notesToPlay.Count}");
-            
-
-        //    // Animeer de noten
-        //    foreach (var note in notesToPlay)
-        //    {
-                
-        //        StartAnimationForNote(note.NoteName.ToString(), note.Length, note.Octave);
-                
-        //        Debug.WriteLine($"Checkpoint: {checkpoint.TimeStamp}s, ElapsedTime: {currentElapsedTime}s");
-        //    }
-
-        //    Debug.WriteLine($"Showing notes from checkpoint: {checkpoint.Name}, Timestamp: {checkpoint.TimeStamp}s");
-        //}
         private void ShowCheckpointsPopup()
         {
             // Maak een nieuw venster voor de pop-up
@@ -956,7 +881,6 @@ namespace BeetHovenWPF
                     
                     
                     _startTime = DateTime.Now - TimeSpan.FromSeconds(checkpoint.TimeStamp);
-                    checkpointStarted = true;
                     
                     uitlezenLogic.HerlaadNoten(checkpoint.TimeStamp);
                     StartSongAtSegment(checkpoint);
@@ -1011,8 +935,6 @@ namespace BeetHovenWPF
             checkpointsWindow.ShowDialog();
         }
 
-
-
         private void DrawSegmentMarker(double timestamp)
         {
             double position = (timestamp / _selectedSongDuration) * slider.ActualWidth;
@@ -1044,6 +966,7 @@ namespace BeetHovenWPF
             }
 
         }
+
         private void DrawAllMarkers()
         {
             int songID = GetSongID(_selectedMidiName);
@@ -1053,6 +976,7 @@ namespace BeetHovenWPF
                 DrawSegmentMarker(checkpoint.TimeStamp);
             }
         }
+
         private void AddCheckpointButton_Click(object sender, RoutedEventArgs e)
         {
             double timestamp = slider.Value;
@@ -1070,6 +994,7 @@ namespace BeetHovenWPF
 
 
         }
+        
         private void PlaySegmentsButton_Click(object sender, RoutedEventArgs e)
         {
             ShowCheckpointsPopup();
@@ -1109,6 +1034,7 @@ namespace BeetHovenWPF
                 command.ExecuteNonQuery();
             }
         }
+        
         public void DeleteCheckpoint(int songID, Checkpoint checkpoint)
         {
             // Verwijder het segment uit de database
@@ -1125,6 +1051,7 @@ namespace BeetHovenWPF
                 command.ExecuteNonQuery();
             }
         }
+        
         public int GetSongID(string songName)
         {
             using (var connection = new SQLiteConnection(connectionString))
@@ -1141,6 +1068,7 @@ namespace BeetHovenWPF
             }
             throw new Exception($"Nummer met naam '{songName}' niet gevonden in de database.");
         }
+        
         public List<Checkpoint> LoadCheckpoints(int songID)
         {
             
@@ -1172,6 +1100,5 @@ namespace BeetHovenWPF
 
             return checkpoints;
         }
-
     }
 }

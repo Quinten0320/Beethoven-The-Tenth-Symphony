@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BeethovenBusiness
+namespace BeethovenBusiness.PianoLogica
 {
     public sealed class PianoInputHandlerService
     {

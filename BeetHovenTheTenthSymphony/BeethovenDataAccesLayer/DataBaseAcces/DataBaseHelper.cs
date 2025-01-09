@@ -9,7 +9,7 @@ using System.Diagnostics;
 using System.Xml.Linq;
 using System.Security.Policy;
 
-namespace BeethovenDataAccesLayer
+namespace BeethovenDataAccesLayer.DataBaseAcces
 {
     public static class DataBaseHelper
     {

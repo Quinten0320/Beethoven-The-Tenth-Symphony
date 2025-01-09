@@ -19,7 +19,7 @@
                 <ComboBoxItem>Favourites</ComboBoxItem>
             </ComboBox>
             <TextBlock HorizontalAlignment="Center" Margin="0,-40,0,0" TextWrapping="Wrap" Text="Songs:" VerticalAlignment="Top" FontSize="24" DockPanel.Dock="Top"/>
-            <DataGrid x:Name="MidiFileList" CanUserAddRows="False" Margin="0,10,0,0" AutoGenerateColumns="False" MouseDoubleClick="MidiFileList_MouseDoubleClick" DockPanel.Dock="Top" CellEditEnding="FavouriteFucntion">
+            <DataGrid x:Name="MidiFileList" CanUserAddRows="False" Margin="0,10,0,0" AutoGenerateColumns="False" MouseDoubleClick="MidiFileList_MouseDoubleClick" DockPanel.Dock="Top" CellEditEnding="FavouriteFunction">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*" IsReadOnly="True"/>
                     <DataGridTextColumn Header="Difficulty" Binding="{Binding Difficulty}" Width="*" IsReadOnly="True"/>

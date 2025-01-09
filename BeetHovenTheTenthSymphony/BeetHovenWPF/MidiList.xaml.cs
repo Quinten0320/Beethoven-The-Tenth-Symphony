@@ -22,14 +22,12 @@ namespace BeetHovenWPF
         public MidiList()
         {
             InitializeComponent();
-            DataBaseHelper.InitializeDatabase();
             this.WindowState = WindowState.Maximized;
             _midiService = new MidiService();
             _midiFileInfos = new ObservableCollection<MidiFileInfo>();
-            _midiService.AddMissingMidiFilesToDatabase();
+            _midiService.InitializeDatabaseAndSync();
             fillList();
         }
-
         public void fillList()
         {
             _midiFileInfos = CalculateDifficulty();
@@ -67,8 +65,6 @@ namespace BeetHovenWPF
                 MessageBox.Show("Please select a valid MIDI file.", "Selection Error", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
-
-
         private void UploadButton_Click(object sender, RoutedEventArgs e)
         {
             OpenFileDialog dialog = new OpenFileDialog();
@@ -92,8 +88,6 @@ namespace BeetHovenWPF
                 }
             }
         }
-
-
         private void FilterButton_SelectionChanged_1(object sender, SelectionChangedEventArgs e)
         {
             if (FilterButton.SelectedItem is ComboBoxItem selectedItem && selectedItem.Content != null)
@@ -104,68 +98,15 @@ namespace BeetHovenWPF
         }
         private void ApplyFilter()
         {
-            if (_currentFilter == "Default")
-            {
-                MidiFileList.ItemsSource = _midiFileInfos;
-            }
-            else if (new[] { "Easy", "Medium", "Hard" }.Contains(_currentFilter))
-            {
-                MidiFileList.ItemsSource = _midiFileInfos
-                    .Where(file => file.Difficulty == _currentFilter)
-                    .ToList();
-            }
-            else if (_currentFilter == "A-Z")
-            {
-                MidiFileList.ItemsSource = _midiFileInfos
-                    .OrderBy(file => file.Name)
-                    .ToList();
-            }
-            else if (_currentFilter == "Z-A")
-            {
-                MidiFileList.ItemsSource = _midiFileInfos
-                    .OrderByDescending(file => file.Name)
-                    .ToList();
-            }
-            else if (_currentFilter == "Favourites")
-            {
-                MidiFileList.ItemsSource = _midiFileInfos
-                    .Where(file => file.Favourite == true)
-                    .ToList();
-            }
+            MidiFileList.ItemsSource = _midiService.ApplyFilter(_midiFileInfos.ToList(), _currentFilter);
         }
 
         public ObservableCollection<MidiFileInfo> CalculateDifficulty()
         {
-            List<string> midiNames = _midiService.LoadMidiNames();
-            List<double> bpm = _midiService.LoadMidiBPM();
-            List<double> duration = _midiService.LoadSongDuration();
-            List<int> totalNotes = _midiService.LoadTotalNotes();
-
-            var midiFileInfos = bpm.Select((b, i) =>
-            {
-                double difficultyValue = (Math.Pow(b, 2) / 10000) * (totalNotes[i] / duration[i]);
-
-                string difficulty = difficultyValue switch
-                {
-                    <= 5 => "Easy",
-                    <= 15 => "Medium",
-                    _ => "Hard"
-                };
-
-                bool isFavourite = _midiService.IsSongFavourite(midiNames[i]);
-
-                return new MidiFileInfo
-                {
-                    Name = midiNames[i],
-                    Difficulty = difficulty,
-                    Favourite = isFavourite,
-                };
-            });
-
-            return new ObservableCollection<MidiFileInfo>(midiFileInfos);
+            return new ObservableCollection<MidiFileInfo>(_midiService.CalculateDifficulty());
         }
 
-        private void FavouriteFucntion(object sender, DataGridCellEditEndingEventArgs e)
+        private void FavouriteFunction(object sender, DataGridCellEditEndingEventArgs e)
         {
             if (e.Column is DataGridCheckBoxColumn && e.EditingElement is CheckBox checkBox)
             {
@@ -181,7 +122,6 @@ namespace BeetHovenWPF
                 }
             }
         }
-
         private void DetectMidiInputButton_Click(object sender, RoutedEventArgs e)
         {
             try

@@ -16,6 +16,7 @@ using Melanchall.DryWetMidi.Multimedia;
 using Melanchall.DryWetMidi.Interaction;
 using BeethovenDataAccesLayer;
 using System.Data.SQLite;
+using System.Security.Permissions;
 
 namespace BeetHovenWPF
 {
@@ -47,7 +48,6 @@ namespace BeetHovenWPF
         private List<Rectangle> checkpointMarkers = new List<Rectangle>();
         private Dictionary<Checkpoint, DispatcherTimer> _checkpointTimers = new Dictionary<Checkpoint, DispatcherTimer>();
         private bool checkpointEnded = false;
-        private bool checkpointIsProcessed = false;
         private static string connectionString = @"Data Source=..\..\..\..\..\BeethovenDataAccesLayer\BeethovenDataBase.db;Version=3";
         private List<Storyboard> activeAnimations = new List<Storyboard>();
         private DateTime _pauseStartTime;
@@ -59,7 +59,9 @@ namespace BeetHovenWPF
         private bool _startedPlayback = false;
         private double _selectedSongDuration;
         int songID;
-        List<Checkpoint> CheckpointsForSong ;
+        List<Checkpoint> CheckpointsForSong;
+        private DateTime CheckpointStarttime;
+        private bool checkpointStarted = false;
 
         public PianoWindow(string midiPath, MidiFile midiFile, string MidiName)
         {
@@ -228,7 +230,8 @@ namespace BeetHovenWPF
                     CheckpointsForSong = LoadCheckpoints(songID);
                     _timer = new DispatcherTimer
                     {
-                        Interval = TimeSpan.FromSeconds(1.0 / 1000) 
+                        Interval = TimeSpan.FromSeconds(1.0 / 120), 
+                        Tag = "0"
                     };
                     _timer.Tick += Timer_Tick;
                     _timer.Start();
@@ -458,14 +461,12 @@ namespace BeetHovenWPF
                 try
                 {
                     elapsedTime = (DateTime.Now - _startTime).TotalSeconds;
-                    // Ensure slider reflects elapsed time
-                    double songDuration = _selectedSongDuration;
-
-                    if (elapsedTime - 4 >= songDuration)
+                    
+                    //Debug.WriteLine($"elapsed time: {elapsedTime}");
+                    if (elapsedTime - 4 >= _selectedSongDuration)
                     {
-                        UpdateSlider(songDuration);
+                        UpdateSlider(_selectedSongDuration);
                         _timer.Stop();
-                        checkpointEnded = true;
                         return;
                     }
                     else if (elapsedTime <= 4)
@@ -481,13 +482,26 @@ namespace BeetHovenWPF
                         muziekafspelen = false;
                         await Task.Run(() => _playback.Start());
                     }
+
                     var feedbacknotestoplay = uitlezenLogic.HaalNotenOp(elapsedTime);
-                    var notesToPlay  = uitlezenLogic.HaalNotenOp(elapsedTime);
+                    var notesToPlay = uitlezenLogic.HaalNotenOp(elapsedTime);
+                    //Debug.WriteLine($"aantal noten opgehaald: {notesToPlay.Count}");
                     _feedbacklogic.updateNotestoplay(feedbacknotestoplay, elapsedTime, _totalPauseDuration.TotalSeconds);
                     foreach (var note in notesToPlay)
-                    {
-                        StartAnimationForNote(note.NoteName.ToString(), note.Length, note.Octave);  
+                    { 
+                        StartAnimationForNote(note.NoteName.ToString(), note.Length, note.Octave);
                     }
+                    
+                    if (elapsedTime >= _selectedSongDuration)
+                    {
+                        _timer.Stop();
+                    }
+
+                    if (!_timer.IsEnabled)
+                    {
+                        //Debug.WriteLine($"timer runt niet meer: {_timer.Tag}");
+                    }
+
                 }
                 catch (Exception ex)
                 {
@@ -496,7 +510,7 @@ namespace BeetHovenWPF
             }
             else
             {
-                Debug.WriteLine("Window is dicht");
+                //Debug.WriteLine("Window is dicht");
                 _timer.Stop();
             }
         }
@@ -558,75 +572,6 @@ namespace BeetHovenWPF
 
             // Asynchrone taak om de noot na 10 seconden te verwijderen
             _ = RemoveNoteAfterDelay(fallingNote, 10);
-
-            storyboard.Completed += (s, e) =>
-            {
-                activeAnimations.Remove(storyboard);
-            };
-
-            activeAnimations.Add(storyboard);
-            storyboard.Begin();
-        }
-        private void StartAnimationForNoteAtTime(string note, long length, double octave, double delay)
-        {
-            var targetKey = PianoCanvas.Children
-                .OfType<Rectangle>()
-                .FirstOrDefault(r => r.Tag?.ToString() == $"PianoNote:{note}{octave}");
-
-            if (targetKey == null)
-            {
-                Debug.WriteLine($"Note {note}{octave} not found");
-                return;
-            }
-
-            double animationDuration = 10;
-
-            MetricTimeSpan noteInSeconds = TimeConverter.ConvertTo<MetricTimeSpan>(length, uitlezenLogic.tempoMap);
-            double noteHeight = (noteInSeconds.TotalSeconds / animationDuration) * 2000 * 2;
-
-            Rectangle fallingNote = new Rectangle
-            {
-                Width = targetKey.Width,
-                Height = noteHeight,
-                Tag = "FallingNote",
-                Fill = Blackkeys.Contains(targetKey) ? Brushes.Black : Brushes.Blue,
-                Stroke = Brushes.Red
-            };
-
-            double left = Canvas.GetLeft(targetKey);
-            double bottom = 2000;
-            Canvas.SetLeft(fallingNote, left);
-            Canvas.SetBottom(fallingNote, bottom);
-            PianoCanvas.Children.Add(fallingNote);
-
-            LinearGradientBrush opacityMask = new LinearGradientBrush
-            {
-                StartPoint = new Point(0, 0),
-                EndPoint = new Point(0, 1)
-            };
-            opacityMask.GradientStops.Add(new GradientStop(Colors.Black, 0.0));
-            opacityMask.GradientStops.Add(new GradientStop(Colors.Black, 0.5));
-            opacityMask.GradientStops.Add(new GradientStop(Colors.Transparent, 0.5));
-            opacityMask.GradientStops.Add(new GradientStop(Colors.Transparent, 1.0));
-            fallingNote.OpacityMask = opacityMask;
-
-            // Voeg vertraging toe aan de animatie
-            DoubleAnimation fallAnimation = new DoubleAnimation
-            {
-                From = 2000,
-                To = -2000,
-                BeginTime = TimeSpan.FromSeconds(delay), // Voeg vertraging toe
-                Duration = new Duration(TimeSpan.FromSeconds(animationDuration)),
-                FillBehavior = FillBehavior.Stop
-            };
-
-            var storyboard = new Storyboard();
-            Storyboard.SetTarget(fallAnimation, fallingNote);
-            Storyboard.SetTargetProperty(fallAnimation, new PropertyPath("(Canvas.Bottom)"));
-            storyboard.Children.Add(fallAnimation);
-
-            // Asynchrone taak om de noot te verwijderen na afloop van de animatie
-            _ = RemoveNoteAfterDelay(fallingNote, animationDuration + delay);
 
             storyboard.Completed += (s, e) =>
             {
@@ -877,8 +822,6 @@ namespace BeetHovenWPF
             CancelAllTimersAndAnimations();
 
 
-            _startTime = DateTime.Now - TimeSpan.FromSeconds(checkpoint.TimeStamp - 4);
-
             UpdateSlider(checkpoint.TimeStamp - 4);
 
             try
@@ -896,7 +839,7 @@ namespace BeetHovenWPF
                 int milliseconds = (int)((timeInSeconds - seconds) * 1000);
                 // Zet de tijd in seconden om naar MetricTimeSpan
                 MetricTimeSpan metricTimeSpan = new MetricTimeSpan(hours, minutes, seconds, milliseconds);
-                Debug.WriteLine($"{metricTimeSpan.TotalMinutes}:{metricTimeSpan.TotalSeconds}:{metricTimeSpan.TotalMilliseconds}");
+                //Debug.WriteLine($"{metricTimeSpan.TotalMinutes}:{metricTimeSpan.TotalSeconds}:{metricTimeSpan.TotalMilliseconds}");
 
                 _playback.Start();
                 _playback.MoveToTime(metricTimeSpan);
@@ -904,11 +847,14 @@ namespace BeetHovenWPF
                 // Start a fresh timer
                 _timer = new DispatcherTimer
                 {
-                    Interval = TimeSpan.FromSeconds(1.0 / 120) // 120 FPS
+                    Interval = TimeSpan.FromSeconds(1.0 / 120), // 120 FPS
+                    Tag = "1"
                 };
                 _timer.Tick += Timer_Tick;
                 _timer.Start();
-                Debug.WriteLine("Timer started");
+
+                //Debug.WriteLine($"Deze timer runt: {_timer.Tag}");
+                //Debug.WriteLine("Timer started");
             }
             catch (Exception ex)
             {
@@ -917,13 +863,9 @@ namespace BeetHovenWPF
             }
 
 
-
-            _startTime = DateTime.Now - TimeSpan.FromSeconds(checkpoint.TimeStamp);
-
             // Start animations for notes from this checkpoint
-            ShowNotesFromCheckpoint(checkpoint);
 
-
+            //ShowNotesFromCheckpoint(checkpoint);
         }
         private void CancelAllTimersAndAnimations()
         {
@@ -944,31 +886,33 @@ namespace BeetHovenWPF
                 PianoCanvas.Children.Remove(note);
             }
 
-            Debug.WriteLine("Canceled all timers and animations.");
+            //Debug.WriteLine("Canceled all timers and animations.");
         }
 
 
-        private void ShowNotesFromCheckpoint(Checkpoint checkpoint)
-        {
-            // Playback offset gebaseerd op checkpoint-tijd
-            double playbackOffset = checkpoint.TimeStamp;
+        //private void ShowNotesFromCheckpoint(Checkpoint checkpoint)
+        //{
+            
+        //    double startTime = checkpoint.TimeStamp;
 
-            // Haal noten op vanaf het huidige moment in de song
-            var notesToPlay = uitlezenLogic.HaalNotenOp(playbackOffset);
+        //    double currentElapsedTime = (DateTime.Now - _startTime).TotalSeconds;
 
-            // Animeer de noten
-            foreach (var note in notesToPlay)
-            {
-                // Vervang StartTime door Time
-                double relativeStartTime = (note.Time / 1000.0) - playbackOffset; // Deel Time door 1000 als het in ticks is
-                if (relativeStartTime >= 0)
-                {
-                    StartAnimationForNote(note.NoteName.ToString(), note.Length, note.Octave);
-                }
-            }
+        //    var notesToPlay = uitlezenLogic.HaalNotenOpCheckpoint(startTime);
+        //    Debug.WriteLine(startTime);
+        //    Debug.WriteLine($"aantal opgehaalde noten: {notesToPlay.Count}");
+            
 
-            Debug.WriteLine($"Showing notes from checkpoint: {checkpoint.Name}, Timestamp: {checkpoint.TimeStamp}s");
-        }
+        //    // Animeer de noten
+        //    foreach (var note in notesToPlay)
+        //    {
+                
+        //        StartAnimationForNote(note.NoteName.ToString(), note.Length, note.Octave);
+                
+        //        Debug.WriteLine($"Checkpoint: {checkpoint.TimeStamp}s, ElapsedTime: {currentElapsedTime}s");
+        //    }
+
+        //    Debug.WriteLine($"Showing notes from checkpoint: {checkpoint.Name}, Timestamp: {checkpoint.TimeStamp}s");
+        //}
         private void ShowCheckpointsPopup()
         {
             // Maak een nieuw venster voor de pop-up
@@ -1009,6 +953,12 @@ namespace BeetHovenWPF
                 // Voeg klik event toe aan het listItem
                 listItem.MouseLeftButtonUp += (sender, e) =>
                 {
+                    
+                    
+                    _startTime = DateTime.Now - TimeSpan.FromSeconds(checkpoint.TimeStamp);
+                    checkpointStarted = true;
+                    
+                    uitlezenLogic.HerlaadNoten(checkpoint.TimeStamp);
                     StartSongAtSegment(checkpoint);
                     checkpointsWindow.Close();
                 };
@@ -1066,9 +1016,9 @@ namespace BeetHovenWPF
         private void DrawSegmentMarker(double timestamp)
         {
             double position = (timestamp / _selectedSongDuration) * slider.ActualWidth;
-            Debug.WriteLine($"slider width: {slider.ActualWidth}");
-            Debug.WriteLine($"Duration: {_selectedSongDuration}");
-            Debug.WriteLine($"Timestamp: {timestamp}");
+            //Debug.WriteLine($"slider width: {slider.ActualWidth}");
+            //Debug.WriteLine($"Duration: {_selectedSongDuration}");
+            //Debug.WriteLine($"Timestamp: {timestamp}");
             if (position >= 0 && position <= MarkerCanvas.ActualWidth)
             {
                 // Maak de marker (bijvoorbeeld een rechthoek)

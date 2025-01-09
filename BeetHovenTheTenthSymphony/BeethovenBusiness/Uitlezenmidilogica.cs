@@ -13,12 +13,13 @@ namespace BeethovenBusiness
         public double animationDurationUitlezenMidiLogica = 0;
         private IEnumerable<Melanchall.DryWetMidi.Interaction.Note> notes;
         bool tweeKeerOphalen = false;
-
+        private string midiPath;
         public TempoMap tempoMap;
         MidiFile midiFile;
 
         public void LaadMidiBestand(string midiPath)
         {
+            this.midiPath = midiPath;
             try
             {
                 // Laad het MIDI-bestand en haal de tempo map op
@@ -50,6 +51,7 @@ namespace BeethovenBusiness
             }
         }
 
+        
         public List<Melanchall.DryWetMidi.Interaction.Note> HaalNotenOp(double elapsedTime)
         {
             if (notes == null || tempoMap == null)
@@ -71,6 +73,7 @@ namespace BeethovenBusiness
                 {
                     notesToRemove.Add(note);
                     notesToPlay.Add(note);
+                    
                 }
             }
 
@@ -89,5 +92,27 @@ namespace BeethovenBusiness
 
             return notesToPlay;
         }
-}
+
+        public void HerlaadNoten(double elapsedTime)
+        {
+            LaadMidiBestand(midiPath);
+            List<Note> notesToRemove = new List<Melanchall.DryWetMidi.Interaction.Note>();
+            foreach (var note in notes)
+            {
+                // Calculate note start time in seconds
+                long noteTimeInTicks = note.Time;
+                MetricTimeSpan metricTime = TimeConverter.ConvertTo<MetricTimeSpan>(noteTimeInTicks, tempoMap);
+                double noteTimeInSeconds = metricTime.TotalSeconds;
+
+
+                // Check if the note should be played (allowing a small threshold for precision)
+                if (elapsedTime >= noteTimeInSeconds)
+                {
+                    notesToRemove.Add(note);
+                }
+            }
+            notes = notes.Where(n => !notesToRemove.Contains(n)).ToList();
+        }
+
+    }
 }

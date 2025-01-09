@@ -9,7 +9,7 @@ namespace BeetHovenWPF
         private readonly MidiFile _midiFile;
         private readonly double _finalScore;
 
-        public EndMenu(MidiFile midiFile, double finalScore, List<int> topScores)
+        public EndMenu(MidiFile midiFile, double finalScore, List<int> topScores, bool isCheckpointActive)
         {
             InitializeComponent();
 
@@ -17,7 +17,14 @@ namespace BeetHovenWPF
             _finalScore = finalScore;
 
             // Toon de score in de UI
-            ScoreTextBlock.Text = $"Score: {Math.Round(_finalScore)}";
+            if (isCheckpointActive)
+            {
+                ScoreTextBlock.Text = $"Score: INVALID CHECKPOINTS USED!!!";
+            }
+            else
+            {
+                ScoreTextBlock.Text = $"Score: {Math.Round(_finalScore)}";
+            }
 
             TopScoresTextBlock.Text = "Top 3 Scores:\n" +
             string.Join("\n", topScores.Select((score, index) => $"{index + 1}. {score}"));

@@ -54,6 +54,7 @@ namespace BeetHovenWPF
         int songID;
         List<Checkpoint> CheckpointsForSong;
         private PlaybackService _playbackService;
+        private bool _isCheckpointActive;
 
 
         public PianoWindow(string midiPath, MidiFile midiFile, string MidiName)
@@ -66,6 +67,7 @@ namespace BeetHovenWPF
             Loaded += PianoWindow_Loaded;
             SizeChanged += PianoWindow_SizeChanged;
             Closing += PianoWindow_Closing; // Koppel het Closing-evenement
+            _isCheckpointActive = false;
 
             _inputHandler = PianoInputHandlerService.Instance;
             _selectedMidiName = MidiName;
@@ -667,7 +669,7 @@ namespace BeetHovenWPF
                 var window = new Window
                 {
                     Title = "End Menu",
-                    Content = new EndMenu(_currentMidi, finalScore, topScores),
+                    Content = new EndMenu(_currentMidi, finalScore, topScores, _isCheckpointActive),
                     WindowStyle = WindowStyle.None,
                     ResizeMode = ResizeMode.NoResize,
                     Width = ActualWidth,
@@ -688,7 +690,11 @@ namespace BeetHovenWPF
 
         private void OnScoreUpdated(double score)
         {
-            //Bijwerken van de ScorePage
+            if (_isCheckpointActive)
+            {
+                return;
+            }
+
             Dispatcher.Invoke(() =>
             {
                 _score.UpdateScore(score);
@@ -716,7 +722,11 @@ namespace BeetHovenWPF
                 string filePath = _midiPath;
 
                 // Sla de gegevens op via FeedbackLogic
-                _feedbacklogic.OnSongFinished(songTitle, songDuration, filePath);
+                if(!_isCheckpointActive)
+                {
+                    _feedbacklogic.OnSongFinished(songTitle, songDuration, filePath);
+                    return;
+                }
 
                 //Debug uitvoer
                 Debug.WriteLine($"Playback gestopt. Titel: {songTitle}, Duur: {songDuration} seconden, Bestand: {filePath}");
@@ -799,7 +809,8 @@ namespace BeetHovenWPF
 
                 _playbackService.Start();
                 _playbackService.MoveToTime(metricTimeSpan);
-
+                _score.UpdateScore(-99999);
+                _isCheckpointActive = true;
                 // Start a fresh timer
                 _timer = new DispatcherTimer
                 {

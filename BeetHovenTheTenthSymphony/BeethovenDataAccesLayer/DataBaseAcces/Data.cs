@@ -392,5 +392,17 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
 
             return topScores;
         }
+        public double SelectedSongDuration(string _selectedMidiName)
+        {
+            List<string> Nameslist = LoadMidiNames();
+            List<double> DurationsList = LoadSongDuration();
+
+            //int voor het goede nummer in de lijst
+            int i = Nameslist.FindIndex(d => d.ToString().Contains(_selectedMidiName));
+            if (i == -1)
+                throw new Exception("Geen duur gevonden voor geselecteerde MIDI.");
+            double SelectedDuration = DurationsList[i];
+            return SelectedDuration;
+        }
     }
 }

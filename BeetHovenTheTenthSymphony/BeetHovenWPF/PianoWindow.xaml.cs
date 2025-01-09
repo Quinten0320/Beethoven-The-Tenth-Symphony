@@ -37,7 +37,7 @@ namespace BeetHovenWPF
         private Playback _playback;
         double elapsedTime;
         bool muziekafspelen = true;
-        private List<Checkpoint> _checkpoints = new List<Checkpoint>();
+        
         private const int MaxSegments = 5;
         private List<Rectangle> checkpointMarkers = new List<Rectangle>();
         private Dictionary<Checkpoint, DispatcherTimer> _checkpointTimers = new Dictionary<Checkpoint, DispatcherTimer>();
@@ -51,16 +51,20 @@ namespace BeetHovenWPF
         private double finalScore;
         private bool _startedPlayback = false;
         private double _selectedSongDuration;
+        
         int songID;
         List<Checkpoint> CheckpointsForSong;
         private PlaybackService _playbackService;
         private bool _isCheckpointActive;
-
+        private CheckpointLogic _checkpointLogic;
 
         public PianoWindow(string midiPath, MidiFile midiFile, string MidiName)
         {
             InitializeComponent();
             uitlezenLogic = new UitlezenMidiLogica();
+
+            
+
             _midiPath = midiPath;
             _data = new Data();
 
@@ -72,6 +76,8 @@ namespace BeetHovenWPF
             _inputHandler = PianoInputHandlerService.Instance;
             _selectedMidiName = MidiName;
             _feedbacklogic = new FeedbackLogic(uitlezenLogic);
+
+            _checkpointLogic = new CheckpointLogic(_selectedSongDuration, _data, connectionString, _selectedMidiName);
 
             _currentMidi = midiFile;
             _playbackService = new PlaybackService(midiFile);
@@ -205,9 +211,9 @@ namespace BeetHovenWPF
                 {
                     uitlezenLogic.LaadMidiBestand(_midiPath);
                     _startTime = DateTime.Now;
-                    _selectedSongDuration = SelectedSongDuration();
-                    songID = GetSongID(_selectedMidiName);
-                    CheckpointsForSong = LoadCheckpoints(songID);
+                    _selectedSongDuration = _data.SelectedSongDuration(_selectedMidiName);
+                    songID = _checkpointLogic.GetSongID(_selectedMidiName);
+                    CheckpointsForSong = _checkpointLogic.LoadCheckpoints(songID);
                     _timer = new DispatcherTimer
                     {
                         Interval = TimeSpan.FromSeconds(1.0 / 120), 
@@ -246,37 +252,6 @@ namespace BeetHovenWPF
             sliderValue.Text = $"Duur: {minutes}:{seconds:00}";
         }
         
-        private double SelectedSongDuration()
-        {
-            List<string> Nameslist = _data.LoadMidiNames();
-            List<double> DurationsList = _data.LoadSongDuration();
-
-            //int voor het goede nummer in de lijst
-            int i = Nameslist.FindIndex(d => d.ToString().Contains(_selectedMidiName));
-            if (i == -1)
-                throw new Exception("Geen duur gevonden voor geselecteerde MIDI.");
-            double SelectedDuration = DurationsList[i];
-            return SelectedDuration;
-        }
-        
-        double RoundBasedOnFirstDecimal(double value)
-        {
-            // Haal de eerste decimaal op
-            double fractionalPart = value - Math.Floor(value); // Geeft alleen de decimale waarde
-            int firstDecimal = (int)(fractionalPart * 10); // Vermenigvuldig met 10 en cast naar int
-
-            if (firstDecimal >= 5)
-            {
-                // Rond af naar boven
-                return Math.Ceiling(value);
-            }
-            else
-            {
-                // Rond af naar beneden
-                return Math.Floor(value);
-            }
-        }
-        
         private void GenerateSlider()
         {
 
@@ -288,7 +263,7 @@ namespace BeetHovenWPF
 
             if (_selectedSongDuration > 60)
             {
-                DurationSonginMin = RoundBasedOnFirstDecimal(_selectedSongDuration / 60);
+                DurationSonginMin = _checkpointLogic.RoundBasedOnFirstDecimal(_selectedSongDuration / 60);
             }
 
 
@@ -663,7 +638,7 @@ namespace BeetHovenWPF
             {
                 // Close the current PianoWindow
                 this.Close();
-                List<int> topScores = _data.GetTopScores(GetSongID(_selectedMidiName));
+                List<int> topScores = _data.GetTopScores(_checkpointLogic.GetSongID(_selectedMidiName));
 
                 // Show the End Menu in a new window
                 var window = new Window
@@ -736,46 +711,6 @@ namespace BeetHovenWPF
             {
                 Debug.WriteLine($"Fout in HandlePlaybackStopped: {ex.Message}");
             }
-        }
-
-        private void AddCheckpoint(double timestamp, string name)
-        {
-            
-            if (CheckpointsForSong.Count >= MaxSegments)
-            {
-                MessageBox.Show("Maximum aantal segmenten bereikt!");
-                return;
-            }
-            if (timestamp < 4)
-            {
-                MessageBox.Show("Je kan pas een checkpoint plaatsen na 4 seconden!");
-                return;
-            }
-            var newCheckpoint = new Checkpoint { TimeStamp = timestamp, Name = name };
-            _checkpoints.Add(newCheckpoint);
-
-            DrawSegmentMarker(timestamp);
-
-            SaveCheckpoint(songID, newCheckpoint);
-        }
-        
-        private void RemoveSegment(Checkpoint checkpoint)
-        {
-            // Remove checkpoint and cancel its associated timer or animations if active
-            _checkpoints.Remove(checkpoint);
-
-            if (_checkpointTimers.ContainsKey(checkpoint))
-            {
-                var timer = _checkpointTimers[checkpoint];
-                timer.Stop();
-                _checkpointTimers.Remove(checkpoint);
-            }
-            int songID = GetSongID(_selectedMidiName);
-
-            DeleteCheckpoint(songID, checkpoint);
-
-            RemoveSegmentMarker(checkpoint);
-            Debug.WriteLine($"Removed checkpoint: {checkpoint.Name}, Timestamp: {checkpoint.TimeStamp}s");
         }
 
         private async Task StartPlaybackWithDelayAsync(Playback playback, TimeSpan delay)
@@ -866,8 +801,8 @@ namespace BeetHovenWPF
             {
                 Margin = new Thickness(10)
             };
-            int songID = GetSongID(_selectedMidiName);
-            List<Checkpoint> CheckpointsForSong = LoadCheckpoints(songID);
+            int songID = _checkpointLogic.GetSongID(_selectedMidiName);
+            List<Checkpoint> CheckpointsForSong = _checkpointLogic.LoadCheckpoints(songID);
 
             // Voeg alle checkpoints toe aan de ListBox
             foreach (var checkpoint in CheckpointsForSong)
@@ -890,9 +825,7 @@ namespace BeetHovenWPF
                 listItem.MouseLeftButtonUp += (sender, e) =>
                 {
                     
-                    
                     _startTime = DateTime.Now - TimeSpan.FromSeconds(checkpoint.TimeStamp);
-                    
                     uitlezenLogic.HerlaadNoten(checkpoint.TimeStamp);
                     StartSongAtSegment(checkpoint);
                     checkpointsWindow.Close();
@@ -910,7 +843,8 @@ namespace BeetHovenWPF
                 // Voeg klik event toe aan removeCheckpoint
                 removeCheckpoint.MouseLeftButtonUp += (sender, e) =>
                 {
-                    RemoveSegment(checkpoint);
+                    _checkpointLogic.RemoveSegment(checkpoint);
+                    RemoveSegmentMarker(checkpoint);
                     checkpointsListBox.Items.Refresh();
                 };
                 //var changeName = new TextBlock
@@ -980,8 +914,8 @@ namespace BeetHovenWPF
 
         private void DrawAllMarkers()
         {
-            int songID = GetSongID(_selectedMidiName);
-            List<Checkpoint> CheckpointsForSong = LoadCheckpoints(songID);
+            int songID = _checkpointLogic.GetSongID(_selectedMidiName);
+            List<Checkpoint> CheckpointsForSong = _checkpointLogic.LoadCheckpoints(songID);
             foreach (Checkpoint checkpoint in CheckpointsForSong)
             {
                 DrawSegmentMarker(checkpoint.TimeStamp);
@@ -991,18 +925,28 @@ namespace BeetHovenWPF
         private void AddCheckpointButton_Click(object sender, RoutedEventArgs e)
         {
             double timestamp = slider.Value;
-
-
-            //Debug.WriteLine(slider.Value);
+            int songID = _checkpointLogic.GetSongID(_selectedMidiName);
+            List<Checkpoint> CheckpointsForSong = _checkpointLogic.LoadCheckpoints(songID);
+            if (CheckpointsForSong.Count >= MaxSegments)
+            {
+                MessageBox.Show("Maximum aantal segmenten bereikt!");
+                return;
+            }
+            if (timestamp < 4)
+            {
+                MessageBox.Show("Je kan pas een checkpoint plaatsen na 4 seconden!");
+                return;
+            }
+            
             // Haal de naam op van de checkpoint (bijvoorbeeld uit een TextBox)
-            int songID = GetSongID(_selectedMidiName);
-            List<Checkpoint> CheckpointsForSong = LoadCheckpoints(songID);
-            string name = "Checkpoint " + (CheckpointsForSong.Count + 1);  // Genereer een naam voor het checkpoint
-
+            
+            string name = "Checkpoint " + (CheckpointsForSong.Count + 1);
+            
             // Voeg het checkpoint toe aan de lijst
-            AddCheckpoint(timestamp, name);
-
-
+            _checkpointLogic.AddCheckpoint(timestamp, name);
+            
+            // Maak de marker voor het checkpoint
+            DrawSegmentMarker(timestamp);
 
         }
         
@@ -1030,86 +974,6 @@ namespace BeetHovenWPF
             }
         }
 
-        public void SaveCheckpoint(int songID, Checkpoint checkpoint)
-        {
-            // Bewaar de segmenten in de database, bijvoorbeeld in een SQL-tabel
-            using (var connection = new SQLiteConnection(connectionString))
-            {
-                connection.Open();
-                var command = new SQLiteCommand("INSERT INTO Checkpoint (songID, Timestamp, Name) VALUES (@songID, @Timestamp, @Name)", connection);
-
-                command.Parameters.AddWithValue("@songID", songID);
-                command.Parameters.AddWithValue("@Timestamp", checkpoint.TimeStamp);
-                command.Parameters.AddWithValue("@Name", checkpoint.Name);
-
-                command.ExecuteNonQuery();
-            }
-        }
         
-        public void DeleteCheckpoint(int songID, Checkpoint checkpoint)
-        {
-            // Verwijder het segment uit de database
-            using (var connection = new SQLiteConnection(connectionString))
-            {
-                connection.Open();
-                var command = new SQLiteCommand(
-            "DELETE FROM Checkpoint WHERE songID = @songID AND Timestamp = @Timestamp",
-            connection
-        );
-
-                command.Parameters.AddWithValue("@songID", songID);
-                command.Parameters.AddWithValue("@Timestamp", checkpoint.TimeStamp);
-                command.ExecuteNonQuery();
-            }
-        }
-        
-        public int GetSongID(string songName)
-        {
-            using (var connection = new SQLiteConnection(connectionString))
-            {
-                connection.Open();
-                var command = new SQLiteCommand("SELECT ID FROM Song WHERE Title = @songName", connection);
-                command.Parameters.AddWithValue("@songName", songName);
-
-                var result = command.ExecuteScalar();
-                if (result != null && int.TryParse(result.ToString(), out int songID))
-                {
-                    return songID;
-                }
-            }
-            throw new Exception($"Nummer met naam '{songName}' niet gevonden in de database.");
-        }
-        
-        public List<Checkpoint> LoadCheckpoints(int songID)
-        {
-            
-            var checkpoints = new List<Checkpoint>();
-
-            using (var connection = new SQLiteConnection(connectionString))
-            {
-                connection.Open();
-                var command = new SQLiteCommand(
-                    "SELECT Timestamp, Name FROM Checkpoint WHERE songID = @songID",
-                    connection
-                );
-
-                command.Parameters.AddWithValue("@songID", songID);
-
-                using (var reader = command.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        var checkpoint = new Checkpoint
-                        {
-                            TimeStamp = Convert.ToDouble(reader["Timestamp"]),
-                            Name = reader["Name"]?.ToString()
-                        };
-                        checkpoints.Add(checkpoint);
-                    }
-                }
-            }
-
-            return checkpoints;
-        }
     }
 }

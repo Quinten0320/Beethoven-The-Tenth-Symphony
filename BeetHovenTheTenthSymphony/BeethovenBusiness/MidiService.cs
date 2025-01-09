@@ -97,5 +97,52 @@ namespace BeethovenBusiness
             }
         }
 
+        public List<MidiFileInfo> CalculateDifficulty()
+        {
+            List<string> midiNames = LoadMidiNames();
+            List<double> bpm = LoadMidiBPM();
+            List<double> duration = LoadSongDuration();
+            List<int> totalNotes = LoadTotalNotes();
+
+            return bpm.Select((b, i) =>
+            {
+                double difficultyValue = (Math.Pow(b, 2) / 10000) * (totalNotes[i] / duration[i]);
+
+                string difficulty = difficultyValue switch
+                {
+                    <= 5 => "Easy",
+                    <= 15 => "Medium",
+                    _ => "Hard"
+                };
+
+                bool isFavourite = IsSongFavourite(midiNames[i]);
+
+                return new MidiFileInfo
+                {
+                    Name = midiNames[i],
+                    Difficulty = difficulty,
+                    Favourite = isFavourite,
+                };
+            }).ToList();
+        }
+
+        public List<MidiFileInfo> ApplyFilter(List<MidiFileInfo> midiFileInfos, string filter)
+        {
+            return filter switch
+            {
+                "Default" => midiFileInfos,
+                "Easy" or "Medium" or "Hard" => midiFileInfos.Where(file => file.Difficulty == filter).ToList(),
+                "A-Z" => midiFileInfos.OrderBy(file => file.Name).ToList(),
+                "Z-A" => midiFileInfos.OrderByDescending(file => file.Name).ToList(),
+                "Favourites" => midiFileInfos.Where(file => file.Favourite).ToList(),
+                _ => midiFileInfos,
+            };
+        }
+
+        public void InitializeDatabaseAndSync()
+        {
+            DataBaseHelper.InitializeDatabase();
+            AddMissingMidiFilesToDatabase();
+        }
     }
 }

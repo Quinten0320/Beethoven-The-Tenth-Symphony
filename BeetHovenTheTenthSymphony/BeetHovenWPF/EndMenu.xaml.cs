@@ -19,7 +19,7 @@ namespace BeetHovenWPF
             // Toon de score in de UI
             if (isCheckpointActive)
             {
-                ScoreTextBlock.Text = $"Score: INVALID CHECKPOINTS USED!!!";
+                ScoreTextBlock.Text = $"Score: INVALID, CHECKPOINTS HAVE BEEN USED!!!";
             }
             else
             {

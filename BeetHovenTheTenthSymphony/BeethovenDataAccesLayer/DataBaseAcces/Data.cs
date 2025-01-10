@@ -364,6 +364,7 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
 
         public List<int> GetTopScores(int songID)
         {
+            try { 
             var topScores = new List<int>();
             string query = @"
             SELECT Score
@@ -391,6 +392,12 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
             }
 
             return topScores;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error getting top scores: {ex.Message}");
+                return new List<int>();
+            }
         }
         public double SelectedSongDuration(string _selectedMidiName)
         {

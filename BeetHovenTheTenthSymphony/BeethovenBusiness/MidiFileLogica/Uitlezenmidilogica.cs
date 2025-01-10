@@ -9,14 +9,13 @@ namespace BeethovenBusiness.MidiFileLogica
 {
     public class UitlezenMidiLogica : IUitlezenMidiLogica
     {
-        public double FallPercentage { get; set; } = 0;
-        public double AnimationDurationUitlezenMidiLogica { get; set; } = 0;
         private IEnumerable<Note> notes;
         private bool tweeKeerOphalen = false;
         private string midiPath;
         public TempoMap tempoMap;
         private MidiFile midiFile;
 
+        //laad een midi bestand in
         public void LaadMidiBestand(string midiPath)
         {
             this.midiPath = midiPath;
@@ -32,6 +31,7 @@ namespace BeethovenBusiness.MidiFileLogica
             }
         }
 
+        //haalt alle noten op uit de pianotracks
         private IEnumerable<Note> ExtractPianoNotes(MidiFile midiFile)
         {
             var pianoTracks = midiFile.GetTrackChunks()
@@ -51,6 +51,7 @@ namespace BeethovenBusiness.MidiFileLogica
                               .ToList();
         }
 
+        //haalt alle noten op die op dit exacte moment afgespeeld moeten worden
         public List<Note> HaalNotenOp(double elapsedTime)
         {
             if (notes == null || tempoMap == null)
@@ -63,14 +64,14 @@ namespace BeethovenBusiness.MidiFileLogica
             {
                 double noteTimeInSeconds = GetNoteTimeInSeconds(note);
 
-                if (elapsedTime >= noteTimeInSeconds)
+                if (elapsedTime >= noteTimeInSeconds) //als note afgespeeld had moeten worden/moet worden
                 {
                     notesToRemove.Add(note);
                     notesToPlay.Add(note);
                 }
             }
 
-            if (tweeKeerOphalen)
+            if (tweeKeerOphalen) //2 keer ophalen omdat hij wordt opgehaald door de feedbacklogic en de animatielogic
             {
                 notes = notes.Except(notesToRemove).ToList();
                 tweeKeerOphalen = false;
@@ -83,13 +84,15 @@ namespace BeethovenBusiness.MidiFileLogica
             return notesToPlay;
         }
 
-        public void HerlaadNoten(double elapsedTime)
+        //verwijder noten tot een bepaald moment (bijvoorbeeld checkpoints)
+        public void HerlaadNoten(double elapsedTime) 
         {
             LaadMidiBestand(midiPath);
             notes = notes.Where(note => elapsedTime < GetNoteTimeInSeconds(note)).ToList();
         }
 
-        private double GetNoteTimeInSeconds(Note note)
+        //haalt de tijd op wanneer de noot afgespeeld moet worden
+        private double GetNoteTimeInSeconds(Note note) 
         {
             long noteTimeInTicks = note.Time;
             MetricTimeSpan metricTime = TimeConverter.ConvertTo<MetricTimeSpan>(noteTimeInTicks, tempoMap);

@@ -9,8 +9,6 @@ namespace BeethovenBusiness
 {
     public interface IUitlezenMidiLogica
     {
-        double FallPercentage { get; set; }
-        double AnimationDurationUitlezenMidiLogica { get; set; }
         void LaadMidiBestand(string midiPath);
         List<Note> HaalNotenOp(double elapsedTime);
         void HerlaadNoten(double elapsedTime);

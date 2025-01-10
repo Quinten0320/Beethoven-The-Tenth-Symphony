@@ -209,6 +209,7 @@ namespace BeetHovenWPF
             {
                 try
                 {
+                    // laad het midi bestand en start tde timer
                     uitlezenLogic.LaadMidiBestand(_midiPath);
                     _startTime = DateTime.Now;
                     _selectedSongDuration = _data.SelectedSongDuration(_selectedMidiName);
@@ -422,7 +423,7 @@ namespace BeetHovenWPF
                 {
                     elapsedTime = (DateTime.Now - _startTime).TotalSeconds;
 
-                    if (elapsedTime - 4 >= _selectedSongDuration)
+                    if (elapsedTime - 4 >= _selectedSongDuration) 
                     {
                         UpdateSlider(_selectedSongDuration);
                         _timer.Stop();
@@ -436,7 +437,7 @@ namespace BeetHovenWPF
                     {
                         UpdateSlider(elapsedTime - 4);
                     }
-                    if (elapsedTime > 4 && muziekafspelen)
+                    if (elapsedTime > 4 && muziekafspelen) //als de eerste noot de piano bereikt
                     {
                         muziekafspelen = false;
                         await Task.Run(() => _playbackService.Start());
@@ -469,7 +470,7 @@ namespace BeetHovenWPF
 
         private void StartAnimationForNote(string note, long length, double octave)
         {
-            var targetKey = PianoCanvas.Children
+            var targetKey = PianoCanvas.Children //piano toets waar de noot op gespeeld moet worden
                 .OfType<Rectangle>() 
                 .FirstOrDefault(r => r.Tag?.ToString() == $"PianoNote:{note}{octave}");
             if (targetKey == null)
@@ -483,7 +484,7 @@ namespace BeetHovenWPF
             MetricTimeSpan noteInSeconds = TimeConverter.ConvertTo<MetricTimeSpan>(length, uitlezenLogic.tempoMap);
             double noteHeight = (noteInSeconds.TotalSeconds / animationDuration) * 2000 * 2;
 
-            Rectangle fallingNote = new()
+            Rectangle fallingNote = new() //noot
             {
                 Width = targetKey.Width,
                 Height = noteHeight,
@@ -498,7 +499,7 @@ namespace BeetHovenWPF
             Canvas.SetBottom(fallingNote, bottom);
             PianoCanvas.Children.Add(fallingNote);
 
-            LinearGradientBrush opacityMask = new LinearGradientBrush
+            LinearGradientBrush opacityMask = new LinearGradientBrush //onderkant van de noot onzichtbaar maken
             {
                 StartPoint = new Point(0, 0),
                 EndPoint = new Point(0, 1)
@@ -522,7 +523,6 @@ namespace BeetHovenWPF
             Storyboard.SetTargetProperty(fallAnimation, new PropertyPath("(Canvas.Bottom)"));
             storyboard.Children.Add(fallAnimation);
 
-            // Asynchrone taak om de noot na 10 seconden te verwijderen
             _ = RemoveNoteAfterDelay(fallingNote, 10);
 
             storyboard.Completed += (s, e) =>

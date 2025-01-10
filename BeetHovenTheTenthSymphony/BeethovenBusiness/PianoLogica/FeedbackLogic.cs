@@ -12,12 +12,9 @@ namespace BeethovenBusiness.PianoLogica
     {
         private readonly PianoInputHandler _inputHandler;
         private List<Melanchall.DryWetMidi.Interaction.Note>? _notes;
-        private HashSet<Melanchall.DryWetMidi.Interaction.Note> _processedNotes = new();
         public double _elapsedTime = 0;
-        private string _midiFilePath;
         private double _animationDuration = 4;
         private double _actualDuration;
-        private Stopwatch _timer;
         private UitlezenMidiLogica _uitlezenMidiLogica;
 
         public event Action<string> NewFeedback = delegate { };
@@ -31,20 +28,6 @@ namespace BeethovenBusiness.PianoLogica
 
         private readonly Data _data = new Data();
 
-        public double AnimationDuration
-        {
-            get { return _animationDuration; }
-            set { _animationDuration = value; }
-        }
-
-        public double AcutalDuration
-        {
-            get { return _actualDuration; }
-            set { _actualDuration = value; }
-        }
-
-        public object UitlezenMidiLogica { get; set; }
-
         public FeedbackLogic(
             UitlezenMidiLogica uitlezenMidiLogica
             )
@@ -55,8 +38,7 @@ namespace BeethovenBusiness.PianoLogica
             _inputHandler.NotePressed += HandleNotePressed;
         }
 
-        //TODO private maken
-        public void HandleNotePressed(string note)
+        private void HandleNotePressed(string note)
         {
             double currentTime = _elapsedTime - _extraTime;
             List<Melanchall.DryWetMidi.Interaction.Note> notesToRemove = new List<Melanchall.DryWetMidi.Interaction.Note>();

@@ -3,21 +3,33 @@ using Melanchall.DryWetMidi.Interaction;
 using Melanchall.DryWetMidi.MusicTheory;
 using System;
 using System.Collections.Generic;
-
 using System.Data.SQLite;
-
+using BeethovenBusiness.Interfaces;
+using BeethovenBusiness.Achievements;
 using System.Diagnostics;
 
 using System.IO;
 using System.Security.Policy;
+using BeethovenBusiness.Checkpoints;
 
 namespace BeethovenDataAccesLayer.DataBaseAcces
 {
-    public class Data
+    public class Data : IData
     {
         private string _folderPath = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\..\..\BeethovenDataAccesLayer\MidiFiles"));
         private static string _connectionString = @"Data Source=..\..\..\..\..\BeethovenDataAccesLayer\BeethovenDataBase.db;Version=3";
-        private void SearchFolder()
+        
+        public void InitializeDatabase()
+        {
+            DataBaseHelper.InitializeDatabase();
+        }
+
+        public void UpdateDatabase(string query)
+        {
+            DataBaseHelper.UpdateDatabase(query);
+        }
+
+        public void SearchFolder()
         {
             try
             {
@@ -35,6 +47,8 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
         {
             return _folderPath;
         }
+
+        #region GeenAchievements
 
         public List<string> LoadMidiNames()
         {
@@ -157,7 +171,7 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
             File.Copy(selectedFile, destinationFilePath);
         }
 
-        private bool ConfirmMidi(string filePath)
+        public bool ConfirmMidi(string filePath)
         {
             try
             {
@@ -196,7 +210,7 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
             }
         }
 
-        private bool IsSongInDatabase(string title)
+        public bool IsSongInDatabase(string title)
         {
             string query = "SELECT COUNT(*) FROM Song WHERE Title = @Title";
 
@@ -214,7 +228,7 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
             }
         }
 
-        private double GetMidiFileDuration(string filePath)
+        public double GetMidiFileDuration(string filePath)
         {
             MidiFile midiFile = MidiFile.Read(filePath);
             var duration = midiFile.GetDuration<MetricTimeSpan>();
@@ -411,5 +425,219 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
             double SelectedDuration = DurationsList[i];
             return SelectedDuration;
         }
+
+        #endregion
+
+        #region Achievements
+
+        public bool AchievementExists(Achievement achievement)
+        {
+            string query = "SELECT COUNT(*) FROM Achievements WHERE Name = @Name";
+            using (var connection = new SQLiteConnection(_connectionString))
+            {
+                connection.Open();
+                using (var command = new SQLiteCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@Name", achievement.Name);
+                    long count = (long)command.ExecuteScalar();
+                    return count > 0;
+                }
+            }
+        }
+
+
+        public void InitializeAchievements()
+        {
+
+            var achievements = new List<Achievement>();
+            achievements.Add(new Achievement("Eerste Noot", "Speel je eerste noot."));
+            achievements.Add(new Achievement("First Song", "Speel een volledig liedje."));
+            achievements.Add(new Achievement("Practice Mode", "Gebruik oefenmodus."));
+            achievements.Add(new Achievement("Perfect Score", "Speel een noot tot op de miliseconde perfect."));
+            achievements.Add(new Achievement("Early Bird", "Speel voor 8 uur 's ochtends."));
+            achievements.Add(new Achievement("Night Owl", "Speel na 10 uur 's avonds."));
+            achievements.Add(new Achievement("Noob", "Behaal 0 score op een level"));
+
+            foreach (var achievement in achievements)
+            {
+                if (!AchievementExists(achievement))
+                {
+                    AddAchievement(achievement);
+                }
+            }
+            if (DateTime.Now.TimeOfDay < new TimeSpan(8, 0, 0))
+            {
+                Achievement achievement = new Achievement("Early Bird", "Speel voor 8 uur 's ochtends.");
+                UpdateAchievementStatus(achievement);
+            }
+            else if (DateTime.Now.TimeOfDay > new TimeSpan(22, 0, 0))
+            {
+                Achievement achievement = new Achievement("Night Owl", "Speel na 10 uur 's avonds.");
+                UpdateAchievementStatus(achievement);
+            }
+        }
+
+
+        public void AddAchievement(Achievement achievement)
+        {
+            string insertAchievementQuery = @"
+            INSERT INTO Achievements (Name, Description, DatumBehaald, IsBehaald)
+            VALUES (@Name, @Description, NULL, 0);";
+            using (var connection = new SQLiteConnection(_connectionString))
+            {
+                connection.Open();
+                using (var command = new SQLiteCommand(insertAchievementQuery, connection))
+                {
+                    command.Parameters.AddWithValue("@Name", achievement.Name);
+                    command.Parameters.AddWithValue("@Description", achievement.Description);
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
+        public void UpdateAchievementStatus(Achievement achievement)
+        {
+            string updateAchievementQuery = @"
+            UPDATE Achievements
+            SET IsBehaald = 1, DatumBehaald = datetime('now') 
+            WHERE Name = @AchievementNaam;";
+            using (var connection = new SQLiteConnection(_connectionString))
+            {
+                connection.Open();
+                using (var command = new SQLiteCommand(updateAchievementQuery, connection))
+                {
+                    command.Parameters.AddWithValue("@AchievementNaam", achievement.Name);
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
+        
+        public List<Achievement> GetAchievements()
+        {
+            List<Achievement> achievements = new List<Achievement>();
+            string query = "SELECT Name, Description, DatumBehaald, IsBehaald FROM Achievements";
+            using (var connection = new SQLiteConnection(_connectionString))
+            {
+                connection.Open();
+                using (var command = new SQLiteCommand(query, connection))
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        Achievement achievement = new Achievement(
+                            reader.GetString(0),
+                            reader.GetString(1))
+                        {
+                            DatumBehaald = reader.IsDBNull(2) ? DateTime.MinValue : reader.GetDateTime(2),
+                            IsBehaald = reader.GetBoolean(3)
+                        };
+                        achievements.Add(achievement);
+                    }
+                }
+            }
+            return achievements;
+        }
+
+        public void DeleteAchievement(Achievement achievement)
+        {
+            string deleteAchievementQuery = "DELETE FROM Achievements WHERE Name = @Name;";
+            using (var connection = new SQLiteConnection(_connectionString))
+            {
+                connection.Open();
+                using (var command = new SQLiteCommand(deleteAchievementQuery, connection))
+                {
+                    command.Parameters.AddWithValue("@Name", achievement.Name);
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
+        #endregion
+
+        #region Checkpoint
+        public void SaveCheckpoint(int songID, Checkpoint checkpoint)
+        {
+            // Bewaar de segmenten in de database, bijvoorbeeld in een SQL-tabel
+            using (var connection = new SQLiteConnection(_connectionString))
+            {
+                connection.Open();
+                var command = new SQLiteCommand("INSERT INTO Checkpoint (songID, Timestamp, Name) VALUES (@songID, @Timestamp, @Name)", connection);
+
+                command.Parameters.AddWithValue("@songID", songID);
+                command.Parameters.AddWithValue("@Timestamp", checkpoint.TimeStamp);
+                command.Parameters.AddWithValue("@Name", checkpoint.Name);
+
+                command.ExecuteNonQuery();
+            }
+        }
+        public void DeleteCheckpoint(int songID, Checkpoint checkpoint)
+        {
+            // Verwijder het segment uit de database
+            using (var connection = new SQLiteConnection(_connectionString))
+            {
+                connection.Open();
+                var command = new SQLiteCommand(
+            "DELETE FROM Checkpoint WHERE songID = @songID AND Timestamp = @Timestamp",
+            connection
+        );
+
+                command.Parameters.AddWithValue("@songID", songID);
+                command.Parameters.AddWithValue("@Timestamp", checkpoint.TimeStamp);
+                command.ExecuteNonQuery();
+            }
+        }
+        public int GetSongID(string songName)
+        {
+            using (var connection = new SQLiteConnection(_connectionString))
+            {
+                connection.Open();
+                var command = new SQLiteCommand("SELECT ID FROM Song WHERE Title = @songName", connection);
+                command.Parameters.AddWithValue("@songName", songName);
+
+                var result = command.ExecuteScalar();
+                if (result != null && int.TryParse(result.ToString(), out int songID))
+                {
+                    return songID;
+                }
+            }
+            throw new Exception($"Nummer met naam '{songName}' niet gevonden in de database.");
+        }
+
+        public List<Checkpoint> LoadCheckpoints(int songID)
+        {
+
+            var checkpoints = new List<Checkpoint>();
+
+            using (var connection = new SQLiteConnection(_connectionString))
+            {
+                connection.Open();
+                var command = new SQLiteCommand(
+                    "SELECT Timestamp, Name FROM Checkpoint WHERE songID = @songID",
+                    connection
+                );
+
+                command.Parameters.AddWithValue("@songID", songID);
+
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        var checkpoint = new Checkpoint
+                        {
+                            TimeStamp = Convert.ToDouble(reader["Timestamp"]),
+                            Name = reader["Name"]?.ToString()
+                        };
+                        checkpoints.Add(checkpoint);
+                    }
+                }
+            }
+
+            return checkpoints;
+        }
+
+        #endregion
+
+
     }
 }

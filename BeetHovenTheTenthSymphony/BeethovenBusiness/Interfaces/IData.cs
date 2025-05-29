@@ -1,4 +1,6 @@
-﻿using Melanchall.DryWetMidi.Core;
+﻿using BeethovenBusiness.Achievements;
+using BeethovenBusiness.Checkpoints;
+using Melanchall.DryWetMidi.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +11,11 @@ namespace BeethovenBusiness.Interfaces
 {
     public interface IData
     {
+        double GetMidiFileDuration(string filePath);
+        bool IsSongInDatabase(string title);
+        bool ConfirmMidi(string filePath);
+        void InitializeDatabase();
+        void SearchFolder();
         List<string> LoadMidiNames();
         void AddFavourite(int songId);
         bool IsSongFavourite(string songName);
@@ -21,6 +28,20 @@ namespace BeethovenBusiness.Interfaces
         List<double> LoadSongDuration();
         List<int> LoadTotalNotes();
         void AddMissingMidiFilesToDatabase();
-        void DeleteSong(string songName);
+        void DeleteSong(int songId);
+        void SaveScore(string songTitle, int score);
+        List<int> GetTopScores(int songID);
+        double SelectedSongDuration(string _selectedMidiName);
+        bool AchievementExists(Achievement achievement);
+        void InitializeAchievements();
+        void AddAchievement(Achievement achievement);
+        List<Achievement> GetAchievements();
+        void DeleteAchievement(Achievement achievement);
+        void UpdateAchievementStatus(Achievement achievement);
+        List<Checkpoint> LoadCheckpoints(int songID);
+        int GetSongID(string songName);
+        void DeleteCheckpoint(int songID, Checkpoint checkpoint);
+        void SaveCheckpoint(int songID, Checkpoint checkpoint);
+        void UpdateDatabase(string query);
     }
 }

@@ -10,16 +10,16 @@ using System.ComponentModel;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Multimedia;
 using Melanchall.DryWetMidi.Interaction;
-using System.Data.SQLite;
 using BeethovenBusiness.Checkpoints;
 using BeethovenBusiness.PianoLogica;
 using BeethovenBusiness.MidiFileLogica;
-using BeethovenDataAccesLayer.DataBaseAcces;
+using BeethovenBusiness.Interfaces;
 
 namespace BeetHovenWPF
 {
     public partial class PianoWindow : Window
     {
+        
         private List<Rectangle> Blackkeys = new List<Rectangle>();
         private readonly PianoInputHandler _inputHandler;
         private readonly UitlezenMidiLogica uitlezenLogic;
@@ -28,7 +28,7 @@ namespace BeetHovenWPF
         private const int _whiteKeyCount = 7;
         private DateTime _startTime;
         private DispatcherTimer _timer;
-        private readonly Data _data;
+        private readonly IData _data;
         public string _selectedMidiName;
         private Slider slider;
         private TextBlock sliderValue;
@@ -58,7 +58,7 @@ namespace BeetHovenWPF
         private bool _isCheckpointActive;
         private CheckpointLogic _checkpointLogic;
 
-        public PianoWindow(string midiPath, MidiFile midiFile, string MidiName)
+        public PianoWindow(string midiPath, MidiFile midiFile, string MidiName, IData data)
         {
             InitializeComponent();
             uitlezenLogic = new UitlezenMidiLogica();
@@ -66,7 +66,7 @@ namespace BeetHovenWPF
             
 
             _midiPath = midiPath;
-            _data = new Data();
+            _data = data;
 
             Loaded += PianoWindow_Loaded;
             SizeChanged += PianoWindow_SizeChanged;
@@ -75,7 +75,7 @@ namespace BeetHovenWPF
 
             _inputHandler = PianoInputHandlerService.Instance;
             _selectedMidiName = MidiName;
-            _feedbacklogic = new FeedbackLogic(uitlezenLogic);
+            _feedbacklogic = new FeedbackLogic(uitlezenLogic, _data);
 
             _checkpointLogic = new CheckpointLogic(_selectedSongDuration, _data, connectionString, _selectedMidiName);
 
@@ -617,7 +617,7 @@ namespace BeetHovenWPF
             if (show)
             {
                 PauseFrame.Visibility = Visibility.Visible; //toon de Frame
-                PauseFrame.Navigate(new PauzeMenu(_currentMidi));       //navigeer naar PauzeMenu
+                PauseFrame.Navigate(new PauzeMenu(_currentMidi, _data));       //navigeer naar PauzeMenu
             }
             else
             {

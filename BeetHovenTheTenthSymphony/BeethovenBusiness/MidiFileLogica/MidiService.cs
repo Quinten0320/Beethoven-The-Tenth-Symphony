@@ -1,5 +1,4 @@
 ﻿using BeethovenBusiness.Interfaces;
-using BeethovenDataAccesLayer.DataBaseAcces;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Interaction;
 using System.Collections.Generic;
@@ -7,9 +6,14 @@ using System.Security.Policy;
 
 namespace BeethovenBusiness.MidiFileLogica
 {
-    public class MidiService : IData
+    public class MidiService
     {
-        private readonly Data _data = new Data();
+        private readonly IData _data;
+        
+        public MidiService(IData data)
+        {
+            _data = data;
+        }
 
         public List<string> LoadMidiNames()
         {
@@ -133,8 +137,29 @@ namespace BeethovenBusiness.MidiFileLogica
         }
         public void InitializeDatabaseAndSync()
         {
-            DataBaseHelper.InitializeDatabase();
+            _data.InitializeDatabase();
             AddMissingMidiFilesToDatabase();
+            UpdateDatabase();
+            _data.InitializeAchievements();
+        }
+
+        //voeg hier je database update dingetjes voor je feature toe
+        public void UpdateDatabase()
+        {
+            var querys = new List<string>();
+            querys.Add(@"
+                        CREATE TABLE IF NOT EXISTS Achievements (
+                            ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                            Name TEXT NOT NULL,
+                            Description TEXT NOT NULL,
+                            DatumBehaald DATETIME,
+                            IsBehaald BOOLEAN NOT NULL
+                        );");
+
+            foreach(var query in querys)
+            {
+                _data.UpdateDatabase(query);
+            }
         }
     }
 }

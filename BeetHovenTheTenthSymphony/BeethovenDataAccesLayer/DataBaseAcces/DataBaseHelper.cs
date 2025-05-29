@@ -64,6 +64,7 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
                             SongID INT NOT NULL,
                             FOREIGN KEY(SongID) REFERENCES Song(ID)
                         );";
+                    
 
                     using (var command = new SQLiteCommand(connection))
                     {
@@ -78,7 +79,21 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
 
                         command.CommandText = createFavouritesTableQuery;
                         command.ExecuteNonQuery();
+
                     }
+                }
+            }
+        }
+
+        public static void UpdateDatabase(string query)
+        {
+            using (var connection = new SQLiteConnection(_connectionString))
+            {
+                connection.Open();
+                
+                using (var command = new SQLiteCommand(query, connection))
+                {
+                    command.ExecuteNonQuery();
                 }
             }
         }

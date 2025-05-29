@@ -14,4 +14,8 @@
     <PackageReference Include="System.Data.SQLite.EF6" Version="1.0.119" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\BeethovenBusiness\BeethovenBusiness.csproj" />
+  </ItemGroup>
+
 </Project>

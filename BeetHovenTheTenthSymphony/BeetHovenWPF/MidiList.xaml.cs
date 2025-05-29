@@ -2,9 +2,9 @@
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
+using BeethovenBusiness.Interfaces;
 using BeethovenBusiness.MidiFileLogica;
 using BeethovenBusiness.PianoLogica;
-using BeethovenDataAccesLayer.DataBaseAcces;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Interaction;
 using Melanchall.DryWetMidi.Multimedia;
@@ -19,11 +19,14 @@ namespace BeetHovenWPF
         private ObservableCollection<MidiFileInfo> _midiFileInfos;
         private string _currentFilter = "Default";
         string selectedMidiName;
+        private readonly IData _data;
+
         public MidiList()
         {
+            _data = DataFactory.CreateDefaultData();
             InitializeComponent();
             this.WindowState = WindowState.Maximized;
-            _midiService = new MidiService();
+            _midiService = new MidiService(_data);
             _midiFileInfos = new ObservableCollection<MidiFileInfo>();
             _midiService.InitializeDatabaseAndSync();
             fillList();
@@ -51,7 +54,7 @@ namespace BeetHovenWPF
                     string folderPath = _midiService.getFolderPath();
                     string completePath = folderPath + "\\" + selectedMidiName + ".mid";
 
-                    PianoWindow pianowindow = new PianoWindow(completePath, midiFile, selectedMidiName);
+                    PianoWindow pianowindow = new PianoWindow(completePath, midiFile, selectedMidiName, _data);
                     pianowindow.ShowDialog();
                 }
                 catch (Exception ex)
@@ -159,7 +162,7 @@ namespace BeetHovenWPF
 
                 if (result == MessageBoxResult.Yes)
                 {
-                    MidiService midiService = new MidiService();
+                    MidiService midiService = new MidiService(_data);
                     midiService.DeleteSong(songName); 
 
                     MidiFileList.ItemsSource = midiService.LoadMidiNames();

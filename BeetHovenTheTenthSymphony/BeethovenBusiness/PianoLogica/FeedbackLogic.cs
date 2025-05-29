@@ -3,7 +3,7 @@ using Melanchall.DryWetMidi.Interaction;
 using System.Diagnostics;
 using Melanchall.DryWetMidi.MusicTheory;
 using BeethovenBusiness.MidiFileLogica;
-using BeethovenDataAccesLayer.DataBaseAcces;
+using BeethovenBusiness.Interfaces;
 
 namespace BeethovenBusiness.PianoLogica
 {
@@ -16,7 +16,7 @@ namespace BeethovenBusiness.PianoLogica
         private double _animationDuration = 4;
         private double _actualDuration;
         private UitlezenMidiLogica _uitlezenMidiLogica;
-
+        private readonly IData _data; 
         public event Action<string> NewFeedback = delegate { };
 
         private int _correctNotes = 0;
@@ -26,12 +26,9 @@ namespace BeethovenBusiness.PianoLogica
         private double _score = 0.0;
         private double _extraTime = 0;
 
-        private readonly Data _data = new Data();
-
-        public FeedbackLogic(
-            UitlezenMidiLogica uitlezenMidiLogica
-            )
+        public FeedbackLogic(UitlezenMidiLogica uitlezenMidiLogica, IData data)
         {
+            _data = data;
             _notes = new List<Melanchall.DryWetMidi.Interaction.Note>();
             _uitlezenMidiLogica = uitlezenMidiLogica;
             _inputHandler = PianoInputHandlerService.Instance;

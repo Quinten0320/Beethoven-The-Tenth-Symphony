@@ -1,4 +1,5 @@
-﻿using Melanchall.DryWetMidi.Core;
+﻿using BeethovenBusiness.Interfaces;
+using Melanchall.DryWetMidi.Core;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -20,8 +21,10 @@ namespace BeetHovenWPF
     public partial class PauzeMenu : Page
     {
         private readonly MidiFile _midiFile;
-        public PauzeMenu(MidiFile midiFile)
+        private readonly IData _data;
+        public PauzeMenu(MidiFile midiFile, IData data)
         {
+            _data = data;
             InitializeComponent();
             _midiFile = midiFile;
         }
@@ -70,7 +73,7 @@ namespace BeetHovenWPF
                 pianoWindow.Close();
 
                 //maak een nieuw exemplaar van PianoWindow
-                var newPianoWindow = new PianoWindow(midiPath, _midiFile, selectedMidiName);
+                var newPianoWindow = new PianoWindow(midiPath, _midiFile, selectedMidiName, _data);
                 newPianoWindow.Show();
             }
         }

@@ -15,6 +15,29 @@ namespace BeethovenBusiness.MidiFileLogica
             _data = data;
         }
 
+        public List<int> GetProgramNumbersWhoNeedsToPlay(int songId)
+        {
+            return _data.GetProgramNumbersWhoNeedsToPlay(songId);
+        }
+
+        public bool GetIfInstrumentIsSelected(int songID, int programNumber)
+        {
+            try
+            {
+                return _data.GetIfInstrumentIsSelected(songID, programNumber);
+            }
+            catch (InvalidOperationException e)
+            {
+                _data.addTrack(programNumber, songID);
+                return true;
+            }
+        }
+
+        public void saveInstrumentList(List<TrackSettings> trackSettings, int songID)
+        {
+            _data.saveInstrumentList(trackSettings, songID);
+        }
+        
         public List<string> LoadMidiNames()
         {
             return _data.LoadMidiNames();
@@ -161,7 +184,7 @@ namespace BeethovenBusiness.MidiFileLogica
                             Description TEXT NOT NULL,
                             DatumBehaald DATETIME,
                             IsBehaald BOOLEAN NOT NULL
-                        );");
+                        );"); //:(
 
             foreach(var query in querys)
             {

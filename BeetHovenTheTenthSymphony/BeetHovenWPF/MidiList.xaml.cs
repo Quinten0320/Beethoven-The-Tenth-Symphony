@@ -176,14 +176,14 @@ namespace BeetHovenWPF
             if (sender is Button button && button.Tag != null)
             {
                 string songName = button.Tag.ToString();
-                var midiInfo = _midiFileInfos.FirstOrDefault(m => m.Name == songName);
+                MidiFileInfo midiInfo = _midiFileInfos.FirstOrDefault(m => m.Name == songName);
         
                 if (midiInfo != null)
                 {
                     string folderPath = _midiService.getFolderPath();
                     string completePath = folderPath + "\\" +midiInfo.Name + ".mid";
                     
-                    var settingsDialog = new SongSettingsWindow(completePath)
+                    var settingsDialog = new SongSettingsWindow(completePath, _midiService, midiInfo)
                     {
                         Owner = this // Set the owner to make it modal
                     };

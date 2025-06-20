@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Security.Policy;
 using BeethovenBusiness.Checkpoints;
+using BeethovenBusiness.MidiFileLogica;
 
 namespace BeethovenDataAccesLayer.DataBaseAcces
 {
@@ -27,6 +28,88 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
         public void UpdateDatabase(string query)
         {
             DataBaseHelper.UpdateDatabase(query);
+        }
+        
+        
+        public bool GetIfInstrumentIsSelected(int songID, int programNumber)
+        {
+            string query = @"
+            SELECT IsPlayed
+            FROM Tracks
+            WHERE SongID = @SongID and ProgramNumber = @ProgramNumber";
+
+            using (var connection = new SQLiteConnection(_connectionString))
+            {
+                connection.Open();
+
+                using (var command = new SQLiteCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@SongID", songID);
+                    command.Parameters.AddWithValue("@ProgramNumber", programNumber);
+
+                    using (var reader = command.ExecuteReader())
+                    {
+                        if (!reader.Read())
+                        {
+                            throw new InvalidOperationException(
+                                $"No track found for SongID={songID} and ProgramNumber={programNumber}.");
+                        }
+
+                        return Convert.ToBoolean(reader["IsPlayed"]);
+                    }
+                }
+            }
+        }
+
+        public void saveInstrumentList(List<TrackSettings> trackSettings, int songId)
+        {
+            using (var connection = new SQLiteConnection(_connectionString))
+            {
+                connection.Open();
+                foreach (var track in trackSettings)
+                {
+                    string query = @"
+                    UPDATE tracks
+                    SET IsPlayed = @IsPlayed
+                    WHERE SongID = @SongID AND ProgramNumber = @ProgramNumber";
+                    
+                    using (var command = new SQLiteCommand(query, connection))
+                    {
+                        command.Parameters.AddWithValue("@SongID", songId);
+                        command.Parameters.AddWithValue("@ProgramNumber", track.programNumber);
+                        command.Parameters.AddWithValue("@IsPlayed", track.IsSelected);
+                        
+                        command.ExecuteNonQuery();
+                    }
+                }
+            }
+        }
+
+        public List<int> GetProgramNumbersWhoNeedsToPlay(int songId)
+        {
+            List<int> programNumbers = new List<int>();
+            using (var connection = new SQLiteConnection(_connectionString))
+            {
+                connection.Open();
+
+                string query = @"
+                    SELECT ProgramNumber
+                    FROM tracks
+                    WHERE SongID = @SongID AND IsPlayed = 1;";
+                    
+                    using (var command = new SQLiteCommand(query, connection))
+                    {
+                        command.Parameters.AddWithValue("@SongID", songId);
+                        using (var reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                programNumbers.Add(reader.GetInt32(0)); // index 0 = eerste kolom: ProgramNumber
+                            }
+                        }
+                    }
+            }
+            return programNumbers;
         }
 
         public void SearchFolder()
@@ -269,20 +352,28 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
                 }
                 foreach (int programNumber in programNumbers)
                 {
-                    string insertTrackQuery = @"
+                    addTrack(programNumber, songId);
+                }
+            }
+        }
+
+        public void addTrack(int programNumber, int songId)
+        {
+            using (var connection = new SQLiteConnection(_connectionString))
+            {
+                connection.Open();
+                
+                string insertTrackQuery = @"
                         INSERT INTO Tracks (ProgramNumber, SongId, IsPlayed)
                         VALUES (@ProgramNumber, @SongId, 1);"; // automaties wel afspelen 
                 
-                    using (var trackCommand = new SQLiteCommand(insertTrackQuery, connection))
-                    {
-                        trackCommand.Parameters.AddWithValue("@ProgramNumber", programNumber);
-                        trackCommand.Parameters.AddWithValue("@SongId", songId);
-                        trackCommand.ExecuteNonQuery();
-                    }
+                using (var trackCommand = new SQLiteCommand(insertTrackQuery, connection))
+                {
+                    trackCommand.Parameters.AddWithValue("@ProgramNumber", programNumber);
+                    trackCommand.Parameters.AddWithValue("@SongId", songId);
+                    trackCommand.ExecuteNonQuery();
                 }
             }
-            
-            
         }
 
         public void AddFavourite(int songId)

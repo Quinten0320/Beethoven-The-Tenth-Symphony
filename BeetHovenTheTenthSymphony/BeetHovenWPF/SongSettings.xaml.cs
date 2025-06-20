@@ -11,19 +11,18 @@ namespace BeetHovenWPF
 {
     public partial class SongSettingsWindow : Window
     {
-        public class TrackSetting
-        {
-            public string Name { get; set; }
-            public bool IsSelected { get; set; }
-        }
-
-        public List<bool> SelectedTracks { get; private set; }
-
-        public SongSettingsWindow(string completePath)
+        // public List<bool> SelectedTracks { get; private set; }
+        List<TrackSettings> tracks = new List<TrackSettings>();
+        int songId;
+        MidiService service;
+        
+        public SongSettingsWindow(string completePath, MidiService service, MidiFileInfo midiInfo)
         {
             InitializeComponent();
             
             MidiFile midiFile = MidiFile.Read(completePath);
+            songId = service.GetSongIdByName(midiInfo.Name);
+            this.service = service;
 
             // Haal alle unieke ProgramNumbers op uit alle tracks
             List<int> usedProgramNumbers = midiFile.GetTrackChunks()
@@ -33,13 +32,13 @@ namespace BeetHovenWPF
                 .OrderBy(num => num)
                 .ToList();
             
-            List<TrackSetting> tracks = new List<TrackSetting>();
             foreach (var programNumber in usedProgramNumbers)
             {
-                tracks.Add(new TrackSetting()
+                tracks.Add(new TrackSettings()
                 {
                     Name = GeneralMidiInstrumentName.GetGeneralMidiInstrumentName(programNumber), 
-                    IsSelected = false  //falko dit moet uiteindelijk opgehaalt worden uit database of andere opslag zodat hij het herindert
+                    IsSelected = service.GetIfInstrumentIsSelected(songId, programNumber),
+                    programNumber = programNumber
                 });
             }
             
@@ -48,12 +47,7 @@ namespace BeetHovenWPF
 
         private void OKButton_Click(object sender, RoutedEventArgs e)
         {
-            // Collect which tracks are selected
-            SelectedTracks = new List<bool>();
-            foreach (TrackSetting item in TrackListBox.Items)
-            {
-                SelectedTracks.Add(item.IsSelected);
-            }
+            service.saveInstrumentList(tracks, songId);
             
             DialogResult = true;
             Close();

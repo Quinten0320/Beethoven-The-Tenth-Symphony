@@ -5,7 +5,6 @@
         WindowStartupLocation="CenterScreen">
     <Grid>
         <DockPanel>
-
             <Button x:Name="DetectMidiInputButton" Content="Detect Midi Input" HorizontalAlignment="Right" VerticalAlignment="Top" Width="120" Margin="0,10,10,0" Click="DetectMidiInputButton_Click" DockPanel.Dock="Top"/>
             <Button x:Name="RefreshButton" Content="Refresh" HorizontalAlignment="Right" VerticalAlignment="Top" Width="120" Margin="0,10,10,0" Click="refreshButton_Click" DockPanel.Dock="Top"/>
             <Button x:Name="UploadButton" Content="Upload midi file" HorizontalAlignment="Right" Width="120" Margin="0,10,10,0" DockPanel.Dock="Top" Click="UploadButton_Click"/>
@@ -24,17 +23,19 @@
                     <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*" IsReadOnly="True"/>
                     <DataGridTextColumn Header="Difficulty" Binding="{Binding Difficulty}" Width="*" IsReadOnly="True"/>
                     <DataGridCheckBoxColumn Header="Favourite" Binding="{Binding Favourite}" IsReadOnly="False"/>
-                    <DataGridTemplateColumn Header="Actions">
+                    <DataGridTemplateColumn Header="Actions" Width="Auto">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <Button Content="Delete" Click="DeleteButton_Click" Tag="{Binding Name}" />
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Content="Delete" Click="DeleteButton_Click" Tag="{Binding Name}" Margin="0,0,5,0"/>
+                                    <Button Content="⚙" Click="SettingsButton_Click" Tag="{Binding Name}" 
+                                            FontSize="14" Padding="5,0" ToolTip="Settings"/>
+                                </StackPanel>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
                 </DataGrid.Columns>
             </DataGrid>
-
         </DockPanel>
-
     </Grid>
 </Window>

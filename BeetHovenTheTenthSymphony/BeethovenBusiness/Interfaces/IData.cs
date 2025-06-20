@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using BeethovenBusiness.MidiFileLogica;
 
 namespace BeethovenBusiness.Interfaces
 {
@@ -23,7 +24,7 @@ namespace BeethovenBusiness.Interfaces
         MidiFile LoadMidiFile(string name);
         void UploadMidiFile(string selectedFile);
         string getFolderPath();
-        void AddSong(string fileName, double duration, string fullPath);
+        public void AddSong(string title, double duration, string filePath, List<int> programNumber);
         List<double> LoadMidiBPM();
         List<double> LoadSongDuration();
         List<int> LoadTotalNotes();
@@ -43,5 +44,13 @@ namespace BeethovenBusiness.Interfaces
         void DeleteCheckpoint(int songID, Checkpoint checkpoint);
         void SaveCheckpoint(int songID, Checkpoint checkpoint);
         void UpdateDatabase(string query);
+        
+        bool GetIfInstrumentIsSelected(int songID, int programNumber);
+
+        void addTrack(int programNumber, int songId);
+        public void saveInstrumentList(List<TrackSettings> trackSettings, int songId);
+
+        public List<int> GetProgramNumbersWhoNeedsToPlay(int songId);
+
     }
 }

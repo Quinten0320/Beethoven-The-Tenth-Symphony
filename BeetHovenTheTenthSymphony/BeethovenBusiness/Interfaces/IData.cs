@@ -23,7 +23,7 @@ namespace BeethovenBusiness.Interfaces
         MidiFile LoadMidiFile(string name);
         void UploadMidiFile(string selectedFile);
         string getFolderPath();
-        void AddSong(string fileName, double duration, string fullPath);
+        public void AddSong(string title, double duration, string filePath, List<int> programNumber);
         List<double> LoadMidiBPM();
         List<double> LoadSongDuration();
         List<int> LoadTotalNotes();

@@ -195,12 +195,21 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
                 try
                 {
                     string fileName = Path.GetFileNameWithoutExtension(midiFilePath);
+                    MidiFile midiFile = MidiFile.Read(midiFilePath);
 
+
+                    List<int> usedProgramNumbers = midiFile.GetTrackChunks()
+                        .SelectMany(track => track.Events.OfType<ProgramChangeEvent>())
+                        .Select(pc => (int)pc.ProgramNumber)
+                        .Distinct()
+                        .OrderBy(num => num)
+                        .ToList();
+                    
                     if (!IsSongInDatabase(fileName))
                     {
                         double duration = GetMidiFileDuration(midiFilePath);
 
-                        AddSong(fileName, duration, midiFilePath);
+                        AddSong(fileName, duration, midiFilePath, usedProgramNumbers);
                     }
                 }
                 catch (Exception ex)
@@ -235,12 +244,14 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
             return duration.TotalMicroseconds / 1_000_000.0; // Convert to seconds
         }
 
-        public void AddSong(string title, double duration, string filePath)
+        public void AddSong(string title, double duration, string filePath, List<int> programNumbers)
         {
             string insertSongQuery = @"
             INSERT INTO Song (Title, Duration, FilePath)
             VALUES (@Title, @Duration, @FilePath);";
 
+            int songId;
+            
             using (var connection = new SQLiteConnection(_connectionString))
             {
                 connection.Open();
@@ -250,10 +261,28 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
                     command.Parameters.AddWithValue("@Title", title);
                     command.Parameters.AddWithValue("@Duration", duration);
                     command.Parameters.AddWithValue("@FilePath", filePath);
-
                     command.ExecuteNonQuery();
+
+                    command.CommandText = "SELECT last_insert_rowid();";
+                    command.Parameters.Clear();
+                    songId = Convert.ToInt32(command.ExecuteScalar());
+                }
+                foreach (int programNumber in programNumbers)
+                {
+                    string insertTrackQuery = @"
+                        INSERT INTO Tracks (ProgramNumber, SongId, IsPlayed)
+                        VALUES (@ProgramNumber, @SongId, 1);"; // automaties wel afspelen 
+                
+                    using (var trackCommand = new SQLiteCommand(insertTrackQuery, connection))
+                    {
+                        trackCommand.Parameters.AddWithValue("@ProgramNumber", programNumber);
+                        trackCommand.Parameters.AddWithValue("@SongId", songId);
+                        trackCommand.ExecuteNonQuery();
+                    }
                 }
             }
+            
+            
         }
 
         public void AddFavourite(int songId)

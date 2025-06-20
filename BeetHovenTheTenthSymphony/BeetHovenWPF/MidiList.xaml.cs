@@ -49,7 +49,7 @@ namespace BeetHovenWPF
 
                 try
                 {
-                    MidiFile midiFile = _midiService.LoadMidiFile(selectedMidiName);// niet nodig maar kan handig zijn misschien
+                    MidiFile midiFile = _midiService.LoadMidiFile(selectedMidiName);// niet nodig maar kan handig zijn misschien ??
 
                     string folderPath = _midiService.getFolderPath();
                     string completePath = folderPath + "\\" + selectedMidiName + ".mid";
@@ -167,6 +167,36 @@ namespace BeetHovenWPF
 
                     MidiFileList.ItemsSource = midiService.LoadMidiNames();
                     fillList();
+                }
+            }
+        }
+
+        private void SettingsButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.Tag != null)
+            {
+                string songName = button.Tag.ToString();
+                var midiInfo = _midiFileInfos.FirstOrDefault(m => m.Name == songName);
+        
+                if (midiInfo != null)
+                {
+                    string folderPath = _midiService.getFolderPath();
+                    string completePath = folderPath + "\\" +midiInfo.Name + ".mid";
+                    
+                    var settingsDialog = new SongSettingsWindow(completePath)
+                    {
+                        Owner = this // Set the owner to make it modal
+                    };
+            
+                    if (settingsDialog.ShowDialog() == true)
+                    {
+                        // Here you would use settingsDialog.SelectedTracks to update playback
+                        // For example:
+                        // _midiService.UpdateTrackSelection(midiInfo.Name, settingsDialog.SelectedTracks);
+                
+                        MessageBox.Show("Settings saved!", "Success", 
+                            MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
                 }
             }
         }

@@ -73,7 +73,16 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
                             SongID INT NOT NULL,
                             FOREIGN KEY(SongID) REFERENCES Song(ID)
                         );";
-                    
+
+                    string createTracksTableQuery = @"
+                        CREATE TABLE IF NOT EXISTS Tracks (
+                            ProgramNumber INTEGER NOT NULL,
+                            SongID INTEGER NOT NULL,
+                            IsPlayed BOOLEAN NOT NULL,
+                            PRIMARY KEY (ProgramNumber, SongID),
+                            FOREIGN KEY (SongID) REFERENCES Song(ID)
+                        );";
+
 
                     using (var command = new SQLiteCommand(connection))
                     {
@@ -90,6 +99,9 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
                         command.ExecuteNonQuery();
 
                         command.CommandText = createFavouritesTableQuery;
+                        command.ExecuteNonQuery();
+
+                        command.CommandText = createTracksTableQuery;
                         command.ExecuteNonQuery();
 
                     }

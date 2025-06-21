@@ -51,6 +51,9 @@ namespace BeethovenBusiness.Interfaces
         public void saveInstrumentList(List<TrackSettings> trackSettings, int songId);
 
         public List<int> GetProgramNumbersWhoNeedsToPlay(int songId);
+        int GetCurrentLevel();
+        int GetCurrentXP();
+        void AddXP(int xp);
 
     }
 }

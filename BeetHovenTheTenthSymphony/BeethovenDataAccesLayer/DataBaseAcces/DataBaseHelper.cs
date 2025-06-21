@@ -74,6 +74,32 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
                             FOREIGN KEY (SongID) REFERENCES Song(ID)
                         );";
 
+                    string createProgressTableQuery = @"
+                        CREATE TABLE IF NOT EXISTS Progress (
+                            ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                            TotalXP INTEGER NOT NULL DEFAULT 0,
+                            CurrentXP INTEGER NOT NULL DEFAULT 0,   
+                            Level INTEGER NOT NULL DEFAULT 1
+                        );";
+
+                    string createChallengesTableQuery = @"
+                        CREATE TABLE IF NOT EXISTS Challenges (
+                            ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                            Title TEXT NOT NULL,
+                            GoalType TEXT NOT NULL,
+                            GoalValue INTEGER NOT NULL,
+                            RewardXP INTEGER NOT NULL
+                        );";
+
+                    string createChallengeProgressTableQuery = @"
+                        CREATE TABLE IF NOT EXISTS ChallengeProgress (
+                            ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                            ChallengeId INTEGER NOT NULL,
+                            CurrentValue INTEGER DEFAULT 0,
+                            IsCompleted BOOLEAN DEFAULT 0,
+                            FOREIGN KEY (ChallengeId) REFERENCES Challenges(ID)
+                        );";
+
 
                     using (var command = new SQLiteCommand(connection))
                     {
@@ -90,6 +116,15 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
                         command.ExecuteNonQuery();
 
                         command.CommandText = createTracksTableQuery;
+                        command.ExecuteNonQuery();
+
+                        command.CommandText = createProgressTableQuery;
+                        command.ExecuteNonQuery();
+
+                        command.CommandText = createChallengesTableQuery;
+                        command.ExecuteNonQuery();
+
+                        command.CommandText = createChallengeProgressTableQuery;
                         command.ExecuteNonQuery();
 
                     }

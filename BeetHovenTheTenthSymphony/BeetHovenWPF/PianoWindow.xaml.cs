@@ -707,7 +707,7 @@ namespace BeetHovenWPF
                 if(!_isCheckpointActive)
                 {
                     _feedbacklogic.OnSongFinished(songTitle, songDuration, filePath);
-                    _gameStats.SaveSessionDetails(10, new DateTime(2024, 01, 01));
+                    _gameStats.SaveSessionDetails(10, new DateTime(2024, 01, 01), songTitle);
                     return;
 
                 }

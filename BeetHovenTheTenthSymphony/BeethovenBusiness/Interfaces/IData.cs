@@ -44,9 +44,11 @@ namespace BeethovenBusiness.Interfaces
         void DeleteCheckpoint(int songID, Checkpoint checkpoint);
         void SaveCheckpoint(int songID, Checkpoint checkpoint);
         void UpdateDatabase(string query);
-        void saveSessionDetails(double duration, string date);
+        void saveSessionDetails(double duration, string date, string title);
+        int GetTotalAmountOfSongs();
 
-        
+
+
         bool GetIfInstrumentIsSelected(int songID, int programNumber);
 
         void addTrack(int programNumber, int songId);

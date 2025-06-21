@@ -1,17 +1,17 @@
-﻿using Melanchall.DryWetMidi.Core;
+﻿using BeethovenBusiness.Achievements;
+using BeethovenBusiness.Checkpoints;
+using BeethovenBusiness.Interfaces;
+using BeethovenBusiness.MidiFileLogica;
+using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Interaction;
 using Melanchall.DryWetMidi.MusicTheory;
 using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
-using BeethovenBusiness.Interfaces;
-using BeethovenBusiness.Achievements;
 using System.Diagnostics;
-
 using System.IO;
 using System.Security.Policy;
-using BeethovenBusiness.Checkpoints;
-using BeethovenBusiness.MidiFileLogica;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace BeethovenDataAccesLayer.DataBaseAcces
 {
@@ -760,7 +760,7 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
 
         #region Game Statistics
 
-        public void saveSessionDetails(double duration, string date)
+        public void saveSessionDetails(double duration, string date, string title)
         {
             string query = "INSERT INTO Session (Duration, Date) VALUES (@Duration, @Date);";
             using (var connection = new SQLiteConnection(_connectionString))
@@ -770,10 +770,26 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
                 {
                     command.Parameters.AddWithValue("@Duration", duration);
                     command.Parameters.AddWithValue("@Date", date);
+                    command.Parameters.AddWithValue("@SongID", this.GetSongID(title));
                 }
             }
         }
 
-        #endregion
-    }
+        public int GetTotalAmountOfSongs()
+        {
+
+            using (var connection = new SQLiteConnection(_connectionString))
+            {
+                connection.Open();
+                string query = "SELECT COUNT(*) FROM Session";
+                using (var command = new SQLiteCommand(query, connection))
+                {
+                    object result = command.ExecuteScalar();
+                    return Convert.ToInt32(result);
+                }
+            }
+        }
+
+    #endregion
+}
 }

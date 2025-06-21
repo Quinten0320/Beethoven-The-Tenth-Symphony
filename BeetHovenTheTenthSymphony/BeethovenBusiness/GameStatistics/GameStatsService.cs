@@ -18,9 +18,9 @@ namespace BeethovenBusiness.NewFolder
         }
 
         // TODO: fix de datums
-        public void SaveSessionDetails(double duration, DateTime date)
+        public void SaveSessionDetails(double duration, DateTime date, string title)
         {
-            _data.saveSessionDetails(10, "04-02-2024");
+            _data.saveSessionDetails(10, "04-02-2024", title);
         }
 
         public void GetSessionDetails()
@@ -40,7 +40,8 @@ namespace BeethovenBusiness.NewFolder
 
         public void GetTotalAmountOfSongs()
         {
-          //Dmv van de sessions
+            //Dmv van de sessions
+            _data.GetTotalAmountOfSongs();
         }
     }
 }

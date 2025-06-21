@@ -7,7 +7,7 @@ using System.Text;
 
 namespace BeethovenBusiness.MidiFileLogica
 {
-    public class UitlezenMidiLogica : IUitlezenMidiLogica
+    public class UitlezenMidiLogica(List<int> programNumbers) : IUitlezenMidiLogica
     {
         private IEnumerable<Note> notes;
         private bool tweeKeerOphalen = false;
@@ -23,7 +23,7 @@ namespace BeethovenBusiness.MidiFileLogica
             {
                 midiFile = MidiFile.Read(midiPath);
                 tempoMap = midiFile.GetTempoMap();
-                notes = ExtractPianoNotes(midiFile);
+                notes = ExtractNotes(midiFile);
             }
             catch (Exception ex)
             {
@@ -32,14 +32,14 @@ namespace BeethovenBusiness.MidiFileLogica
         }
 
         //haalt alle noten op uit de pianotracks
-        private IEnumerable<Note> ExtractPianoNotes(MidiFile midiFile)
+        private IEnumerable<Note> ExtractNotes(MidiFile midiFile)
         {
             var pianoTracks = midiFile.GetTrackChunks()
-                                      .Where(track => track.Events
-                                          .OfType<ProgramChangeEvent>()
-                                          .Any(ev => ev.ProgramNumber >= 0 && ev.ProgramNumber <= 7) ||
-                                          !track.Events.OfType<ProgramChangeEvent>().Any())
-                                      .ToList();
+                .Where(track =>
+                    track.Events.OfType<ProgramChangeEvent>()
+                        .Any(ev => programNumbers.Contains(ev.ProgramNumber)) ||
+                    !track.Events.OfType<ProgramChangeEvent>().Any())
+                .ToList();
 
             if (!pianoTracks.Any())
             {

@@ -15,6 +15,29 @@ namespace BeethovenBusiness.MidiFileLogica
             _data = data;
         }
 
+        public List<int> GetProgramNumbersWhoNeedsToPlay(int songId)
+        {
+            return _data.GetProgramNumbersWhoNeedsToPlay(songId);
+        }
+
+        public bool GetIfInstrumentIsSelected(int songID, int programNumber)
+        {
+            try
+            {
+                return _data.GetIfInstrumentIsSelected(songID, programNumber);
+            }
+            catch (InvalidOperationException e)
+            {
+                _data.addTrack(programNumber, songID);
+                return true;
+            }
+        }
+
+        public void saveInstrumentList(List<TrackSettings> trackSettings, int songID)
+        {
+            _data.saveInstrumentList(trackSettings, songID);
+        }
+        
         public List<string> LoadMidiNames()
         {
             return _data.LoadMidiNames();
@@ -43,9 +66,9 @@ namespace BeethovenBusiness.MidiFileLogica
         {
             return _data.LoadMidiFile(name);
         }
-        public void AddSong(string fileName, double duration, string fullPath)
+        public void AddSong(string fileName, double duration, string fullPath, List<int> usedProgramNumbers)
         {
-            _data.AddSong(fileName, duration, fullPath);
+            _data.AddSong(fileName, duration, fullPath, usedProgramNumbers);
         }
 
         public string getFolderPath()
@@ -81,10 +104,17 @@ namespace BeethovenBusiness.MidiFileLogica
             MidiFile midiFile = _data.LoadMidiFile(fileName);
 
             var duration = midiFile.GetDuration<MetricTimeSpan>();
-            double durationInSeconds = duration.TotalMicroseconds / 1_000_000.0;
+            double durationInSeconds = duration.TotalMicroseconds / 1_000_000.0; //._.
             double secondsDecimals = Math.Round(durationInSeconds, 2);
 
-            AddSong(fileName, secondsDecimals, fullPath);
+            List<int> usedProgramNumbers = midiFile.GetTrackChunks()
+                .SelectMany(track => track.Events.OfType<ProgramChangeEvent>())
+                .Select(pc => (int)pc.ProgramNumber)
+                .Distinct()
+                .OrderBy(num => num)
+                .ToList();
+            
+            AddSong(fileName, secondsDecimals, fullPath, usedProgramNumbers);
         }
 
         public void DeleteSong(string songName)
@@ -154,7 +184,7 @@ namespace BeethovenBusiness.MidiFileLogica
                             Description TEXT NOT NULL,
                             DatumBehaald DATETIME,
                             IsBehaald BOOLEAN NOT NULL
-                        );");
+                        );"); //:(
 
             foreach(var query in querys)
             {

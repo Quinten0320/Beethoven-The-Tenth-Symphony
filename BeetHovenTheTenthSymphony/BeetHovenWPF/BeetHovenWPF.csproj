@@ -6,8 +6,8 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
-    <PublishSingleFile>true</PublishSingleFile> <!-- Enable single file publishing -->
-    <SelfContained>true</SelfContained> <!-- Include runtime in the output -->
+    <PublishSingleFile>false</PublishSingleFile> <!-- Enable single file publishing -->
+    <SelfContained>false</SelfContained> <!-- Include runtime in the output -->
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract> <!-- Embed native libraries -->
     <RuntimeIdentifier>win-x64</RuntimeIdentifier> <!-- Use the appropriate runtime (change if needed) -->
   </PropertyGroup>

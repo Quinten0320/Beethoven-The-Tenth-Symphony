@@ -64,7 +64,10 @@ namespace BeetHovenWPF
         public PianoWindow(string midiPath, MidiFile midiFile, string MidiName, IData data, GameStatsService gameStats)
         {
             InitializeComponent();
-            uitlezenLogic = new UitlezenMidiLogica();
+            MidiService service = new MidiService(data);
+            int songId = service.GetSongIdByName(MidiName);
+            List<int> programNumbers = service.GetProgramNumbersWhoNeedsToPlay(songId);
+            uitlezenLogic = new UitlezenMidiLogica(programNumbers);
 
             
 

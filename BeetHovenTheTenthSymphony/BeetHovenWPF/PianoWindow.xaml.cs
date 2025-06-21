@@ -14,6 +14,7 @@ using BeethovenBusiness.Checkpoints;
 using BeethovenBusiness.PianoLogica;
 using BeethovenBusiness.MidiFileLogica;
 using BeethovenBusiness.Interfaces;
+using BeethovenBusiness.NewFolder;
 
 namespace BeetHovenWPF
 {
@@ -58,7 +59,9 @@ namespace BeetHovenWPF
         private bool _isCheckpointActive;
         private CheckpointLogic _checkpointLogic;
 
-        public PianoWindow(string midiPath, MidiFile midiFile, string MidiName, IData data)
+        private GameStatsService _gameStats;
+
+        public PianoWindow(string midiPath, MidiFile midiFile, string MidiName, IData data, GameStatsService gameStats)
         {
             InitializeComponent();
             uitlezenLogic = new UitlezenMidiLogica();
@@ -106,6 +109,7 @@ namespace BeetHovenWPF
             _score = new Score();
             ScoreFrame.Content = _score;
             _feedbacklogic.ScoreUpdated += OnScoreUpdated;
+            _gameStats = gameStats;
         }
 
         private void UpdateMidiStatus()
@@ -617,7 +621,7 @@ namespace BeetHovenWPF
             if (show)
             {
                 PauseFrame.Visibility = Visibility.Visible; //toon de Frame
-                PauseFrame.Navigate(new PauzeMenu(_currentMidi, _data));       //navigeer naar PauzeMenu
+                PauseFrame.Navigate(new PauzeMenu(_currentMidi, _data, _gameStats));       //navigeer naar PauzeMenu
             }
             else
             {
@@ -700,7 +704,9 @@ namespace BeetHovenWPF
                 if(!_isCheckpointActive)
                 {
                     _feedbacklogic.OnSongFinished(songTitle, songDuration, filePath);
+                    _gameStats.SaveSessionDetails(10, new DateTime(2024, 01, 01));
                     return;
+
                 }
 
                 //Debug uitvoer

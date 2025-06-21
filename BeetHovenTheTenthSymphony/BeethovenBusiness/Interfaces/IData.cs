@@ -43,5 +43,6 @@ namespace BeethovenBusiness.Interfaces
         void DeleteCheckpoint(int songID, Checkpoint checkpoint);
         void SaveCheckpoint(int songID, Checkpoint checkpoint);
         void UpdateDatabase(string query);
+        void saveSessionDetails(double duration, string date);
     }
 }

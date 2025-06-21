@@ -638,6 +638,22 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
 
         #endregion
 
+        #region Game Statistics
 
+        public void saveSessionDetails(double duration, string date)
+        {
+            string query = "INSERT INTO Session (Duration, Date) VALUES (@Duration, @Date);";
+            using (var connection = new SQLiteConnection(_connectionString))
+            {
+                connection.Open();
+                using (var command = new SQLiteCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@Duration", duration);
+                    command.Parameters.AddWithValue("@Date", date);
+                }
+            }
+        }
+
+        #endregion
     }
 }

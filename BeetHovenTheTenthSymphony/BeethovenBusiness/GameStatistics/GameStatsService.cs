@@ -59,16 +59,6 @@ namespace BeethovenBusiness.NewFolder
             return _data.GetSongDetails(SongID);
         }
 
-        public void getSongDuration()
-        {
-
-        }
-
-        public void calculateTotalInGameTime()
-        {
-
-        }
-
         public int GetTotalAmountOfSongs()
         {
             //Dmv van de sessions

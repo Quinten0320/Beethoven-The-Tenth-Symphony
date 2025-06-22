@@ -75,6 +75,7 @@ namespace BeetHovenWPF
         private bool _isCheckpointActive;
         private CheckpointLogic _checkpointLogic;
         private ProgressService _progressService;
+        private GameStatsService _gameStats;
 
         public PianoWindow(string midiPath, MidiFile midiFile, string MidiName, IData data, string difficulty, GameStatsService gameStats)
         {

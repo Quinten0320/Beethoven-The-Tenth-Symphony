@@ -39,7 +39,7 @@ namespace BeethovenBusiness.NewFolder
 
         public void SaveSessionDetails(double duration, string date, string title)
         {
-            _data.saveSessionDetails(10, date, title);
+            _data.saveSessionDetails(duration, date, title);
         }
 
         public Session GetSessionDetails()

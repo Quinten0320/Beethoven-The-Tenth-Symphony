@@ -83,11 +83,11 @@
                             <Label Content="Duur:" FontSize="14" FontWeight="Bold"></Label>
                             <TextBlock FontSize="14" Text="{Binding Duration}"></TextBlock>
                             <Label Content="Laatste Score:" FontSize="14" FontWeight="Bold"></Label>
+                            <TextBlock FontSize="14" Text="{Binding LastScore}"></TextBlock>
                             <Label Content="Gemiddelde tijd in sessie:" FontSize="14" FontWeight="Bold"></Label>
+                            <TextBlock FontSize="14" Text="{Binding AverageTimeSession}"></TextBlock>
                         </StackPanel>
-
                     </Grid>
-
                 </Border>
 
                 <!-- Rechtsonder -->

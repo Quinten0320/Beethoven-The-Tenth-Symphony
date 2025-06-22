@@ -857,8 +857,6 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
 
         #region Game Statistics
 
-
-
         public void saveSessionDetails(double duration, string date, string title)
         {
             string query = "INSERT INTO Session (Duration, Date, SongID) VALUES (@Duration, @Date, @SongID);";
@@ -879,12 +877,15 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
         public Session getSessionDetails()
         {
             Session recentSession = null;
-                string query = "SELECT * FROM Session ORDER BY Date DESC LIMIT 1";
+            string query = "SELECT * FROM Session ORDER BY Date DESC LIMIT 1";
+
+            using (var connection = new SQLiteConnection(_connectionString))
+            {
+                connection.Open();
 
                 using (var command = new SQLiteCommand(query, connection))
                 using (var reader = command.ExecuteReader())
                 {
-
                     if (reader.Read())
                     {
                         recentSession = new Session
@@ -897,6 +898,7 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
                     }
                 }
             }
+
             return recentSession;
         }
 

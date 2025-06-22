@@ -710,7 +710,6 @@ namespace BeetHovenWPF
                 if(!_isCheckpointActive)
                 {
                     _feedbacklogic.OnSongFinished(songTitle, songDuration, filePath);
-                    finalScore = 2000;
                     var xpResult = _progressService.CalculateXP(_difficulty, (int)finalScore);
                     _earnedXP = xpResult.earnedXP;
                     _leveledUp = xpResult.leveledUp;

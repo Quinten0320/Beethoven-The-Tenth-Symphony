@@ -10,6 +10,9 @@ using Microsoft.VisualBasic;
 using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
+using BeethovenBusiness.Interfaces;
+using BeethovenBusiness.Achievements;
+using BeethovenBusiness.Progress;
 using System.Diagnostics;
 using System.IO;
 using System.Security.Policy;
@@ -592,12 +595,12 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
             }
             if (DateTime.Now.TimeOfDay < new TimeSpan(8, 0, 0))
             {
-                Achievement achievement = new Achievement("Early Bird", "Speel voor 8 uur 's ochtends.");
+                Achievement achievement = achievements.Where(a => a.Name == "Early Bird").FirstOrDefault();
                 UpdateAchievementStatus(achievement);
             }
             else if (DateTime.Now.TimeOfDay > new TimeSpan(22, 0, 0))
             {
-                Achievement achievement = new Achievement("Night Owl", "Speel na 10 uur 's avonds.");
+                Achievement achievement = achievements.Where(a => a.Name == "Night Owl").FirstOrDefault();
                 UpdateAchievementStatus(achievement);
             }
         }
@@ -763,6 +766,95 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
 
         #endregion
 
+        #region Progress
+
+        public int GetCurrentLevel()
+        {
+            using (var connection = new SQLiteConnection(_connectionString))
+            {
+                connection.Open();
+                var checkCommand = new SQLiteCommand("SELECT COUNT(*) FROM Progress", connection);
+                var count = Convert.ToInt32(checkCommand.ExecuteScalar());
+                if (count == 0)
+                {
+                    var insertCommand = new SQLiteCommand("INSERT INTO Progress (TotalXP, Level) VALUES (0, 1)", connection);
+                    insertCommand.ExecuteNonQuery();
+                }
+
+                var command = new SQLiteCommand("SELECT Level FROM Progress ORDER BY ID DESC LIMIT 1", connection);
+                var result = command.ExecuteScalar();
+                if (result != null && int.TryParse(result.ToString(), out int level))
+                {
+                    return level;
+                }
+                return 1;
+            }
+        }
+
+        public int GetCurrentXP()
+        {
+            using (var connection = new SQLiteConnection(_connectionString))
+            {
+                connection.Open();
+                var command = new SQLiteCommand("SELECT TotalXP FROM Progress ORDER BY ID DESC LIMIT 1", connection);
+                var result = command.ExecuteScalar();
+                if (result != null && int.TryParse(result.ToString(), out int xp))
+                {
+                    return xp;
+                }
+                return 0;
+            }
+        }
+
+        public void AddXP(int xp)
+        {
+            using (var connection = new SQLiteConnection(_connectionString))
+            {
+                connection.Open();
+               var selectCmd = new SQLiteCommand("SELECT ID, TotalXP, CurrentXP, Level FROM Progress ORDER BY ID DESC LIMIT 1", connection);
+                using (var reader = selectCmd.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        int id = reader.GetInt32(0);
+                        int totalXP = reader.GetInt32(1);
+                        int currentXP = reader.IsDBNull(2) ? 0 : reader.GetInt32(2);
+                        int level = reader.GetInt32(3);
+
+                        int newTotalXP = totalXP + xp;
+                        int newCurrentXP = currentXP + xp;
+
+                        int levelUps = newCurrentXP / 1000;
+                        newCurrentXP = newCurrentXP % 1000;
+                        level += levelUps;
+
+                        var updateCmd = new SQLiteCommand(
+                            "UPDATE Progress SET TotalXP = @totalXP, CurrentXP = @currentXP, Level = @level WHERE ID = @id", connection);
+                        updateCmd.Parameters.AddWithValue("@totalXP", newTotalXP);
+                        updateCmd.Parameters.AddWithValue("@currentXP", newCurrentXP);
+                        updateCmd.Parameters.AddWithValue("@level", level);
+                        updateCmd.Parameters.AddWithValue("@id", id);
+                        updateCmd.ExecuteNonQuery();
+                    }
+                    else
+                    {
+                        int levelUps = xp / 1000;
+                        int currentXP = xp % 1000;
+                        int level = 1 + levelUps;
+
+                        var insertCmd = new SQLiteCommand(
+                            "INSERT INTO Progress (TotalXP, CurrentXP, Level) VALUES (@totalXP, @currentXP, @level)", connection);
+                        insertCmd.Parameters.AddWithValue("@totalXP", xp);
+                        insertCmd.Parameters.AddWithValue("@currentXP", currentXP);
+                        insertCmd.Parameters.AddWithValue("@level", level);
+                        insertCmd.ExecuteNonQuery();
+                    }
+                }
+            }
+        }
+
+        #endregion
+
         #region Game Statistics
 
 
@@ -787,12 +879,6 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
         public Session getSessionDetails()
         {
             Session recentSession = null;
-            
-
-            using (var connection = new SQLiteConnection(_connectionString))
-            {
-                connection.Open();
-
                 string query = "SELECT * FROM Session ORDER BY Date DESC LIMIT 1";
 
                 using (var command = new SQLiteCommand(query, connection))
@@ -903,8 +989,6 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
 
             return scores;
         }
-
-
         #endregion
     }
 }

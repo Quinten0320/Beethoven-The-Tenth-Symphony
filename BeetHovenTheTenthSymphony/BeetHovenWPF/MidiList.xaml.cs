@@ -64,8 +64,8 @@ namespace BeetHovenWPF
 
                     string folderPath = _midiService.getFolderPath();
                     string completePath = folderPath + "\\" + selectedMidiName + ".mid";
-
-                    PianoWindow pianowindow = new PianoWindow(completePath, midiFile, selectedMidiName, _data, _gameStatsService);
+                    
+                    PianoWindow pianowindow = new PianoWindow(completePath, midiFile, selectedMidiName, _data, selectedMidiInfo.Difficulty, _gameStatsService);
                     pianowindow.ShowDialog();
                 }
                 catch (Exception ex)
@@ -210,6 +210,26 @@ namespace BeetHovenWPF
                     }
                 }
             }
+        }
+
+        private void AchievementsButton_Click(object sender, RoutedEventArgs e)
+        {
+            var achievementWindow = new Achievements(_data);
+            achievementWindow.ShowDialog();
+        }
+
+        private void ProgressButton_Click(object sender, RoutedEventArgs e)
+        {
+            var progressPage = new Progress();
+            var window = new Window
+            {
+                Title = "Progress",
+                Content = progressPage,
+                Width = 400,
+                Height = 300,
+                WindowStartupLocation = WindowStartupLocation.CenterScreen
+            };
+            window.ShowDialog();
         }
     }
 }

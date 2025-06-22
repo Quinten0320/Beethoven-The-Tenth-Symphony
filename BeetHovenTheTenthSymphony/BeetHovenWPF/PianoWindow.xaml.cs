@@ -1,9 +1,19 @@
+using BeethovenBusiness.Checkpoints;
+using BeethovenBusiness.Interfaces;
+using BeethovenBusiness.MidiFileLogica;
+using BeethovenBusiness.PianoLogica;
+using BeethovenBusiness.Progress;
+using Melanchall.DryWetMidi.Core;
+using Melanchall.DryWetMidi.Interaction;
+using Melanchall.DryWetMidi.Multimedia;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Shapes;
 using System.Windows.Media.Animation;
+using System.Windows.Shapes;
 using System.Windows.Threading;
 using System.Diagnostics;
 using System.ComponentModel;
@@ -15,6 +25,8 @@ using BeethovenBusiness.PianoLogica;
 using BeethovenBusiness.MidiFileLogica;
 using BeethovenBusiness.Interfaces;
 using BeethovenBusiness.NewFolder;
+using BeethovenBusiness.Achievements;
+
 
 namespace BeetHovenWPF
 {
@@ -38,7 +50,8 @@ namespace BeetHovenWPF
         private Playback _playback;
         double elapsedTime;
         bool muziekafspelen = true;
-        
+        private AchievementLogic achievementlogic;
+
         private const int MaxSegments = 5;
         private List<Rectangle> checkpointMarkers = new List<Rectangle>();
         private Dictionary<Checkpoint, DispatcherTimer> _checkpointTimers = new Dictionary<Checkpoint, DispatcherTimer>();
@@ -52,27 +65,32 @@ namespace BeetHovenWPF
         private double finalScore;
         private bool _startedPlayback = false;
         private double _selectedSongDuration;
-        
+        public string _difficulty;
+        private int _earnedXP;
+        private bool _leveledUp = false;
+
         int songID;
         List<Checkpoint> CheckpointsForSong;
         private PlaybackService _playbackService;
         private bool _isCheckpointActive;
         private CheckpointLogic _checkpointLogic;
+        private ProgressService _progressService;
 
-        private GameStatsService _gameStats;
-
-        public PianoWindow(string midiPath, MidiFile midiFile, string MidiName, IData data, GameStatsService gameStats)
+        public PianoWindow(string midiPath, MidiFile midiFile, string MidiName, IData data, string difficulty, GameStatsService gameStats)
         {
             InitializeComponent();
             MidiService service = new MidiService(data);
+            achievementlogic = new AchievementLogic(data);
             int songId = service.GetSongIdByName(MidiName);
             List<int> programNumbers = service.GetProgramNumbersWhoNeedsToPlay(songId);
             uitlezenLogic = new UitlezenMidiLogica(programNumbers);
+            _progressService = new ProgressService(data);
 
-            
+
 
             _midiPath = midiPath;
             _data = data;
+            _difficulty = difficulty;
 
             Loaded += PianoWindow_Loaded;
             SizeChanged += PianoWindow_SizeChanged;
@@ -651,7 +669,7 @@ namespace BeetHovenWPF
                 var window = new Window
                 {
                     Title = "End Menu",
-                    Content = new EndMenu(_currentMidi, finalScore, topScores, _isCheckpointActive),
+                    Content = new EndMenu(_currentMidi, finalScore, topScores, _isCheckpointActive, _earnedXP, _leveledUp),
                     WindowStyle = WindowStyle.None,
                     ResizeMode = ResizeMode.NoResize,
                     Width = ActualWidth,
@@ -709,6 +727,10 @@ namespace BeetHovenWPF
                 {
                     _feedbacklogic.OnSongFinished(songTitle, songDuration, filePath);
                     _gameStats.SaveSessionDetails(elapsedTime, DateTime.Now.ToString("yyyy-MM-dd"), songTitle);
+                    
+                    var xpResult = _progressService.CalculateXP(_difficulty, (int)finalScore);
+                    _earnedXP = xpResult.earnedXP;
+                    _leveledUp = xpResult.leveledUp;
                     return;
 
                 }
@@ -732,6 +754,7 @@ namespace BeetHovenWPF
 
         private async void StartSongAtSegment(Checkpoint checkpoint)
         {
+            achievementlogic.UpdateAchievementStatus(new Achievement("Practice Mode", "Gebruik oefenmodus."));
             // Cancel all previous timers and animations
             CancelAllTimersAndAnimations();
 

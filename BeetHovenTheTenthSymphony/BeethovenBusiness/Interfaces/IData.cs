@@ -1,5 +1,7 @@
 ﻿using BeethovenBusiness.Achievements;
 using BeethovenBusiness.Checkpoints;
+using BeethovenBusiness.MidiFileLogica;
+using BeethovenBusiness.Progress;
 using Melanchall.DryWetMidi.Core;
 using System;
 using System.Collections.Generic;
@@ -34,12 +36,6 @@ namespace BeethovenBusiness.Interfaces
         void SaveScore(string songTitle, int score);
         List<int> GetTopScores(int songID);
         double SelectedSongDuration(string _selectedMidiName);
-        bool AchievementExists(Achievement achievement);
-        void InitializeAchievements();
-        void AddAchievement(Achievement achievement);
-        List<Achievement> GetAchievements();
-        void DeleteAchievement(Achievement achievement);
-        void UpdateAchievementStatus(Achievement achievement);
         List<Checkpoint> LoadCheckpoints(int songID);
         int GetSongID(string songName);
         void DeleteCheckpoint(int songID, Checkpoint checkpoint);
@@ -51,6 +47,21 @@ namespace BeethovenBusiness.Interfaces
         public void saveInstrumentList(List<TrackSettings> trackSettings, int songId);
 
         public List<int> GetProgramNumbersWhoNeedsToPlay(int songId);
+        int GetCurrentLevel();
+        int GetCurrentXP();
+        void AddXP(int xp);
+
+
+
+
+        #region Achievements
+        bool AchievementExists(Achievement achievement);
+        void InitializeAchievements();
+        void AddAchievement(Achievement achievement);
+        List<Achievement> GetAchievements();
+        void DeleteAchievement(Achievement achievement);
+        void UpdateAchievementStatus(Achievement achievement);
+        #endregion
 
         #region Game statistics
         void saveSessionDetails(double duration, string date, string title);

@@ -1,4 +1,5 @@
 ﻿using BeethovenBusiness.Interfaces;
+using BeethovenBusiness.NewFolder;
 using Melanchall.DryWetMidi.Core;
 using System;
 using System.Collections.Generic;
@@ -22,11 +23,13 @@ namespace BeetHovenWPF
     {
         private readonly MidiFile _midiFile;
         private readonly IData _data;
-        public PauzeMenu(MidiFile midiFile, IData data)
+        private readonly GameStatsService _gameStats;
+        public PauzeMenu(MidiFile midiFile, IData data, GameStatsService gameStats)
         {
             _data = data;
             InitializeComponent();
             _midiFile = midiFile;
+            _gameStats = gameStats;
         }
 
         private void ContinueClick(object sender, RoutedEventArgs e)
@@ -74,7 +77,7 @@ namespace BeetHovenWPF
                 pianoWindow.Close();
 
                 //maak een nieuw exemplaar van PianoWindow
-                var newPianoWindow = new PianoWindow(midiPath, _midiFile, selectedMidiName, _data, selectedMidiDifficulty);
+                var newPianoWindow = new PianoWindow(midiPath, _midiFile, selectedMidiName, _data, selectedMidiDifficulty, _gameStats);
                 newPianoWindow.Show();
             }
         }

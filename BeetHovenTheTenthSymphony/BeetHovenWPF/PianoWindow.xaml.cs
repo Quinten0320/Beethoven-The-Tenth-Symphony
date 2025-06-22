@@ -24,6 +24,7 @@ using BeethovenBusiness.Checkpoints;
 using BeethovenBusiness.PianoLogica;
 using BeethovenBusiness.MidiFileLogica;
 using BeethovenBusiness.Interfaces;
+using BeethovenBusiness.NewFolder;
 using BeethovenBusiness.Achievements;
 
 
@@ -74,8 +75,9 @@ namespace BeetHovenWPF
         private bool _isCheckpointActive;
         private CheckpointLogic _checkpointLogic;
         private ProgressService _progressService;
+        private GameStatsService _gameStats;
 
-        public PianoWindow(string midiPath, MidiFile midiFile, string MidiName, IData data, string difficulty)
+        public PianoWindow(string midiPath, MidiFile midiFile, string MidiName, IData data, string difficulty, GameStatsService gameStats)
         {
             InitializeComponent();
             MidiService service = new MidiService(data);
@@ -129,6 +131,7 @@ namespace BeetHovenWPF
             _score = new Score();
             ScoreFrame.Content = _score;
             _feedbacklogic.ScoreUpdated += OnScoreUpdated;
+            _gameStats = gameStats;
         }
 
         private void UpdateMidiStatus()
@@ -640,7 +643,7 @@ namespace BeetHovenWPF
             if (show)
             {
                 PauseFrame.Visibility = Visibility.Visible; //toon de Frame
-                PauseFrame.Navigate(new PauzeMenu(_currentMidi, _data));       //navigeer naar PauzeMenu
+                PauseFrame.Navigate(new PauzeMenu(_currentMidi, _data, _gameStats));       //navigeer naar PauzeMenu
             }
             else
             {
@@ -718,15 +721,19 @@ namespace BeetHovenWPF
 
                 // Haal het bestandspad op
                 string filePath = _midiPath;
+                elapsedTime = (DateTime.Now - _startTime).TotalSeconds;
 
                 // Sla de gegevens op via FeedbackLogic
-                if(!_isCheckpointActive)
+                if (!_isCheckpointActive)
                 {
                     _feedbacklogic.OnSongFinished(songTitle, songDuration, filePath);
+                    _gameStats.SaveSessionDetails(elapsedTime, DateTime.Now.ToString("yyyy-MM-dd"), songTitle);
+                    
                     var xpResult = _progressService.CalculateXP(_difficulty, (int)finalScore);
                     _earnedXP = xpResult.earnedXP;
                     _leveledUp = xpResult.leveledUp;
                     return;
+
                 }
 
                 //Debug uitvoer

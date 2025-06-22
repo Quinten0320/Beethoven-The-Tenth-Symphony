@@ -2,8 +2,10 @@
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Navigation;
 using BeethovenBusiness.Interfaces;
 using BeethovenBusiness.MidiFileLogica;
+using BeethovenBusiness.NewFolder;
 using BeethovenBusiness.PianoLogica;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Interaction;
@@ -20,6 +22,7 @@ namespace BeetHovenWPF
         private string _currentFilter = "Default";
         string selectedMidiName;
         private readonly IData _data;
+        private GameStatsService _gameStatsService;
 
         public MidiList()
         {
@@ -30,6 +33,8 @@ namespace BeetHovenWPF
             _midiFileInfos = new ObservableCollection<MidiFileInfo>();
             _midiService.InitializeDatabaseAndSync();
             fillList();
+
+            _gameStatsService = new GameStatsService(_data);
         }
         public void fillList()
         {
@@ -39,6 +44,12 @@ namespace BeetHovenWPF
         private void refreshButton_Click(object sender, RoutedEventArgs e)
         {
             fillList();
+        }
+
+        private void GameStats_Bttn(Object sender, RoutedEventArgs e)
+        {
+            GameStats gameStatsWindow = new GameStats(_gameStatsService);
+            gameStatsWindow.ShowDialog(); 
         }
 
         private void MidiFileList_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
@@ -53,8 +64,8 @@ namespace BeetHovenWPF
 
                     string folderPath = _midiService.getFolderPath();
                     string completePath = folderPath + "\\" + selectedMidiName + ".mid";
-
-                    PianoWindow pianowindow = new PianoWindow(completePath, midiFile, selectedMidiName, _data, selectedMidiInfo.Difficulty);
+                    
+                    PianoWindow pianowindow = new PianoWindow(completePath, midiFile, selectedMidiName, _data, selectedMidiInfo.Difficulty, _gameStatsService);
                     pianowindow.ShowDialog();
                 }
                 catch (Exception ex)

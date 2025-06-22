@@ -41,6 +41,15 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
                             FOREIGN KEY(SongID) REFERENCES Song(ID)
                         );";
 
+                    string createSessionTableQuery = @"
+                        CREATE TABLE IF NOT EXISTS Session (
+                            ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                            Duration DOUBLE NOT NULL,
+                            Date TEXT,
+                            SongID INTERGER NOT NULL,
+                            FOREIGN KEY(SongID) REFERENCES Song(ID)
+                        );";
+
                     string createCheckpointTableQuery = @"
                         CREATE TABLE IF NOT EXISTS Checkpoint (
                             songID INTEGER NOT NULL,
@@ -67,6 +76,9 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
                     using (var command = new SQLiteCommand(connection))
                     {
                         command.CommandText = createScoreTableQuery;
+                        command.ExecuteNonQuery();
+
+                        command.CommandText = createSessionTableQuery;
                         command.ExecuteNonQuery();
 
                         command.CommandText = createCheckpointTableQuery;

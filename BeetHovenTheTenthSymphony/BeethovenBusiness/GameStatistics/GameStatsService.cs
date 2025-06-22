@@ -33,8 +33,11 @@ namespace BeethovenBusiness.NewFolder
             AmountOfSongsThisMonth = GetAmountOfSongsthisMont();
             _sessionDetails = GetSessionDetails();
 
-            LastPlayedSong = getSongDetails(_sessionDetails.SongID).Title;
-            Duration = _sessionDetails.Duration;
+            if (_sessionDetails != null)
+            {
+                LastPlayedSong = getSongDetails(_sessionDetails.SongID).Title;
+                Duration = _sessionDetails.Duration;
+            }
         }
 
         public void SaveSessionDetails(double duration, string date, string title)

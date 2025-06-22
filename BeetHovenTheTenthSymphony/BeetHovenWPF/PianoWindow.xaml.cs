@@ -749,7 +749,7 @@ namespace BeetHovenWPF
                     var currentWindow = Window.GetWindow(endMenu);
                     currentWindow?.Close();
 
-                    var pianoWindow = new PianoWindow(_midiPath, _currentMidi, _selectedMidiName, _data, "replay");
+                    var pianoWindow = new PianoWindow(_midiPath, _currentMidi, _selectedMidiName, _data, "replay", _gameStats);
                     pianoWindow.Show();
 
                     pianoWindow.ResetKeys();

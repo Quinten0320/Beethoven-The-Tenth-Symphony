@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Data.SQLite;
 using BeethovenBusiness.Interfaces;
 using BeethovenBusiness.Achievements;
+using BeethovenBusiness.Progress;
 using System.Diagnostics;
 
 using System.IO;
@@ -758,7 +759,7 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
 
         #endregion
 
-        #region LevelXP
+        #region Progress
 
         public int GetCurrentLevel()
         {
@@ -847,12 +848,5 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
         }
 
         #endregion
-
-        #region Challenges
-
-        #endregion
-
-
-
     }
 }

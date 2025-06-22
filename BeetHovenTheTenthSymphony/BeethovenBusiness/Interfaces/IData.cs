@@ -1,12 +1,13 @@
 ﻿using BeethovenBusiness.Achievements;
 using BeethovenBusiness.Checkpoints;
+using BeethovenBusiness.MidiFileLogica;
+using BeethovenBusiness.Progress;
 using Melanchall.DryWetMidi.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using BeethovenBusiness.MidiFileLogica;
 
 namespace BeethovenBusiness.Interfaces
 {

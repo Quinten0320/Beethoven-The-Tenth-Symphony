@@ -82,25 +82,6 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
                             Level INTEGER NOT NULL DEFAULT 1
                         );";
 
-                    string createChallengesTableQuery = @"
-                        CREATE TABLE IF NOT EXISTS Challenges (
-                            ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                            Title TEXT NOT NULL,
-                            GoalType TEXT NOT NULL,
-                            GoalValue INTEGER NOT NULL,
-                            RewardXP INTEGER NOT NULL
-                        );";
-
-                    string createChallengeProgressTableQuery = @"
-                        CREATE TABLE IF NOT EXISTS ChallengeProgress (
-                            ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                            ChallengeId INTEGER NOT NULL,
-                            CurrentValue INTEGER DEFAULT 0,
-                            IsCompleted BOOLEAN DEFAULT 0,
-                            FOREIGN KEY (ChallengeId) REFERENCES Challenges(ID)
-                        );";
-
-
                     using (var command = new SQLiteCommand(connection))
                     {
                         command.CommandText = createScoreTableQuery;
@@ -119,12 +100,6 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
                         command.ExecuteNonQuery();
 
                         command.CommandText = createProgressTableQuery;
-                        command.ExecuteNonQuery();
-
-                        command.CommandText = createChallengesTableQuery;
-                        command.ExecuteNonQuery();
-
-                        command.CommandText = createChallengeProgressTableQuery;
                         command.ExecuteNonQuery();
 
                     }

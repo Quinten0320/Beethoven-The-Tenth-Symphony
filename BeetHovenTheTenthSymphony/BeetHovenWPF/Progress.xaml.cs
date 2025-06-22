@@ -1,5 +1,6 @@
 ﻿using BeethovenBusiness.Interfaces;
 using BeethovenBusiness.Progress;
+using System.Windows;
 using System.Windows.Controls;
 
 namespace BeetHovenWPF

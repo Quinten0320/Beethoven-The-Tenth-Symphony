@@ -587,12 +587,12 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
             }
             if (DateTime.Now.TimeOfDay < new TimeSpan(8, 0, 0))
             {
-                Achievement achievement = new Achievement("Early Bird", "Speel voor 8 uur 's ochtends.");
+                Achievement achievement = achievements.Where(a => a.Name == "Early Bird").FirstOrDefault();
                 UpdateAchievementStatus(achievement);
             }
             else if (DateTime.Now.TimeOfDay > new TimeSpan(22, 0, 0))
             {
-                Achievement achievement = new Achievement("Night Owl", "Speel na 10 uur 's avonds.");
+                Achievement achievement = achievements.Where(a => a.Name == "Night Owl").FirstOrDefault();
                 UpdateAchievementStatus(achievement);
             }
         }

@@ -33,24 +33,30 @@ namespace BeethovenBusiness.Interfaces
         void SaveScore(string songTitle, int score);
         List<int> GetTopScores(int songID);
         double SelectedSongDuration(string _selectedMidiName);
-        bool AchievementExists(Achievement achievement);
-        void InitializeAchievements();
-        void AddAchievement(Achievement achievement);
-        List<Achievement> GetAchievements();
-        void DeleteAchievement(Achievement achievement);
-        void UpdateAchievementStatus(Achievement achievement);
         List<Checkpoint> LoadCheckpoints(int songID);
         int GetSongID(string songName);
         void DeleteCheckpoint(int songID, Checkpoint checkpoint);
         void SaveCheckpoint(int songID, Checkpoint checkpoint);
         void UpdateDatabase(string query);
-        
+
         bool GetIfInstrumentIsSelected(int songID, int programNumber);
 
         void addTrack(int programNumber, int songId);
         public void saveInstrumentList(List<TrackSettings> trackSettings, int songId);
 
         public List<int> GetProgramNumbersWhoNeedsToPlay(int songId);
+
+
+
+
+        #region Achievements
+        bool AchievementExists(Achievement achievement);
+        void InitializeAchievements();
+        void AddAchievement(Achievement achievement);
+        List<Achievement> GetAchievements();
+        void DeleteAchievement(Achievement achievement);
+        void UpdateAchievementStatus(Achievement achievement);
+        #endregion
 
     }
 }

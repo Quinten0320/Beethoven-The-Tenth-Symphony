@@ -22,7 +22,7 @@ namespace BeetHovenWPF
         private string _currentFilter = "Default";
         string selectedMidiName;
         private readonly IData _data;
-        private GameStatsService _gameStats;
+        private GameStatsService _gameStatsService;
 
         public MidiList()
         {
@@ -34,7 +34,7 @@ namespace BeetHovenWPF
             _midiService.InitializeDatabaseAndSync();
             fillList();
 
-            _gameStats = new GameStatsService(_data);
+            _gameStatsService = new GameStatsService(_data);
         }
         public void fillList()
         {
@@ -48,7 +48,7 @@ namespace BeetHovenWPF
 
         private void GameStats_Bttn(Object sender, RoutedEventArgs e)
         {
-            GameStats gameStatsWindow = new GameStats();
+            GameStats gameStatsWindow = new GameStats(_gameStatsService);
             gameStatsWindow.ShowDialog(); 
         }
 
@@ -65,7 +65,7 @@ namespace BeetHovenWPF
                     string folderPath = _midiService.getFolderPath();
                     string completePath = folderPath + "\\" + selectedMidiName + ".mid";
 
-                    PianoWindow pianowindow = new PianoWindow(completePath, midiFile, selectedMidiName, _data, _gameStats);
+                    PianoWindow pianowindow = new PianoWindow(completePath, midiFile, selectedMidiName, _data, _gameStatsService);
                     pianowindow.ShowDialog();
                 }
                 catch (Exception ex)

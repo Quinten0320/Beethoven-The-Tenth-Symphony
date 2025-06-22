@@ -46,8 +46,7 @@ namespace BeethovenBusiness.Interfaces
         void UpdateDatabase(string query);
         void saveSessionDetails(double duration, string date, string title);
         int GetTotalAmountOfSongs();
-
-
+        int GetAmountOfSongsthisMont();
 
         bool GetIfInstrumentIsSelected(int songID, int programNumber);
 

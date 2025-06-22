@@ -762,7 +762,7 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
 
         public void saveSessionDetails(double duration, string date, string title)
         {
-            string query = "INSERT INTO Session (Duration, Date) VALUES (@Duration, @Date);";
+            string query = "INSERT INTO Session (Duration, Date, SongID) VALUES (@Duration, @Date, @SongID);";
             using (var connection = new SQLiteConnection(_connectionString))
             {
                 connection.Open();
@@ -771,6 +771,8 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
                     command.Parameters.AddWithValue("@Duration", duration);
                     command.Parameters.AddWithValue("@Date", date);
                     command.Parameters.AddWithValue("@SongID", this.GetSongID(title));
+
+                    command.ExecuteNonQuery();
                 }
             }
         }
@@ -790,6 +792,21 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
             }
         }
 
-    #endregion
-}
+        public int GetAmountOfSongsthisMont()
+        {
+            using (var connection = new SQLiteConnection(_connectionString))
+            {
+                connection.Open();
+                string query = "SELECT COUNT(*) FROM Session " +
+                               "WHERE strftime('%Y-%m', Date) = strftime('%Y-%m', 'now');";
+                using (var command = new SQLiteCommand(query, connection))
+                {
+                    object result = command.ExecuteScalar();
+                    return Convert.ToInt32(result);
+                }
+            }
+        }
+
+        #endregion
+    }
 }

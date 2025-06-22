@@ -37,9 +37,22 @@
            Grid.Row="2" Margin="0,20,0,0" />
 
         <!-- Exit Button -->
-        <Button Content="Exit" Width="200" Height="50"
-                Grid.Row="3"
-                HorizontalAlignment="Center" VerticalAlignment="Center"
-                Click="ExitClick" />
+        <StackPanel Grid.Row="3"
+            Orientation="Horizontal"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Margin="0,20,0,0">
+
+            <Button Content="Exit"
+            Width="200" Height="100"
+            Click="ExitClick"
+            FontSize="20"
+            Margin="0,0,20,0"/>
+
+            <Button Content="Replay"
+            Width="200" Height="100"
+            Click="ReplayButton_Click"
+            FontSize="20"/>
+        </StackPanel>
     </Grid>
 </Page>

@@ -83,6 +83,17 @@ namespace BeethovenBusiness.PianoLogica
                 _midiDevice = null;
             }
         }
+
+        public void TriggerNotePressed(string note)
+        {
+            NotePressed?.Invoke(note);
+        }
+
+        public void TriggerNoteReleased(string note)
+        {
+            NoteReleased?.Invoke(note);
+        }
+
     }
 
 }

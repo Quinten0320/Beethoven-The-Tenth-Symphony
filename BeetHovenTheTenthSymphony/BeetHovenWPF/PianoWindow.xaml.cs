@@ -26,6 +26,9 @@ using BeethovenBusiness.MidiFileLogica;
 using BeethovenBusiness.Interfaces;
 using BeethovenBusiness.NewFolder;
 using BeethovenBusiness.Achievements;
+using BeethovenBusiness.KeyboardReplay;
+
+
 
 
 namespace BeetHovenWPF
@@ -51,6 +54,11 @@ namespace BeetHovenWPF
         double elapsedTime;
         bool muziekafspelen = true;
         private AchievementLogic achievementlogic;
+        private KeyboardInputHandler keyboardInputHandler;
+        private ReplayManager _replayManager = new ReplayManager();
+        private bool _isRecording = false;
+
+
 
         private const int MaxSegments = 5;
         private List<Rectangle> checkpointMarkers = new List<Rectangle>();
@@ -76,7 +84,17 @@ namespace BeetHovenWPF
         private CheckpointLogic _checkpointLogic;
         private ProgressService _progressService;
         private GameStatsService _gameStats;
+        private readonly Dictionary<string, string> noteToKeyLabel = new()
+        {
+            { "C2", "Q" }, { "D2", "W" }, { "E2", "E" }, { "F2", "R" }, { "G2", "T" }, { "A2", "Y" }, { "B2", "U" },
+            { "CSharp2", "1" }, { "DSharp2", "2" }, { "FSharp2", "3" }, { "GSharp2", "4" }, { "ASharp2", "5" },
 
+            { "C3", "A" }, { "D3", "S" }, { "E3", "D" }, { "F3", "F" }, { "G3", "G" }, { "A3", "H" }, { "B3", "J" },
+            { "CSharp3", "6" }, { "DSharp3", "7" }, { "FSharp3", "8" }, { "GSharp3", "9" }, { "ASharp3", "0" },
+
+            { "C4", "Z" }, { "D4", "X" }, { "E4", "C" }, { "F4", "V" }, { "G4", "B" }, { "A4", "N" }, { "B4", "M" },
+            { "CSharp4", "I" }, { "DSharp4", "O" }, { "FSharp4", "P" }, { "GSharp4", "K" }, { "ASharp4", "L" }
+        };
         public PianoWindow(string midiPath, MidiFile midiFile, string MidiName, IData data, string difficulty, GameStatsService gameStats)
         {
             InitializeComponent();
@@ -115,6 +133,30 @@ namespace BeetHovenWPF
 
             _inputHandler.NoteReleased -= OnMidiNoteReleased;
             _inputHandler.NoteReleased += OnMidiNoteReleased;
+
+            keyboardInputHandler = new KeyboardInputHandler(
+                note => {
+                    if (!_isRecording)
+                    {
+                        _isRecording = true;
+                        _replayManager.StartRecording();
+                    }
+
+                    _replayManager.RecordNote(note);
+                    _inputHandler?.TriggerNotePressed(note);
+                },
+                note => {
+                _replayManager.RecordNote(note); // optioneel, of laat dit weg
+                _inputHandler?.TriggerNoteReleased(note);
+                }
+            );
+
+
+            this.KeyDown += (s, e) => keyboardInputHandler.HandleKeyDown(e.Key.ToString());
+            this.KeyUp += (s, e) => keyboardInputHandler.HandleKeyUp(e.Key.ToString());
+
+            this.Focusable = true;
+            this.Focus();
 
             this.KeyDown += PianoWindowPauze;
 
@@ -352,7 +394,8 @@ namespace BeetHovenWPF
         {
             // Remove existing piano keys
             var pianoNotes = PianoCanvas.Children.OfType<UIElement>()
-                .Where(child => child is Rectangle rect && (rect.Tag is string tag && tag.StartsWith("PianoNote")))
+                .Where(child => child is Rectangle rect && (rect.Tag is string tag && tag.StartsWith("PianoNote")) ||
+                (child is TextBlock))
                 .ToList();
 
             foreach (var note in pianoNotes)
@@ -370,6 +413,8 @@ namespace BeetHovenWPF
 
             string[] whiteKeysWithBlack = { "C", "D", "F", "G", "A" };
             double currentX = 0;
+
+
 
             for (int octave = 0; octave < _octaves; octave++)
             {
@@ -389,9 +434,21 @@ namespace BeetHovenWPF
 
                     Canvas.SetLeft(whiteKey, currentX);
                     Canvas.SetBottom(whiteKey, 0);
+                    PianoCanvas.Children.Add(whiteKey);
+                    if (noteToKeyLabel.TryGetValue(whiteNote, out var label))
+                    {
+                        var text = new TextBlock
+                        {
+                            Text = label,
+                            FontSize = 10,
+                            Foreground = Brushes.Black
+                        };
+                        Canvas.SetLeft(text, currentX + 4);
+                        Canvas.SetBottom(text, 4);
+                        PianoCanvas.Children.Add(text);
+                    }
                     Panel.SetZIndex(whiteKey, 0);
                     whiteKey.MouseDown += Key_MouseDown;
-                    PianoCanvas.Children.Add(whiteKey);
 
                     if (i < _whiteKeyCount - 1 && whiteKeysWithBlack.Contains(GetWhiteKeyName(i)))
                     {
@@ -407,11 +464,30 @@ namespace BeetHovenWPF
                             Tag = $"PianoNote:{blackNote}"
                         };
 
-                        Canvas.SetLeft(blackKey, currentX + whiteKeyWidth * 0.75 - (blackKeyWidth / 2) + whiteKeyWidth * 0.25); Canvas.SetBottom(blackKey, whiteKeyHeight - blackKeyHeight);
+                        double keyLeft = currentX + whiteKeyWidth * 0.75 - (blackKeyWidth / 2) + whiteKeyWidth * 0.25;
+                        double keyBottom = whiteKeyHeight - blackKeyHeight;
+
+                        Canvas.SetLeft(blackKey, keyLeft);
+                        Canvas.SetBottom(blackKey, keyBottom);
                         Panel.SetZIndex(blackKey, 1);
-                        blackKey.MouseDown += Key_MouseDown;
-                        Blackkeys.Add(blackKey);
                         PianoCanvas.Children.Add(blackKey);
+                        Blackkeys.Add(blackKey);
+                        blackKey.MouseDown += Key_MouseDown;
+
+                        if (noteToKeyLabel.TryGetValue(blackNote, out var blackLabel))
+                        {
+                            var text = new TextBlock
+                            {
+                                Text = blackLabel,
+                                FontSize = 9,
+                                Foreground = Brushes.White
+                            };
+
+                            Canvas.SetLeft(text, keyLeft + 4);
+                            Canvas.SetBottom(text, keyBottom + 2);
+                            Panel.SetZIndex(text, 2);
+                            PianoCanvas.Children.Add(text);
+                        }
                     }
 
                     currentX += whiteKeyWidth;
@@ -666,11 +742,33 @@ namespace BeetHovenWPF
                 this.Close();
                 List<int> topScores = _data.GetTopScores(_checkpointLogic.GetSongID(_selectedMidiName));
 
+                var endMenu = new EndMenu(_currentMidi, finalScore, topScores, _isCheckpointActive, _earnedXP, _leveledUp);
+
+                endMenu.ReplayRequested += async () =>
+                {
+                    var currentWindow = Window.GetWindow(endMenu);
+                    currentWindow?.Close();
+
+                    var pianoWindow = new PianoWindow(_midiPath, _currentMidi, _selectedMidiName, _data, "replay");
+                    pianoWindow.Show();
+
+                    pianoWindow.ResetKeys();
+                    await Task.Delay(500);
+
+                    await _replayManager.ReplayAsync(async note =>
+                    {
+                        pianoWindow.ReceiveReplayNote(note);
+
+                        await Task.Delay(100);
+                        pianoWindow.ReceiveNoteRelease(note);
+                    });
+                };
+
                 // Show the End Menu in a new window
                 var window = new Window
                 {
                     Title = "End Menu",
-                    Content = new EndMenu(_currentMidi, finalScore, topScores, _isCheckpointActive, _earnedXP, _leveledUp),
+                    Content = endMenu,
                     WindowStyle = WindowStyle.None,
                     ResizeMode = ResizeMode.NoResize,
                     Width = ActualWidth,
@@ -681,6 +779,20 @@ namespace BeetHovenWPF
 
                 window.ShowDialog();
             });
+        }
+        public void ReceiveReplayNote(string note)
+        {
+            keyboardInputHandler.HandleReplayNote(note);
+        }
+
+        public void ReceiveNoteRelease(string note)
+        {
+            keyboardInputHandler.HandleNoteRelease(note);
+        }
+
+        public void ResetKeys()
+        {
+            keyboardInputHandler.ReleaseAllKeys();
         }
 
         public void StopAndDisposePlayback()

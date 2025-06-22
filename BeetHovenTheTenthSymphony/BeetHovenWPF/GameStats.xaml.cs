@@ -1,25 +1,10 @@
 ﻿
+using BeethovenBusiness.MidiFileLogica;
 using BeethovenBusiness.NewFolder;
 using OxyPlot;
 using OxyPlot.Axes;
 using OxyPlot.Series;
-using System;
-using System.Collections.Generic;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data.Entity.Infrastructure;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 
 namespace BeetHovenWPF
 {
@@ -27,6 +12,8 @@ namespace BeetHovenWPF
     {
         private readonly GameStatsService _gameStatsService;
         public PlotModel MyModel { get; private set; }
+        public PlotModel NoteBarModel { get; private set; }
+
         public GameStats(GameStatsService gameStatsService)
         {
             InitializeComponent();
@@ -35,7 +22,60 @@ namespace BeetHovenWPF
             _gameStatsService = gameStatsService;
             loadModel();
 
+            List<int> scoreList = _gameStatsService.GetScoreBoardData();
+            ScoreListBox.ItemsSource = scoreList;
+
+
+           // //Data ophalen of simuleren
+           // List<int> notenAantal = new List<int> { 5, 3, 7, 2, 6, 4, 1 }; // Bijvoorbeeld
+
+            // //Model aanmaken via aparte methode
+            //NoteBarModel = CreateNoteBarModel(notenAantal);
+
+
             this.DataContext = _gameStatsService;
+        }
+
+        public PlotModel CreateNoteBarModel(List<int> aantalNoten)
+        {
+            var model = new PlotModel { Title = "Aantal noten" };
+
+            // Categorieën op de Y-as
+            var categoryAxis = new CategoryAxis
+            {
+                Position = AxisPosition.Left,
+                Key = "NotesAxis"
+            };
+
+            string[] labels = { "C", "D", "E", "F", "G", "A", "B" };
+            foreach (var label in labels)
+                categoryAxis.Labels.Add(label);
+
+            // Waarden op de X-as
+            var valueAxis = new LinearAxis
+            {
+                Position = AxisPosition.Bottom,
+                Minimum = 0,
+                Title = "Aantal"
+            };
+
+            var barSeries = new BarSeries
+            {
+                ItemsSource = new List<BarItem>(),
+                LabelPlacement = LabelPlacement.Inside,
+                LabelFormatString = "{0}"
+            };
+
+            foreach (var aantal in aantalNoten)
+            {
+                barSeries.Items.Add(new BarItem { Value = aantal });
+            }
+
+            model.Axes.Add(categoryAxis);
+            model.Axes.Add(valueAxis);
+            model.Series.Add(barSeries);
+
+            return model;
         }
 
         private void loadModel()

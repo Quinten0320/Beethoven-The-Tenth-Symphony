@@ -702,12 +702,13 @@ namespace BeetHovenWPF
 
                 // Haal het bestandspad op
                 string filePath = _midiPath;
+                elapsedTime = (DateTime.Now - _startTime).TotalSeconds;
 
                 // Sla de gegevens op via FeedbackLogic
-                if(!_isCheckpointActive)
+                if (!_isCheckpointActive)
                 {
                     _feedbacklogic.OnSongFinished(songTitle, songDuration, filePath);
-                    _gameStats.SaveSessionDetails(10, new DateTime(2024, 01, 01), songTitle);
+                    _gameStats.SaveSessionDetails(elapsedTime, DateTime.Now.ToString("yyyy-MM-dd"), songTitle);
                     return;
 
                 }

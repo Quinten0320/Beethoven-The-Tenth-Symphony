@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using BeethovenBusiness.MidiFileLogica;
+using BeethovenBusiness.GameStatistics;
 
 namespace BeethovenBusiness.Interfaces
 {
@@ -44,15 +45,20 @@ namespace BeethovenBusiness.Interfaces
         void DeleteCheckpoint(int songID, Checkpoint checkpoint);
         void SaveCheckpoint(int songID, Checkpoint checkpoint);
         void UpdateDatabase(string query);
-        void saveSessionDetails(double duration, string date, string title);
-        int GetTotalAmountOfSongs();
-        int GetAmountOfSongsthisMont();
-
         bool GetIfInstrumentIsSelected(int songID, int programNumber);
 
         void addTrack(int programNumber, int songId);
         public void saveInstrumentList(List<TrackSettings> trackSettings, int songId);
 
         public List<int> GetProgramNumbersWhoNeedsToPlay(int songId);
+
+        #region Game statistics
+        void saveSessionDetails(double duration, string date, string title);
+        int GetTotalAmountOfSongs();
+        int GetAmountOfSongsthisMont();
+        Session getSessionDetails();
+        Song GetSongDetails(int songID);
+        List<int> GetScoresBySongId(int songID);
+        #endregion
     }
 }

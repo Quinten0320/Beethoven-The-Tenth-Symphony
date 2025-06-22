@@ -1,10 +1,12 @@
 ﻿using BeethovenBusiness.Achievements;
 using BeethovenBusiness.Checkpoints;
+using BeethovenBusiness.GameStatistics;
 using BeethovenBusiness.Interfaces;
 using BeethovenBusiness.MidiFileLogica;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Interaction;
 using Melanchall.DryWetMidi.MusicTheory;
+using Microsoft.VisualBasic;
 using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
@@ -292,7 +294,7 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
                     {
                         double duration = GetMidiFileDuration(midiFilePath);
 
-                        AddSong(fileName, duration, midiFilePath, usedProgramNumbers);
+                        AddSong(fileName, duration, midiFilePath, usedProgramNumbers );
                     }
                 }
                 catch (Exception ex)
@@ -327,13 +329,15 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
             return duration.TotalMicroseconds / 1_000_000.0; // Convert to seconds
         }
 
+        // TODO: add difficulty aan de song in db
         public void AddSong(string title, double duration, string filePath, List<int> programNumbers)
         {
             string insertSongQuery = @"
-            INSERT INTO Song (Title, Duration, FilePath)
-            VALUES (@Title, @Duration, @FilePath);";
+            INSERT INTO Song (Title, Duration, FilePath, Difficulty)
+            VALUES (@Title, @Duration, @FilePath, @Difficulty);";
 
             int songId;
+            string difficulty = "easy";
             
             using (var connection = new SQLiteConnection(_connectionString))
             {
@@ -344,6 +348,7 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
                     command.Parameters.AddWithValue("@Title", title);
                     command.Parameters.AddWithValue("@Duration", duration);
                     command.Parameters.AddWithValue("@FilePath", filePath);
+                    command.Parameters.AddWithValue("@Difficulty", difficulty);
                     command.ExecuteNonQuery();
 
                     command.CommandText = "SELECT last_insert_rowid();";
@@ -760,6 +765,8 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
 
         #region Game Statistics
 
+
+
         public void saveSessionDetails(double duration, string date, string title)
         {
             string query = "INSERT INTO Session (Duration, Date, SongID) VALUES (@Duration, @Date, @SongID);";
@@ -776,6 +783,70 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
                 }
             }
         }
+
+        public Session getSessionDetails()
+        {
+            Session recentSession = null;
+            
+
+            using (var connection = new SQLiteConnection(_connectionString))
+            {
+                connection.Open();
+
+                string query = "SELECT * FROM Session ORDER BY Date DESC LIMIT 1";
+
+                using (var command = new SQLiteCommand(query, connection))
+                using (var reader = command.ExecuteReader())
+                {
+
+                    if (reader.Read())
+                    {
+                        recentSession = new Session
+                        {
+                            Id = reader.GetInt32(0),
+                            Duration = reader.GetDouble(1),
+                            Date = reader.GetString(2),
+                            SongID = reader.GetInt32(3)
+                        };
+                    }
+                }
+            }
+            return recentSession;
+        }
+
+        public Song GetSongDetails(int songID)
+        {
+            Song songDetails = null;
+
+            using (var connection = new SQLiteConnection(_connectionString))
+            {
+                connection.Open();
+
+                string query = "SELECT * FROM Song WHERE ID = @ID";
+
+                using (var command = new SQLiteCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@ID", songID);
+
+                    using (var reader = command.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            songDetails = new Song
+                            {
+                                SongID = reader.GetInt32(0),
+                                Title = reader.GetString(1),
+                                Duration = reader.GetDouble(2),
+                                FilePath = reader.GetString(3)
+                            };
+                        }
+                    }
+                }
+            }
+
+            return songDetails;
+        }
+
 
         public int GetTotalAmountOfSongs()
         {
@@ -806,6 +877,33 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
                 }
             }
         }
+
+        public List<int> GetScoresBySongId(int songId)
+        {
+            var scores = new List<int>();
+
+            using (var connection = new SQLiteConnection(_connectionString))
+            {
+                connection.Open();
+                string query = "SELECT Score FROM Score WHERE SongID = @songId";
+
+                using (var command = new SQLiteCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@songId", songId);
+
+                    using (var reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            scores.Add(Convert.ToInt32(reader.GetValue(0)));
+                        }
+                    }
+                }
+            }
+
+            return scores;
+        }
+
 
         #endregion
     }

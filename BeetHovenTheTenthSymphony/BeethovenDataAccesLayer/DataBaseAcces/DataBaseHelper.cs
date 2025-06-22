@@ -64,7 +64,6 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
                             SongID INT NOT NULL,
                             FOREIGN KEY(SongID) REFERENCES Song(ID)
                         );";
-
                     using (var command = new SQLiteCommand(connection))
                     {
                         command.CommandText = createScoreTableQuery;

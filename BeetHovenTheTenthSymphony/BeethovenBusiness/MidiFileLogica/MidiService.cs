@@ -193,10 +193,18 @@ namespace BeethovenBusiness.MidiFileLogica
                             IsPlayed BOOLEAN NOT NULL,
                             PRIMARY KEY (ProgramNumber, SongID),
                             FOREIGN KEY (SongID) REFERENCES Song(ID)
-                        );"
-                );
+                        );");
 
-            foreach(var query in querys)
+
+            querys.Add(@"
+                        CREATE TABLE IF NOT EXISTS Progress (
+                            ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                            TotalXP INTEGER NOT NULL DEFAULT 0,
+                            CurrentXP INTEGER NOT NULL DEFAULT 0,   
+                            Level INTEGER NOT NULL DEFAULT 1
+                        );");
+
+            foreach (var query in querys)
             {
                 _data.UpdateDatabase(query);
             }

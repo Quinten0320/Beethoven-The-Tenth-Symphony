@@ -69,11 +69,12 @@ namespace BeetHovenWPF
                 //sla het pad van het huidige MIDI-bestand op
                 string midiPath = pianoWindow._midiPath;
                 string selectedMidiName = pianoWindow._selectedMidiName;
+                string selectedMidiDifficulty = pianoWindow._difficulty;
                 //sluit het huidige venster
                 pianoWindow.Close();
 
                 //maak een nieuw exemplaar van PianoWindow
-                var newPianoWindow = new PianoWindow(midiPath, _midiFile, selectedMidiName, _data);
+                var newPianoWindow = new PianoWindow(midiPath, _midiFile, selectedMidiName, _data, selectedMidiDifficulty);
                 newPianoWindow.Show();
             }
         }

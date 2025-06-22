@@ -184,9 +184,17 @@ namespace BeethovenBusiness.MidiFileLogica
                             Description TEXT NOT NULL,
                             DatumBehaald DATETIME,
                             IsBehaald BOOLEAN NOT NULL
-                        );"); //:(
+                        );");
 
-            foreach(var query in querys)
+            querys.Add(@"
+                        CREATE TABLE IF NOT EXISTS Progress (
+                            ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                            TotalXP INTEGER NOT NULL DEFAULT 0,
+                            CurrentXP INTEGER NOT NULL DEFAULT 0,   
+                            Level INTEGER NOT NULL DEFAULT 1
+                        );");
+
+            foreach (var query in querys)
             {
                 _data.UpdateDatabase(query);
             }

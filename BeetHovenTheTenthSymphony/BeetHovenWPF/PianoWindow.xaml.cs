@@ -1,19 +1,20 @@
+using BeethovenBusiness.Checkpoints;
+using BeethovenBusiness.Interfaces;
+using BeethovenBusiness.MidiFileLogica;
+using BeethovenBusiness.PianoLogica;
+using BeethovenBusiness.Progress;
+using Melanchall.DryWetMidi.Core;
+using Melanchall.DryWetMidi.Interaction;
+using Melanchall.DryWetMidi.Multimedia;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Shapes;
 using System.Windows.Media.Animation;
+using System.Windows.Shapes;
 using System.Windows.Threading;
-using System.Diagnostics;
-using System.ComponentModel;
-using Melanchall.DryWetMidi.Core;
-using Melanchall.DryWetMidi.Multimedia;
-using Melanchall.DryWetMidi.Interaction;
-using BeethovenBusiness.Checkpoints;
-using BeethovenBusiness.PianoLogica;
-using BeethovenBusiness.MidiFileLogica;
-using BeethovenBusiness.Interfaces;
 
 namespace BeetHovenWPF
 {
@@ -51,25 +52,31 @@ namespace BeetHovenWPF
         private double finalScore;
         private bool _startedPlayback = false;
         private double _selectedSongDuration;
-        
+        public string _difficulty;
+        private int _earnedXP;
+        private bool _leveledUp = false;
+
         int songID;
         List<Checkpoint> CheckpointsForSong;
         private PlaybackService _playbackService;
         private bool _isCheckpointActive;
         private CheckpointLogic _checkpointLogic;
+        private ProgressService _progressService;
 
-        public PianoWindow(string midiPath, MidiFile midiFile, string MidiName, IData data)
+        public PianoWindow(string midiPath, MidiFile midiFile, string MidiName, IData data, string difficulty)
         {
             InitializeComponent();
             MidiService service = new MidiService(data);
             int songId = service.GetSongIdByName(MidiName);
             List<int> programNumbers = service.GetProgramNumbersWhoNeedsToPlay(songId);
             uitlezenLogic = new UitlezenMidiLogica(programNumbers);
+            _progressService = new ProgressService(data);
 
-            
+
 
             _midiPath = midiPath;
             _data = data;
+            _difficulty = difficulty;
 
             Loaded += PianoWindow_Loaded;
             SizeChanged += PianoWindow_SizeChanged;
@@ -647,7 +654,7 @@ namespace BeetHovenWPF
                 var window = new Window
                 {
                     Title = "End Menu",
-                    Content = new EndMenu(_currentMidi, finalScore, topScores, _isCheckpointActive),
+                    Content = new EndMenu(_currentMidi, finalScore, topScores, _isCheckpointActive, _earnedXP, _leveledUp),
                     WindowStyle = WindowStyle.None,
                     ResizeMode = ResizeMode.NoResize,
                     Width = ActualWidth,
@@ -703,6 +710,9 @@ namespace BeetHovenWPF
                 if(!_isCheckpointActive)
                 {
                     _feedbacklogic.OnSongFinished(songTitle, songDuration, filePath);
+                    var xpResult = _progressService.CalculateXP(_difficulty, (int)finalScore);
+                    _earnedXP = xpResult.earnedXP;
+                    _leveledUp = xpResult.leveledUp;
                     return;
                 }
 

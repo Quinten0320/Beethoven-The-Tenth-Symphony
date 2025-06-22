@@ -74,6 +74,13 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
                             FOREIGN KEY (SongID) REFERENCES Song(ID)
                         );";
 
+                    string createProgressTableQuery = @"
+                        CREATE TABLE IF NOT EXISTS Progress (
+                            ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                            TotalXP INTEGER NOT NULL DEFAULT 0,
+                            CurrentXP INTEGER NOT NULL DEFAULT 0,   
+                            Level INTEGER NOT NULL DEFAULT 1
+                        );";
 
                     using (var command = new SQLiteCommand(connection))
                     {
@@ -90,6 +97,9 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
                         command.ExecuteNonQuery();
 
                         command.CommandText = createTracksTableQuery;
+                        command.ExecuteNonQuery();
+
+                        command.CommandText = createProgressTableQuery;
                         command.ExecuteNonQuery();
 
                     }

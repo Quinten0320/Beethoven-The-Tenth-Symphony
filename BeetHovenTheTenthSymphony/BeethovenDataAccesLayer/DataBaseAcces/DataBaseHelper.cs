@@ -64,24 +64,6 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
                             SongID INT NOT NULL,
                             FOREIGN KEY(SongID) REFERENCES Song(ID)
                         );";
-
-                    string createTracksTableQuery = @"
-                        CREATE TABLE IF NOT EXISTS Tracks (
-                            ProgramNumber INTEGER NOT NULL,
-                            SongID INTEGER NOT NULL,
-                            IsPlayed BOOLEAN NOT NULL,
-                            PRIMARY KEY (ProgramNumber, SongID),
-                            FOREIGN KEY (SongID) REFERENCES Song(ID)
-                        );";
-
-                    string createProgressTableQuery = @"
-                        CREATE TABLE IF NOT EXISTS Progress (
-                            ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                            TotalXP INTEGER NOT NULL DEFAULT 0,
-                            CurrentXP INTEGER NOT NULL DEFAULT 0,   
-                            Level INTEGER NOT NULL DEFAULT 1
-                        );";
-
                     using (var command = new SQLiteCommand(connection))
                     {
                         command.CommandText = createScoreTableQuery;
@@ -95,13 +77,6 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
 
                         command.CommandText = createFavouritesTableQuery;
                         command.ExecuteNonQuery();
-
-                        command.CommandText = createTracksTableQuery;
-                        command.ExecuteNonQuery();
-
-                        command.CommandText = createProgressTableQuery;
-                        command.ExecuteNonQuery();
-
                     }
                 }
             }

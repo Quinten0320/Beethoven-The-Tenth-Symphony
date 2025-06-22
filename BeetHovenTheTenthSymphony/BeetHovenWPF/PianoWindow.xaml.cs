@@ -15,6 +15,17 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
+using System.Diagnostics;
+using System.ComponentModel;
+using Melanchall.DryWetMidi.Core;
+using Melanchall.DryWetMidi.Multimedia;
+using Melanchall.DryWetMidi.Interaction;
+using BeethovenBusiness.Checkpoints;
+using BeethovenBusiness.PianoLogica;
+using BeethovenBusiness.MidiFileLogica;
+using BeethovenBusiness.Interfaces;
+using BeethovenBusiness.Achievements;
+
 
 namespace BeetHovenWPF
 {
@@ -38,7 +49,8 @@ namespace BeetHovenWPF
         private Playback _playback;
         double elapsedTime;
         bool muziekafspelen = true;
-        
+        private AchievementLogic achievementlogic;
+
         private const int MaxSegments = 5;
         private List<Rectangle> checkpointMarkers = new List<Rectangle>();
         private Dictionary<Checkpoint, DispatcherTimer> _checkpointTimers = new Dictionary<Checkpoint, DispatcherTimer>();
@@ -67,6 +79,7 @@ namespace BeetHovenWPF
         {
             InitializeComponent();
             MidiService service = new MidiService(data);
+            achievementlogic = new AchievementLogic(data);
             int songId = service.GetSongIdByName(MidiName);
             List<int> programNumbers = service.GetProgramNumbersWhoNeedsToPlay(songId);
             uitlezenLogic = new UitlezenMidiLogica(programNumbers);
@@ -735,6 +748,7 @@ namespace BeetHovenWPF
 
         private async void StartSongAtSegment(Checkpoint checkpoint)
         {
+            achievementlogic.UpdateAchievementStatus(new Achievement("Practice Mode", "Gebruik oefenmodus."));
             // Cancel all previous timers and animations
             CancelAllTimersAndAnimations();
 

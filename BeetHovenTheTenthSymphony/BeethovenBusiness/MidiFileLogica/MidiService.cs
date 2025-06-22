@@ -184,7 +184,17 @@ namespace BeethovenBusiness.MidiFileLogica
                             Description TEXT NOT NULL,
                             DatumBehaald DATETIME,
                             IsBehaald BOOLEAN NOT NULL
+                        );"); //:(
+            querys.Add(
+                @"
+                        CREATE TABLE IF NOT EXISTS Tracks (
+                            ProgramNumber INTEGER NOT NULL,
+                            SongID INTEGER NOT NULL,
+                            IsPlayed BOOLEAN NOT NULL,
+                            PRIMARY KEY (ProgramNumber, SongID),
+                            FOREIGN KEY (SongID) REFERENCES Song(ID)
                         );");
+
 
             querys.Add(@"
                         CREATE TABLE IF NOT EXISTS Progress (

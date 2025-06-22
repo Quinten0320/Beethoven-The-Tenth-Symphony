@@ -201,6 +201,12 @@ namespace BeetHovenWPF
             }
         }
 
+        private void AchievementsButton_Click(object sender, RoutedEventArgs e)
+        {
+            var achievementWindow = new Achievements(_data);
+            achievementWindow.ShowDialog();
+        }
+
         private void ProgressButton_Click(object sender, RoutedEventArgs e)
         {
             var progressPage = new Progress();

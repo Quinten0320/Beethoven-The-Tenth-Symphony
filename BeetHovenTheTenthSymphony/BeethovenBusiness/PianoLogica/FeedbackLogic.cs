@@ -4,6 +4,8 @@ using System.Diagnostics;
 using Melanchall.DryWetMidi.MusicTheory;
 using BeethovenBusiness.MidiFileLogica;
 using BeethovenBusiness.Interfaces;
+using BeethovenBusiness.Achievements;
+using static System.Formats.Asn1.AsnWriter;
 
 namespace BeethovenBusiness.PianoLogica
 {
@@ -18,6 +20,7 @@ namespace BeethovenBusiness.PianoLogica
         private UitlezenMidiLogica _uitlezenMidiLogica;
         private readonly IData _data; 
         public event Action<string> NewFeedback = delegate { };
+        public AchievementLogic achievementlogic;
 
         private int _correctNotes = 0;
         private int _earlyNotes = 0;
@@ -29,6 +32,7 @@ namespace BeethovenBusiness.PianoLogica
         public FeedbackLogic(UitlezenMidiLogica uitlezenMidiLogica, IData data)
         {
             _data = data;
+            achievementlogic = new AchievementLogic(data);
             _notes = new List<Melanchall.DryWetMidi.Interaction.Note>();
             _uitlezenMidiLogica = uitlezenMidiLogica;
             _inputHandler = PianoInputHandlerService.Instance;
@@ -73,6 +77,8 @@ namespace BeethovenBusiness.PianoLogica
 
         private void CheckNoteTiming(Melanchall.DryWetMidi.Interaction.Note noteToCheck, double pressTime)
         {
+            achievementlogic.UpdateAchievementStatus(new Achievement("Eerste Note", "Speel je eerste noot."));
+
             long noteTimeInTicks = noteToCheck.Time;
             MetricTimeSpan metricTime = TimeConverter.ConvertTo<MetricTimeSpan>(noteTimeInTicks, _uitlezenMidiLogica.tempoMap);
             double noteTimeInSeconds = metricTime.TotalSeconds;
@@ -90,6 +96,10 @@ namespace BeethovenBusiness.PianoLogica
             if (Math.Abs(difference) <= tolerance)
             {
                 double scoreIncrement = 100 * (1 - Math.Abs(difference) / tolerance); // Hoe dichterbij, hoe meer punten
+                if (scoreIncrement == 100)
+                {
+                    achievementlogic.UpdateAchievementStatus(new Achievement("Perfect Score", "Speel een noot tot op de miliseconde perfect."));
+                }
                 _correctNotes++;
                 _score += scoreIncrement;
                 Debug.WriteLine($"Timing correct! Afwijking: {difference:F3} seconden. Score +{scoreIncrement:F2}");
@@ -108,6 +118,7 @@ namespace BeethovenBusiness.PianoLogica
                 Debug.WriteLine("Te laat! Afwijking: " + difference + " seconden.");
                 feedback = "Te laat!";
             }
+            
             NewFeedback?.Invoke(feedback);
             NotifyScoreUpdated(); // Update de score na elke noot
         }
@@ -145,7 +156,14 @@ namespace BeethovenBusiness.PianoLogica
         {
             try
             {
+                achievementlogic.UpdateAchievementStatus(new Achievement("First Song", "Speel een volledig liedje."));
+
                 int finalScore = (int)GetScore(); // Haal de finale score op
+
+                if (finalScore == 0)
+                {
+                    achievementlogic.UpdateAchievementStatus(new Achievement("Noob", "Behaal 0 score op een level"));
+                }
                 _data.SaveScore(songTitle, finalScore);
                 Debug.WriteLine("Score succesvol opgeslagen in de database.");
             }

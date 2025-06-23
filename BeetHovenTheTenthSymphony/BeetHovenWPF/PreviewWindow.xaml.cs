@@ -1,6 +1,7 @@
 ﻿using BeethovenBusiness.Checkpoints;
 using BeethovenBusiness.Interfaces;
 using BeethovenBusiness.MidiFileLogica;
+using BeethovenBusiness.NewFolder;
 using BeethovenBusiness.PianoLogica;
 using BeethovenBusiness.PreviewLogic;
 using Melanchall.DryWetMidi.Core;
@@ -33,7 +34,8 @@ namespace BeetHovenWPF
         private readonly string _selectedSongDuration;
         private readonly MidiFile _midiFile;
         private readonly IData _data;
-        public PreviewWindow(string name, string difficulty, MidiFile midiFile, IData data)
+        private GameStatsService _gameStatsService;
+        public PreviewWindow(string name, string difficulty, MidiFile midiFile, IData data, GameStatsService gameStatsService)
         {
             InitializeComponent();
             _selectedMidiName = name;
@@ -44,6 +46,7 @@ namespace BeetHovenWPF
             _selectedSongDuration = _previewLogic.GetDuration(name);
             _playbackService = new PlaybackService(midiFile);
             _midiService = new MidiService(data);
+            _gameStatsService = gameStatsService;
 
             Closing += PreviewWindow_Closing;
 
@@ -113,7 +116,7 @@ namespace BeetHovenWPF
                 string folderPath = _midiService.getFolderPath();
                 string completePath = folderPath + "\\" + _selectedMidiName + ".mid";
 
-                PianoWindow pianowindow = new PianoWindow(completePath, _midiFile, _selectedMidiName, _data);
+                PianoWindow pianowindow = new PianoWindow(completePath, _midiFile, _selectedMidiName, _data, _difficulty, _gameStatsService);
                 pianowindow.ShowDialog();
             }
             catch (Exception ex)

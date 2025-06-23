@@ -191,7 +191,7 @@ namespace BeetHovenWPF
                     var midiInfo = _midiFileInfos.FirstOrDefault(m => m.Name == midiName);
                     string difficulty = midiInfo?.Difficulty ?? "Unknown";
 
-                    var previewWindow = new PreviewWindow(midiName, difficulty, midiFile, _data);
+                    var previewWindow = new PreviewWindow(midiName, difficulty, midiFile, _data, _gameStatsService);
                     previewWindow.ShowDialog();
                 }
                 catch (Exception ex)
@@ -200,7 +200,7 @@ namespace BeetHovenWPF
                 }
             }
         }
-    }
+    
 
     private void SettingsButton_Click(object sender, RoutedEventArgs e)
         {

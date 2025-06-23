@@ -170,5 +170,24 @@ namespace BeetHovenWPF
                 }
             }
         }
+        private void PreviewButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.Tag is string midiName)
+            {
+                try
+                {
+                    var midiFile = _midiService.LoadMidiFile(midiName);
+                    var midiInfo = _midiFileInfos.FirstOrDefault(m => m.Name == midiName);
+                    string difficulty = midiInfo?.Difficulty ?? "Unknown";
+
+                    var previewWindow = new PreviewWindow(midiName, difficulty, midiFile, _data);
+                    previewWindow.ShowDialog();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error opening preview: {ex.Message}");
+                }
+            }
+        }
     }
 }

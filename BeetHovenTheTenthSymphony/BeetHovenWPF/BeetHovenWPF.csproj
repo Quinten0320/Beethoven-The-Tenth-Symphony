@@ -13,12 +13,24 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Images\pause-button.png" />
+    <None Remove="Images\play-button.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Melanchall.DryWetMidi" Version="7.2.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\BeethovenBusiness\BeethovenBusiness.csproj" />
     <ProjectReference Include="..\BeethovenDataAccesLayer\BeethovenDataAccesLayer.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Images\pause-button.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Images\play-button.png" />
   </ItemGroup>
 
 </Project>

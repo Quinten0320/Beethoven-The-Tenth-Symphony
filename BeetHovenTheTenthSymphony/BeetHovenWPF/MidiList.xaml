@@ -24,10 +24,13 @@
                     <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*" IsReadOnly="True"/>
                     <DataGridTextColumn Header="Difficulty" Binding="{Binding Difficulty}" Width="*" IsReadOnly="True"/>
                     <DataGridCheckBoxColumn Header="Favourite" Binding="{Binding Favourite}" IsReadOnly="False"/>
-                    <DataGridTemplateColumn Header="Actions">
+                    <DataGridTemplateColumn Header="Actions" Width="100">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <Button Content="Delete" Click="DeleteButton_Click" Tag="{Binding Name}" />
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <Button Content="Preview" Click="PreviewButton_Click" Tag="{Binding Name}" />
+                                    <Button Content="Delete" Click="DeleteButton_Click" Tag="{Binding Name}" Margin="5,0,0,0"/>
+                                </StackPanel>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>

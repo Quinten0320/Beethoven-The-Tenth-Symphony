@@ -340,7 +340,7 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
             VALUES (@Title, @Duration, @FilePath, @Difficulty);";
 
             int songId;
-            string difficulty = "easy";
+            string difficulty = "temp_dif";
             
             using (var connection = new SQLiteConnection(_connectionString))
             {

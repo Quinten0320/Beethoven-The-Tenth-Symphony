@@ -48,8 +48,16 @@ namespace BeetHovenWPF
 
         private void GameStats_Bttn(Object sender, RoutedEventArgs e)
         {
-            GameStats gameStatsWindow = new GameStats(_gameStatsService);
-            gameStatsWindow.ShowDialog(); 
+            if(_data.getSessionDetails() != null)
+            {
+
+                GameStats gameStatsWindow = new GameStats(_gameStatsService);
+                gameStatsWindow.ShowDialog();
+            }
+            else
+            {
+                gameStatsPopup.IsOpen = true;
+            }
         }
 
         private void MidiFileList_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)

@@ -64,7 +64,8 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
                             ID INTEGER PRIMARY KEY AUTOINCREMENT,
                             Title TEXT NOT NULL,
                             Duration DOUBLE NOT NULL,
-                            FilePath VARCHAR NOT NULL
+                            FilePath VARCHAR NOT NULL,
+                            Difficulty TEXT NOT NULL
                         );";
 
                     string createFavouritesTableQuery = @"

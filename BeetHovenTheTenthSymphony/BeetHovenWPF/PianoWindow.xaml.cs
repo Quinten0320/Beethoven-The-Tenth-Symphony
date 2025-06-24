@@ -840,7 +840,8 @@ namespace BeetHovenWPF
                 {
                     _feedbacklogic.OnSongFinished(songTitle, songDuration, filePath);
                     _gameStats.SaveSessionDetails(elapsedTime, DateTime.Now.ToString("yyyy-MM-dd"), songTitle);
-                    
+                    _gameStats.initialize();
+
                     var xpResult = _progressService.CalculateXP(_difficulty, (int)finalScore);
                     _earnedXP = xpResult.earnedXP;
                     _leveledUp = xpResult.leveledUp;

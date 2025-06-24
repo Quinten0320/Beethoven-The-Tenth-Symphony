@@ -623,8 +623,32 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
             }
         }
 
+        public bool CheckifAchievementIsBehaald(Achievement achievement)
+        {
+            string checkAchievementQuery = @"
+                SELECT IsBehaald FROM Achievements WHERE Name = @AchievementNaam;";
+            using (var connection = new SQLiteConnection(_connectionString))
+            {
+                connection.Open();
+                using (var command = new SQLiteCommand(checkAchievementQuery, connection))
+                {
+                    command.Parameters.AddWithValue("@AchievementNaam", achievement.Name);
+                    var result = command.ExecuteScalar();
+                    if (result != null && result != DBNull.Value)
+                    {
+                        return Convert.ToBoolean(result);
+                    }
+                    return false;
+                }
+            }
+        }
+
         public void UpdateAchievementStatus(Achievement achievement)
         {
+            if (CheckifAchievementIsBehaald(achievement))
+            {
+                return;
+            }
             string updateAchievementQuery = @"
             UPDATE Achievements
             SET IsBehaald = 1, DatumBehaald = datetime('now') 

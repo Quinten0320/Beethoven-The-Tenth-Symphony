@@ -92,7 +92,6 @@
 
                 <!-- Rechtsonder -->
                 <Border Grid.Row="1" Grid.Column="1" Background="LightGray" Margin="5">
-                    <TextBlock Text="Container 4" />
                 </Border>
             </Grid>
             <!--<TextBlock Text="{Binding MyModel.Title, RelativeSource={RelativeSource AncestorType=Window}}" FontSize="16" />

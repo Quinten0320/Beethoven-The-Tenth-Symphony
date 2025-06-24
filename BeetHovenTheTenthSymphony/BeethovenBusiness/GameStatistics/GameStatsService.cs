@@ -29,6 +29,11 @@ namespace BeethovenBusiness.NewFolder
         public GameStatsService(IData data)
         {
             _data = data;
+            initialize();
+        }
+
+        public void initialize()
+        {
             AmountOfSongs = GetTotalAmountOfSongs();
             AmountOfSongsThisMonth = GetAmountOfSongsthisMont();
             _sessionDetails = GetSessionDetails();
@@ -49,6 +54,11 @@ namespace BeethovenBusiness.NewFolder
         {
 
             return _data.getSessionDetails();
+        }
+
+        public void updateSessionDetails()
+        {
+            _sessionDetails = GetSessionDetails();
         }
 
         public List<int> GetScoreBoardData()

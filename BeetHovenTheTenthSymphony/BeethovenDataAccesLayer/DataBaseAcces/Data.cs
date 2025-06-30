@@ -990,6 +990,21 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
             }
         }
 
+        public int GetAmountOfSongsThisWeek()
+        {
+            using (var connection = new SQLiteConnection(_connectionString))
+            {
+                connection.Open();
+                string query = "SELECT * FROM Session WHERE Date >= date('now', 'weekday 0', '-6 days') AND Date <= date('now', 'weekday 0', '+0 days');";
+                using (var command = new SQLiteCommand(query, connection)) 
+                {
+                    object result = command.ExecuteScalar();
+                    return Convert.ToInt32(result);
+                }
+            }
+
+        }
+
         public List<int> GetScoresBySongId(int songId)
         {
             var scores = new List<int>();

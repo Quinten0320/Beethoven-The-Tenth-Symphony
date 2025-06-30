@@ -7,96 +7,139 @@
         xmlns:local="clr-namespace:BeetHovenWPF"
         mc:Ignorable="d"
         Title="GameStats" Height="857" Width="800">
-    <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <StackPanel Margin="20" Orientation="Vertical" Background="White">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
-            <!-- Played Songs -->
-            <TextBlock Text="Played songs" FontSize="24" FontWeight="Bold" Margin="0,10,0,5"/>
-            <Border BorderBrush="Black" BorderThickness="1">
-                <UniformGrid Columns="3" Margin="0,0,0,20">
-                    <StackPanel HorizontalAlignment="Center">
-                        <TextBlock Text="{Binding AmountOfSongs}" FontSize="28" FontWeight="Bold" TextAlignment="Center"/>
-                        <TextBlock Text="Total" FontSize="14" TextAlignment="Center" />
-                    </StackPanel>
-                    <StackPanel HorizontalAlignment="Center">
-                        <TextBlock Text="{Binding AmountOfSongsThisMonth}" FontSize="28" FontWeight="Bold" TextAlignment="Center"/>
-                        <TextBlock Text="This week" FontSize="14" TextAlignment="Center"/>
-                    </StackPanel>
-                    <StackPanel HorizontalAlignment="Center">
-                        <TextBlock Text="{Binding AmountOfSongsThisMonth}" FontSize="28" FontWeight="Bold" TextAlignment="Center"/>
-                        <TextBlock Text="This month" FontSize="14" TextAlignment="Center"/>
-                    </StackPanel>
-                </UniformGrid>
-            </Border>
+        <StackPanel Grid.Row="0" Margin="0,0,0,10">
+            <TextBlock Text="Played songs" FontSize="16" FontWeight="Bold" Margin="0,0,0,10"/>
+        </StackPanel>
+        <!-- Played Songs -->
+        <Border BorderBrush="Black" BorderThickness="1" Padding="10" Margin="0,0,0,10">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" >
+                <StackPanel Margin="20">
+                    <TextBlock Text="{Binding AmountOfSongs}" FontSize="24" FontWeight="Bold" TextAlignment="Center"/>
+                    <TextBlock Text="Total" HorizontalAlignment="Center"/>
+                </StackPanel>
+                <StackPanel Margin="20">
+                    <TextBlock Text="{Binding AmountOfSongsThisWeek}" FontSize="24" FontWeight="Bold" TextAlignment="Center"/>
+                    <TextBlock Text="This week" HorizontalAlignment="Center"/>
+                </StackPanel>
+                <StackPanel Margin="20">
+                    <TextBlock Text="{Binding AmountOfSongsThisMonth}" FontSize="24" FontWeight="Bold" TextAlignment="Center"/>
+                    <TextBlock Text="This month" HorizontalAlignment="Center"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
 
-            <!-- Total Hours -->
-            <TextBlock Text="Total hours" FontSize="24" FontWeight="Bold" Margin="0,10,0,5"/>
-            <Border BorderBrush="Black" BorderThickness="1">
-                <UniformGrid Columns="3" Margin="0,0,0,20">
-                    <StackPanel HorizontalAlignment="Center">
-                        <TextBlock Text="56" FontSize="28" FontWeight="Bold" TextAlignment="Center"/>
-                        <TextBlock Text="Total" FontSize="14" TextAlignment="Center"/>
-                    </StackPanel>
+        <StackPanel Grid.Row="1" Margin="0,0,0,10">
+            <TextBlock Text="Hours played" FontSize="16" FontWeight="Bold" Margin="0,0,0,10"/>
+        </StackPanel>
+        
+        <!-- Hours Played -->
+        <Border BorderBrush="Black" BorderThickness="1" Padding="10" Grid.Row="1" Margin="0,0,0,10">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <StackPanel Margin="20">
+                    <TextBlock Text="56" FontSize="24" FontWeight="Bold" TextAlignment="Center"/>
+                    <TextBlock Text="Total" HorizontalAlignment="Center"/>
+                </StackPanel>
+                <StackPanel Margin="20">
+                    <TextBlock Text="10" FontSize="24" FontWeight="Bold" TextAlignment="Center"/>
+                    <TextBlock Text="This week" HorizontalAlignment="Center"/>
+                </StackPanel>
+                <StackPanel Margin="20">
+                    <TextBlock Text="45" FontSize="24" FontWeight="Bold" TextAlignment="Center"/>
+                    <TextBlock Text="This month" HorizontalAlignment="Center"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
 
-                    <StackPanel HorizontalAlignment="Center">
-                        <TextBlock Text="10" FontSize="28" FontWeight="Bold" TextAlignment="Center"/>
-                        <TextBlock Text="This week" FontSize="14" TextAlignment="Center"/>
-                    </StackPanel>
-
-                    <StackPanel HorizontalAlignment="Center">
-                        <TextBlock Text="45" FontSize="28" FontWeight="Bold" TextAlignment="Center"/>
-                        <TextBlock Text="This month" FontSize="14" TextAlignment="Center"/>
-                    </StackPanel>
-
-                </UniformGrid>
-            </Border>
-
-            <!-- Last Played -->
-            <TextBlock FontSize="20" FontWeight="Bold" Margin="0,10,0,0">
-                <Run Text="Last played: " />
+        <!-- Last played info -->
+        <StackPanel Grid.Row="2" Margin="0,0,0,10">
+            <TextBlock FontSize="16" FontWeight="Bold" Margin="0,0,0,10">
+               <Run Text="Last played: " />
                 <Run Text="{Binding LastPlayedSong}" />
             </TextBlock>
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-
-                <!-- Linksboven -->
-                <Border Grid.Row="0" Grid.Column="0" Background="LightGray" Margin="5">
-                    <StackPanel>
-                        <TextBlock Text="Alle scores" FontSize="16"/>
-                        <ListBox x:Name="ScoreListBox" Height="Auto" Width="Auto" FontSize="14" />
-                    </StackPanel>
-                </Border>
-
-                <!-- Rechtsboven -->
-                <Border Grid.Row="0" Grid.Column="1" Background="LightGray" Margin="5">
-                    <Grid>
-                        <StackPanel>
-                            <TextBlock Text="Algemeen" FontSize="16" />
-                            <Label Content="Duur:" FontSize="14" FontWeight="Bold"></Label>
-                            <TextBlock FontSize="14" Text="{Binding Duration}"></TextBlock>
-                            <Label Content="Laatste Score:" FontSize="14" FontWeight="Bold"></Label>
-                            <TextBlock FontSize="14" Text="{Binding LastScore}"></TextBlock>
-                            <Label Content="Gemiddelde tijd in sessie:" FontSize="14" FontWeight="Bold"></Label>
-                            <TextBlock FontSize="14" Text="{Binding AverageTimeSession}"></TextBlock>
-                        </StackPanel>
-                    </Grid>
-                </Border>
-
-                <!-- Rechtsonder -->
-                <Border Grid.Row="1" Grid.Column="1" Background="LightGray" Margin="5">
-                </Border>
-            </Grid>
-            <!--<TextBlock Text="{Binding MyModel.Title, RelativeSource={RelativeSource AncestorType=Window}}" FontSize="16" />
-                <oxy:PlotView x:Name="NotePlot" Model="{Binding NoteBarModel, RelativeSource={RelativeSource AncestorType=Window}}" Height="400" />
-                <oxy:PlotView Model="{Binding MyModel, RelativeSource={RelativeSource AncestorType=Window}}" Height="250" VerticalAlignment="Top"/>-->
         </StackPanel>
-    </ScrollViewer>
+
+        <Grid Grid.Row="3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- All Scores -->
+            <Border Grid.Row="0" Grid.Column="0" BorderBrush="Black" BorderThickness="1" Margin="5" Padding="5">
+                <StackPanel>
+                    <TextBlock Text="All scores" FontWeight="Bold"/>
+                    <ListBox x:Name="ScoreListBox" />
+                </StackPanel>
+            </Border>
+
+            <!-- General -->
+            <Border Grid.Row="0" Grid.Column="1" BorderBrush="Black" BorderThickness="1" Margin="5" Padding="5">
+                <StackPanel>
+                    <TextBlock Text="General" FontWeight="Bold"/>
+                    <TextBlock Text="Duur sessie:" FontWeight="Bold" FontSize="14"/>
+                    <TextBlock Text="{Binding session.Duration}"/>
+                    <TextBlock Text="Score:" FontWeight="Bold" FontSize="14"/>
+                    <TextBlock Text="{Binding LastScore}"/>
+                    <TextBlock Text="Gemiddelde tijd in sessies:" FontWeight="Bold" FontSize="14"/>
+                    <TextBlock Text="Duur lied:" FontWeight="Bold" FontSize="14"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Notes played -->
+            <Border Grid.Row="1" Grid.Column="0" BorderBrush="Black" BorderThickness="1" Margin="5" Padding="5">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Text="Noten:" Grid.Column="0"/>
+                    <TextBlock Text="Aantal:" Grid.Column="1"/>
+                    <ListBox Grid.Row="1" Grid.Column="2"
+                             ItemsSource="{Binding Notes}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock>
+                                    <Run Text="{Binding Key, Mode=OneWay}"/>
+                                    <Run Text=" - " />
+                                    <Run Text="{Binding Value, Mode=OneWay}"/>
+                                </TextBlock>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                   
+                </Grid>
+            </Border>
+
+            <!-- Highscores -->
+            <Border Grid.Row="1" Grid.Column="1" BorderBrush="Black" BorderThickness="1" Margin="5" Padding="5">
+                <StackPanel>
+                    <TextBlock Text="Highscores" FontWeight="Bold"/>
+                    <ListBox>
+                        <ListBoxItem Content="1. 55"/>
+                        <ListBoxItem Content="2. 34"/>
+                        <ListBoxItem Content="3. 23"/>
+                        <ListBoxItem Content="4. 15"/>
+                        <ListBoxItem Content="5. 12"/>
+                    </ListBox>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+
 </Window>

@@ -995,7 +995,8 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
             using (var connection = new SQLiteConnection(_connectionString))
             {
                 connection.Open();
-                string query = "SELECT * FROM Session WHERE Date >= date('now', 'weekday 0', '-6 days') AND Date <= date('now', 'weekday 0', '+0 days');";
+                string query = "SELECT *FROM Session WHERE substr(Date, 1, 10) BETWEEN date('now', 'weekday 2') AND date('now', 'weekday 1', '+6 days');";
+                //string query = "SELECT * FROM Session WHERE Date >= date('now', 'weekday 0', '-6 days') AND Date <= date('now', 'weekday 0', '+0 days');";
                 using (var command = new SQLiteCommand(query, connection)) 
                 {
                     object result = command.ExecuteScalar();

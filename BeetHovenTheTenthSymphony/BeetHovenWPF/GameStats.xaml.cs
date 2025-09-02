@@ -23,7 +23,7 @@ namespace BeetHovenWPF
             loadModel();
 
             List<int> scoreList = _gameStatsService.GetScoreBoardData();
-            ScoreListBox.ItemsSource = scoreList;
+            //ScoreListBox.ItemsSource = scoreList;
 
 
             this.DataContext = _gameStatsService;

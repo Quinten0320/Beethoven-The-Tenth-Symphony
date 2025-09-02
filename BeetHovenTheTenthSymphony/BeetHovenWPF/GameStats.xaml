@@ -12,14 +12,16 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="0" Margin="0,0,0,10">
-            <TextBlock Text="Played songs" FontSize="16" FontWeight="Bold" Margin="0,0,0,10"/>
+        <StackPanel Grid.Row="0" Margin="0,0,0,5">
+            <TextBlock Text="Played songs" FontSize="24" FontWeight="Bold"/>
         </StackPanel>
+        
         <!-- Played Songs -->
-        <Border BorderBrush="Black" BorderThickness="1" Padding="10" Margin="0,0,0,10">
+        <Border Grid.Row="1" BorderBrush="Black" BorderThickness="1" Padding="10" Grid.RowSpan="2">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" >
                 <StackPanel Margin="20">
                     <TextBlock Text="{Binding AmountOfSongs}" FontSize="24" FontWeight="Bold" TextAlignment="Center"/>
@@ -36,12 +38,12 @@
             </StackPanel>
         </Border>
 
-        <StackPanel Grid.Row="1" Margin="0,0,0,10">
-            <TextBlock Text="Hours played" FontSize="16" FontWeight="Bold" Margin="0,0,0,10"/>
+        <!--<StackPanel Grid.Row="2" Margin="0,0,0,10">
+            <TextBlock Text="Hours played" FontSize="16" FontWeight="Bold"/>
         </StackPanel>
         
-        <!-- Hours Played -->
-        <Border BorderBrush="Black" BorderThickness="1" Padding="10" Grid.Row="1" Margin="0,0,0,10">
+        --><!-- Hours Played --><!--
+        <Border Grid.Row="3" BorderBrush="Black" BorderThickness="1" Padding="10" Margin="0,0,0,10">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                 <StackPanel Margin="20">
                     <TextBlock Text="56" FontSize="24" FontWeight="Bold" TextAlignment="Center"/>
@@ -56,17 +58,17 @@
                     <TextBlock Text="This month" HorizontalAlignment="Center"/>
                 </StackPanel>
             </StackPanel>
-        </Border>
+        </Border>-->
 
-        <!-- Last played info -->
-        <StackPanel Grid.Row="2" Margin="0,0,0,10">
+        <!-- Last played info --><!--
+        <StackPanel Grid.Row="4" Margin="0,0,0,10">
             <TextBlock FontSize="16" FontWeight="Bold" Margin="0,0,0,10">
                <Run Text="Last played: " />
                 <Run Text="{Binding LastPlayedSong}" />
             </TextBlock>
         </StackPanel>
 
-        <Grid Grid.Row="3">
+        <Grid Grid.Row="5">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
@@ -76,7 +78,7 @@
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <!-- All Scores -->
+            --><!-- All Scores --><!--
             <Border Grid.Row="0" Grid.Column="0" BorderBrush="Black" BorderThickness="1" Margin="5" Padding="5">
                 <StackPanel>
                     <TextBlock Text="All scores" FontWeight="Bold"/>
@@ -84,7 +86,7 @@
                 </StackPanel>
             </Border>
 
-            <!-- General -->
+            --><!-- General --><!--
             <Border Grid.Row="0" Grid.Column="1" BorderBrush="Black" BorderThickness="1" Margin="5" Padding="5">
                 <StackPanel>
                     <TextBlock Text="General" FontWeight="Bold"/>
@@ -97,7 +99,7 @@
                 </StackPanel>
             </Border>
 
-            <!-- Notes played -->
+            --><!-- Notes played --><!--
             <Border Grid.Row="1" Grid.Column="0" BorderBrush="Black" BorderThickness="1" Margin="5" Padding="5">
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -126,7 +128,7 @@
                 </Grid>
             </Border>
 
-            <!-- Highscores -->
+            --><!-- Highscores --><!--
             <Border Grid.Row="1" Grid.Column="1" BorderBrush="Black" BorderThickness="1" Margin="5" Padding="5">
                 <StackPanel>
                     <TextBlock Text="Highscores" FontWeight="Bold"/>
@@ -139,7 +141,7 @@
                     </ListBox>
                 </StackPanel>
             </Border>
-        </Grid>
+        </Grid>-->
     </Grid>
 
 </Window>

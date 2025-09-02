@@ -27,8 +27,6 @@ namespace BeethovenBusiness.NewFolder
         public List<KeyValuePair<string, int>> Notes { get; private set; }
         public Session session { get; set; }
 
-        pu
-
         private IData _data;
         private Session _sessionDetails;
         private string _folderPath = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\..\..\BeethovenDataAccesLayer\MidiFiles"));

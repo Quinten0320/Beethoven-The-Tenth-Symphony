@@ -21,28 +21,67 @@
         </StackPanel>
         
         <!-- Played Songs -->
-        <Border Grid.Row="1" BorderBrush="Black" BorderThickness="1" Padding="10" Grid.RowSpan="2">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" >
-                <StackPanel Margin="20">
+        <Border Grid.Row="1" BorderBrush="Black" BorderThickness="1" Padding="10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" HorizontalAlignment="Center">
                     <TextBlock Text="{Binding AmountOfSongs}" FontSize="24" FontWeight="Bold" TextAlignment="Center"/>
                     <TextBlock Text="Total" HorizontalAlignment="Center"/>
                 </StackPanel>
-                <StackPanel Margin="20">
+
+                <StackPanel Grid.Column="1" HorizontalAlignment="Center">
                     <TextBlock Text="{Binding AmountOfSongsThisWeek}" FontSize="24" FontWeight="Bold" TextAlignment="Center"/>
                     <TextBlock Text="This week" HorizontalAlignment="Center"/>
                 </StackPanel>
-                <StackPanel Margin="20">
+
+                <StackPanel Grid.Column="2" HorizontalAlignment="Center">
                     <TextBlock Text="{Binding AmountOfSongsThisMonth}" FontSize="24" FontWeight="Bold" TextAlignment="Center"/>
                     <TextBlock Text="This month" HorizontalAlignment="Center"/>
                 </StackPanel>
-            </StackPanel>
+            </Grid>
         </Border>
+
+        <StackPanel Grid.Row="2" Margin="0,25,0,10">
+            <TextBlock Text="Hours played" FontSize="24" FontWeight="Bold"/>
+        </StackPanel>
+
+        <!-- Hours Played -->
+        <Border Grid.Row="3" BorderBrush="Black" BorderThickness="1" Padding="10" Margin="0,0,0,10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" HorizontalAlignment="Center">
+                    <TextBlock Text="{Binding AmountOfHours}" FontSize="24" FontWeight="Bold" TextAlignment="Center"/>
+                    <TextBlock Text="Total" HorizontalAlignment="Center"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" HorizontalAlignment="Center">
+                    <TextBlock Text="{Binding AmountOfHoursThisWeek}" FontSize="24" FontWeight="Bold" TextAlignment="Center"/>
+                    <TextBlock Text="This week" HorizontalAlignment="Center"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" HorizontalAlignment="Center">
+                    <TextBlock Text="45" FontSize="24" FontWeight="Bold" TextAlignment="Center"/>
+                    <TextBlock Text="This month" HorizontalAlignment="Center"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
 
         <!--<StackPanel Grid.Row="2" Margin="0,0,0,10">
             <TextBlock Text="Hours played" FontSize="16" FontWeight="Bold"/>
         </StackPanel>
         
-        --><!-- Hours Played --><!--
+         --><!--Hours Played--><!-- 
         <Border Grid.Row="3" BorderBrush="Black" BorderThickness="1" Padding="10" Margin="0,0,0,10">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                 <StackPanel Margin="20">

@@ -68,6 +68,9 @@ namespace BeethovenBusiness.Interfaces
         int GetTotalAmountOfSongs();
         int GetAmountOfSongsThisWeek();
         int GetAmountOfSongsthisMont();
+
+        double GetTotalAmountOFHours();
+        double GetAmountOfHoursThisWeek();
         Session getSessionDetails();
         Song GetSongDetails(int songID);
         List<int> GetScoresBySongId(int songID);

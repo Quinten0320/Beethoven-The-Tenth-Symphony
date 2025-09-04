@@ -15,9 +15,14 @@ namespace BeethovenBusiness.NewFolder
 {
     public class GameStatsService
     {
+        // Played song vars
         public int AmountOfSongs {get; set;}
         public int AmountOfSongsThisWeek { get; set; }
         public int AmountOfSongsThisMonth { get; set; }
+
+        // Total hours vars
+        public double AmountOfHours { get; set; }
+        public double AmountOfHoursThisWeek { get; set; }
 
         public string LastPlayedSong { get; set; }
         public List<int> scores { get; private set; }
@@ -42,6 +47,9 @@ namespace BeethovenBusiness.NewFolder
             AmountOfSongs = GetTotalAmountOfSongs();
             AmountOfSongsThisWeek = _data.GetAmountOfSongsThisWeek();
             AmountOfSongsThisMonth = GetAmountOfSongsthisMont();
+
+            AmountOfHours = Math.Round(_data.GetTotalAmountOFHours(), 2);
+            AmountOfHoursThisWeek = Math.Round(_data.GetAmountOfHoursThisWeek(), 2);
 
 
             _sessionDetails = GetSessionDetails();

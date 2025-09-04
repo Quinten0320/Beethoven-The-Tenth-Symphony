@@ -881,6 +881,7 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
 
         #region Game Statistics
 
+        //Session functions
         public void saveSessionDetails(double duration, string date, string title)
         {
             string query = "INSERT INTO Session (Duration, Date, SongID) VALUES (@Duration, @Date, @SongID);";
@@ -926,6 +927,7 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
             return recentSession;
         }
 
+        //Song functions
         public Song GetSongDetails(int songID)
         {
             Song songDetails = null;
@@ -995,16 +997,47 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
             using (var connection = new SQLiteConnection(_connectionString))
             {
                 connection.Open();
-                string query = "SELECT *FROM Session WHERE substr(Date, 1, 10) BETWEEN date('now', 'weekday 2') AND date('now', 'weekday 1', '+6 days');";
-                //string query = "SELECT * FROM Session WHERE Date >= date('now', 'weekday 0', '-6 days') AND Date <= date('now', 'weekday 0', '+0 days');";
+                string query = "SELECT COUNT(*) FROM Session WHERE DATE(Date) >= DATE('now', 'weekday 0', '-7 days');";
                 using (var command = new SQLiteCommand(query, connection)) 
                 {
                     object result = command.ExecuteScalar();
+                    Debug.WriteLine(Convert.ToInt32(result));
                     return Convert.ToInt32(result);
                 }
             }
-
         }
+
+        // Hour functions
+        public double GetTotalAmountOFHours()
+        {
+
+            using (var connection = new SQLiteConnection(_connectionString))
+            {
+                connection.Open();
+                string query = "SELECT SUM(Duration) FROM Session";
+                using (var command = new SQLiteCommand(query, connection))
+                {
+                    object result = command.ExecuteScalar();
+                    return Convert.ToDouble(result);
+                }
+            }
+        }
+
+        public double GetAmountOfHoursThisWeek()
+        {
+            using (var connection = new SQLiteConnection(_connectionString))
+            {
+                connection.Open();
+                string query = "SELECT SUM(Duration) FROM Session WHERE DATE(Date) >= DATE('now', 'weekday 0', '-7 days');";
+                using (var command = new SQLiteCommand(query, connection))
+                {
+                    object result = command.ExecuteScalar();
+                    return Convert.ToDouble(result);
+                }
+            }
+        }
+
+
 
         public List<int> GetScoresBySongId(int songId)
         {

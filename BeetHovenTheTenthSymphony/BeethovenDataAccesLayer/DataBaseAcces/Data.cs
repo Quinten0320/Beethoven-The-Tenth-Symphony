@@ -1037,6 +1037,34 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
             }
         }
 
+        public double GetAmountOfHoursThisMonth()
+        {
+            using (var connection = new SQLiteConnection(_connectionString))
+            {
+                connection.Open();
+                string query = "SELECT SUM(Duration) FROM Session WHERE strftime('%Y-%m', Date) = strftime('%Y-%m', 'now');";
+                using (var command = new SQLiteCommand(query, connection))
+                {
+                    object result = command.ExecuteScalar();
+                    return Convert.ToDouble(result);
+                }
+            }
+        }
+
+        public double GetAverageTimeSession()
+        {
+            using (var connection = new SQLiteConnection(_connectionString))
+            {
+                connection.Open();
+                string query = "SELECT AVG(Duration) FROM Session;";
+                using (var command = new SQLiteCommand(query, connection))
+                {
+                    object result = command.ExecuteScalar();
+                    return Math.Round(Convert.ToDouble(result), 2);
+                }
+            }
+        }
+
 
 
         public List<int> GetScoresBySongId(int songId)
@@ -1063,6 +1091,31 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
             }
 
             return scores;
+        }
+
+        public List<int> GetHighScores()
+        {
+            var scores = new List<int>();
+
+            using (var connection = new SQLiteConnection(_connectionString))
+            {
+                connection.Open();
+                string query = "SELECT Score FROM Score ORDER BY Score DESC LIMIT 10;";
+
+                using (var command = new SQLiteCommand(query, connection))
+                {
+
+                    using (var reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            scores.Add(Convert.ToInt32(reader.GetValue(0)));
+                        }
+                    }
+                }
+            }
+
+             return scores;
         }
         #endregion
     }

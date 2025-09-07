@@ -15,20 +15,24 @@ namespace BeethovenBusiness.NewFolder
 {
     public class GameStatsService
     {
-        // Played song vars
+        // Played song display vars
         public int AmountOfSongs {get; set;}
         public int AmountOfSongsThisWeek { get; set; }
         public int AmountOfSongsThisMonth { get; set; }
 
-        // Total hours vars
+        // Hours display vars
         public double AmountOfHours { get; set; }
         public double AmountOfHoursThisWeek { get; set; }
+        public double AmountOfHoursThisMonth { get; set; }
 
+        // Last played song display vars
         public string LastPlayedSong { get; set; }
         public List<int> scores { get; private set; }
+        public List<int> HighScores { get; private set; }
         public double Duration { get; set; }
         public int LastScore { get; set; }
         public double AverageTimeSession { get; set; }
+        public double DurationSong { get; set; }
         public List<KeyValuePair<string, int>> Notes { get; private set; }
         public Session session { get; set; }
 
@@ -44,17 +48,12 @@ namespace BeethovenBusiness.NewFolder
 
         public void initialize()
         {
-            AmountOfSongs = GetTotalAmountOfSongs();
-            AmountOfSongsThisWeek = _data.GetAmountOfSongsThisWeek();
-            AmountOfSongsThisMonth = GetAmountOfSongsthisMont();
-
-            AmountOfHours = Math.Round(_data.GetTotalAmountOFHours(), 2);
-            AmountOfHoursThisWeek = Math.Round(_data.GetAmountOfHoursThisWeek(), 2);
-
-
             _sessionDetails = GetSessionDetails();
             session = _sessionDetails;
             scores = _data.GetScoresBySongId(_sessionDetails.SongID);
+            scores.Reverse();
+
+            HighScores = _data.GetHighScores();
 
             if (_sessionDetails != null)
             {
@@ -62,6 +61,26 @@ namespace BeethovenBusiness.NewFolder
                 Duration = _sessionDetails.Duration;
                 Notes = GetNoteCounts(getPath(LastPlayedSong)).ToList();
             }
+
+            // Played song display vars
+            AmountOfSongs = GetTotalAmountOfSongs();
+            AmountOfSongsThisWeek = _data.GetAmountOfSongsThisWeek();
+            AmountOfSongsThisMonth = GetAmountOfSongsthisMont();
+
+            //Hours display vars
+            AmountOfHours = Math.Round(_data.GetTotalAmountOFHours(), 2);
+            AmountOfHoursThisWeek = Math.Round(_data.GetAmountOfHoursThisWeek(), 2);
+            AmountOfHoursThisMonth = Math.Round(_data.GetAmountOfHoursThisMonth(), 2);
+
+            //Last played song display vars
+            AverageTimeSession = _data.GetAverageTimeSession();
+            LastScore = scores[0];
+            DurationSong = Math.Round(getSongDetails(_sessionDetails.SongID).Duration, 2);
+
+
+
+
+
         }
 
         public void SaveSessionDetails(double duration, string date, string title)

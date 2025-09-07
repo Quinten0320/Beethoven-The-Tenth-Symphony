@@ -71,9 +71,12 @@ namespace BeethovenBusiness.Interfaces
 
         double GetTotalAmountOFHours();
         double GetAmountOfHoursThisWeek();
+        double GetAmountOfHoursThisMonth();
+        double GetAverageTimeSession();
         Session getSessionDetails();
         Song GetSongDetails(int songID);
         List<int> GetScoresBySongId(int songID);
+        List<int> GetHighScores();
         #endregion
     }
 }

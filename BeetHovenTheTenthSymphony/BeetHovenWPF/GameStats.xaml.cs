@@ -26,13 +26,6 @@ namespace BeetHovenWPF
             ScoreListBox.ItemsSource = scoreList;
 
 
-           // //Data ophalen of simuleren
-           // List<int> notenAantal = new List<int> { 5, 3, 7, 2, 6, 4, 1 }; // Bijvoorbeeld
-
-            // //Model aanmaken via aparte methode
-            //NoteBarModel = CreateNoteBarModel(notenAantal);
-
-
             this.DataContext = _gameStatsService;
         }
 

@@ -66,10 +66,17 @@ namespace BeethovenBusiness.Interfaces
         #region Game statistics
         void saveSessionDetails(double duration, string date, string title);
         int GetTotalAmountOfSongs();
+        int GetAmountOfSongsThisWeek();
         int GetAmountOfSongsthisMont();
+
+        double GetTotalAmountOFHours();
+        double GetAmountOfHoursThisWeek();
+        double GetAmountOfHoursThisMonth();
+        double GetAverageTimeSession();
         Session getSessionDetails();
         Song GetSongDetails(int songID);
         List<int> GetScoresBySongId(int songID);
+        List<int> GetHighScores();
         #endregion
     }
 }

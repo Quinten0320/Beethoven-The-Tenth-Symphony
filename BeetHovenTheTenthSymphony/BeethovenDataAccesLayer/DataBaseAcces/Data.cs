@@ -881,6 +881,7 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
 
         #region Game Statistics
 
+        //Session functions
         public void saveSessionDetails(double duration, string date, string title)
         {
             string query = "INSERT INTO Session (Duration, Date, SongID) VALUES (@Duration, @Date, @SongID);";
@@ -926,6 +927,7 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
             return recentSession;
         }
 
+        //Song functions
         public Song GetSongDetails(int songID)
         {
             Song songDetails = null;
@@ -990,6 +992,81 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
             }
         }
 
+        public int GetAmountOfSongsThisWeek()
+        {
+            using (var connection = new SQLiteConnection(_connectionString))
+            {
+                connection.Open();
+                string query = "SELECT COUNT(*) FROM Session WHERE DATE(Date) >= DATE('now', 'weekday 0', '-7 days');";
+                using (var command = new SQLiteCommand(query, connection)) 
+                {
+                    object result = command.ExecuteScalar();
+                    Debug.WriteLine(Convert.ToInt32(result));
+                    return Convert.ToInt32(result);
+                }
+            }
+        }
+
+        // Hour functions
+        public double GetTotalAmountOFHours()
+        {
+
+            using (var connection = new SQLiteConnection(_connectionString))
+            {
+                connection.Open();
+                string query = "SELECT SUM(Duration) FROM Session";
+                using (var command = new SQLiteCommand(query, connection))
+                {
+                    object result = command.ExecuteScalar();
+                    return Convert.ToDouble(result);
+                }
+            }
+        }
+
+        public double GetAmountOfHoursThisWeek()
+        {
+            using (var connection = new SQLiteConnection(_connectionString))
+            {
+                connection.Open();
+                string query = "SELECT SUM(Duration) FROM Session WHERE DATE(Date) >= DATE('now', 'weekday 0', '-7 days');";
+                using (var command = new SQLiteCommand(query, connection))
+                {
+                    object result = command.ExecuteScalar();
+                    return Convert.ToDouble(result);
+                }
+            }
+        }
+
+        public double GetAmountOfHoursThisMonth()
+        {
+            using (var connection = new SQLiteConnection(_connectionString))
+            {
+                connection.Open();
+                string query = "SELECT SUM(Duration) FROM Session WHERE strftime('%Y-%m', Date) = strftime('%Y-%m', 'now');";
+                using (var command = new SQLiteCommand(query, connection))
+                {
+                    object result = command.ExecuteScalar();
+                    return Convert.ToDouble(result);
+                }
+            }
+        }
+
+        public double GetAverageTimeSession()
+        {
+            using (var connection = new SQLiteConnection(_connectionString))
+            {
+                connection.Open();
+                string query = "SELECT AVG(Duration) FROM Session;";
+                using (var command = new SQLiteCommand(query, connection))
+                {
+                    object result = command.ExecuteScalar();
+                    return Math.Round(Convert.ToDouble(result), 2);
+                }
+            }
+        }
+
+
+
         public List<int> GetScoresBySongId(int songId)
         {
             var scores = new List<int>();
@@ -1014,6 +1091,31 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
             }
 
             return scores;
+        }
+
+        public List<int> GetHighScores()
+        {
+            var scores = new List<int>();
+
+            using (var connection = new SQLiteConnection(_connectionString))
+            {
+                connection.Open();
+                string query = "SELECT Score FROM Score ORDER BY Score DESC LIMIT 10;";
+
+                using (var command = new SQLiteCommand(query, connection))
+                {
+
+                    using (var reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            scores.Add(Convert.ToInt32(reader.GetValue(0)));
+                        }
+                    }
+                }
+            }
+
+             return scores;
         }
         #endregion
     }

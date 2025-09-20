@@ -74,7 +74,7 @@ namespace BeethovenBusiness.NewFolder
 
             //Last played song display vars
             AverageTimeSession = _data.GetAverageTimeSession();
-            LastScore = scores[0];
+            LastScore = (scores != null && scores.Count > 0) ? scores[0] : 0;
             DurationSong = Math.Round(getSongDetails(_sessionDetails.SongID).Duration, 2);
 
 
@@ -90,8 +90,8 @@ namespace BeethovenBusiness.NewFolder
 
         public Session GetSessionDetails()
         {
-
-            return _data.getSessionDetails();
+             
+            return _data.getSessionDetails() ?? new Session { Id = 0, Duration = 0, Date = DateTime.Today.ToString(), SongID=1};
         }
 
         public void updateSessionDetails()

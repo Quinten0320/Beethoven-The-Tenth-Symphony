@@ -1018,7 +1018,8 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
                 using (var command = new SQLiteCommand(query, connection))
                 {
                     object result = command.ExecuteScalar();
-                    return Convert.ToDouble(result);
+                    double returnVal = result == DBNull.Value ? 0 : Convert.ToDouble(result);
+                    return returnVal;
                 }
             }
         }
@@ -1032,7 +1033,8 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
                 using (var command = new SQLiteCommand(query, connection))
                 {
                     object result = command.ExecuteScalar();
-                    return Convert.ToDouble(result);
+                    double returnVal = result == DBNull.Value ? 0 : Convert.ToDouble(result);
+                    return returnVal;
                 }
             }
         }
@@ -1046,7 +1048,8 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
                 using (var command = new SQLiteCommand(query, connection))
                 {
                     object result = command.ExecuteScalar();
-                    return Convert.ToDouble(result);
+                    double returnVal = result == DBNull.Value ? 0 : Convert.ToDouble(result);
+                    return returnVal;
                 }
             }
         }
@@ -1060,7 +1063,8 @@ namespace BeethovenDataAccesLayer.DataBaseAcces
                 using (var command = new SQLiteCommand(query, connection))
                 {
                     object result = command.ExecuteScalar();
-                    return Math.Round(Convert.ToDouble(result), 2);
+                    double returnVal = result == DBNull.Value ? 0 : Math.Round(Convert.ToDouble(result), 2);
+                    return returnVal;
                 }
             }
         }
